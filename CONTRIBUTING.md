@@ -42,14 +42,14 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```sh
-$ npm install git+ssh://git@github.com:stainless-sdks/brapi-typescript.git
+$ npm install git+ssh://git@github.com:brapi-dev/brapi-typescript.git
 ```
 
 Alternatively, to link a local copy of the repo:
 
 ```sh
 # Clone
-$ git clone https://www.github.com/stainless-sdks/brapi-typescript
+$ git clone https://www.github.com/brapi-dev/brapi-typescript
 $ cd brapi-typescript
 
 # With yarn
