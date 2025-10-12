@@ -1,6 +1,6 @@
 {
   "name": "brapi",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "The official TypeScript library for the Brapi API",
   "author": "Brapi <contact@brapi.dev>",
   "types": "dist/index.d.ts",
