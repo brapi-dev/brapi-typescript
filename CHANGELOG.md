@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.3 (2026-01-09)
+
+Full Changelog: [v1.0.2...v1.0.3](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.2...v1.0.3)
+
+### Chores
+
+* break long lines in snippets into multiline ([0ad21db](https://github.com/brapi-dev/brapi-typescript/commit/0ad21db412ef19e1bfaa289dade2d847841e4340))
+* **internal:** codegen related update ([7f1e27e](https://github.com/brapi-dev/brapi-typescript/commit/7f1e27ee7cef8d6e1d85c6aef27aa59b8b15c3c9))
+
 ## 1.0.2 (2025-12-06)
 
 Full Changelog: [v1.0.1...v1.0.2](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.1...v1.0.2)
