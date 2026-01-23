@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.4 (2026-01-17)
+
+Full Changelog: [v1.0.3...v1.0.4](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.3...v1.0.4)
+
+### Chores
+
+* **internal:** update `actions/checkout` version ([740b3a4](https://github.com/brapi-dev/brapi-typescript/commit/740b3a4eb465b3c686fed3df3c275c3f45f26606))
+* **internal:** upgrade babel, qs, js-yaml ([8ae2bf9](https://github.com/brapi-dev/brapi-typescript/commit/8ae2bf9d5f1a41c36bed34aa2c14b0ad6bd642e2))
+
 ## 1.0.3 (2026-01-09)
 
 Full Changelog: [v1.0.2...v1.0.3](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.2...v1.0.3)
