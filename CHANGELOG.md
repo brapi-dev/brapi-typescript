@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.5 (2026-01-24)
+
+Full Changelog: [v1.0.4...v1.0.5](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.4...v1.0.5)
+
+### Chores
+
+* **ci:** upgrade `actions/github-script` ([1d1641d](https://github.com/brapi-dev/brapi-typescript/commit/1d1641d9e01f01f5071de6e1540d406d8e9cd5d0))
+
 ## 1.0.4 (2026-01-17)
 
 Full Changelog: [v1.0.3...v1.0.4](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.3...v1.0.4)
