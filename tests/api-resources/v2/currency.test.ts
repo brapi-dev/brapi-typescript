@@ -8,7 +8,7 @@ const client = new Brapi({
 });
 
 describe('resource currency', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve: only required params', async () => {
     const responsePromise = client.v2.currency.retrieve({ currency: 'USD-BRL,EUR-USD' });
     const rawResponse = await responsePromise.asResponse();
@@ -20,12 +20,12 @@ describe('resource currency', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve: required and optional params', async () => {
     const response = await client.v2.currency.retrieve({ currency: 'USD-BRL,EUR-USD', token: 'token' });
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('listAvailable', async () => {
     const responsePromise = client.v2.currency.listAvailable();
     const rawResponse = await responsePromise.asResponse();
@@ -37,7 +37,7 @@ describe('resource currency', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('listAvailable: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
