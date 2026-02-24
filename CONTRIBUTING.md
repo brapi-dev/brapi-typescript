@@ -60,7 +60,7 @@ $ yarn link brapi
 # With pnpm
 $ pnpm link --global
 $ cd ../my-package
-$ pnpm link -—global brapi
+$ pnpm link --global brapi
 ```
 
 ## Running tests
