@@ -1,4 +1,4 @@
 configured_endpoints: 11
-openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/alisson%2Fbrapi-76a60a630b8eaac37bdec27ffec5cbdf6640fb884186adb08211f1b81832c075.yml
-openapi_spec_hash: 51fab4b9fd59ce7421f3fdf03644c987
+openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/alisson%2Fbrapi-1e2cbfa512cbc93a24e96be3befafd915d8e48fd046d625f6374525b0c135753.yml
+openapi_spec_hash: c2bcb76a765ec4725c2c22be89be8a81
 config_hash: 6f10a67950f65bf850612b59838ad03b
