@@ -4,44 +4,72 @@ import { APIResource } from '../core/resource';
 import { APIPromise } from '../core/api-promise';
 import { RequestOptions } from '../internal/request-options';
 
+/**
+ * Ferramentas auxiliares para descobrir ativos disponíveis e verificar a saúde da API.
+ */
 export class Available extends APIResource {
   /**
-   * Obtenha uma lista completa de todos os tickers (identificadores) de ativos
-   * financeiros (ações, FIIs, BDRs, ETFs, índices) que a API Brapi tem dados
-   * disponíveis para consulta no endpoint `/api/quote/{tickers}`.
+   * Retorna a lista completa de **ações e índices** disponíveis para consulta na API
+   * brapi.
    *
-   * ### Funcionalidade:
+   * ### Funcionalidades
    *
-   * - Retorna arrays separados para `indexes` (índices) e `stocks` (outros ativos).
-   * - Pode ser filtrado usando o parâmetro `search` para encontrar tickers
-   *   específicos.
+   * - **Ações da B3:** Todas as ações, FIIs, BDRs e ETFs negociados na bolsa
+   *   brasileira
+   * - **Índices:** Principais índices do mercado brasileiro (Ibovespa, IBrX, IFIX,
+   *   etc.)
+   * - **Filtro por Nome:** Use `search` para filtrar por código ou nome do ativo
    *
-   * ### Autenticação:
+   * ### Características
    *
-   * Requer token de autenticação via `token` (query) ou `Authorization` (header).
+   * - **Sem Autenticação:** Este endpoint é **público** e não requer token
+   * - **Cache:** Dados cacheados por 15 minutos
+   * - **Atualização automática:** Conforme novos ativos são listados na B3
    *
-   * ### Exemplo de Requisição:
-   *
-   * **Listar todos os tickers disponíveis:**
-   *
-   * ```bash
-   * curl -X GET "https://brapi.dev/api/available?token=SEU_TOKEN"
-   * ```
-   *
-   * **Buscar tickers que contenham 'BBDC':**
+   * ### Exemplos de Uso
    *
    * ```bash
-   * curl -X GET "https://brapi.dev/api/available?search=BBDC&token=SEU_TOKEN"
+   * # Listar todos os ativos
+   * curl "https://brapi.dev/api/available"
+   *
+   * # Buscar por código de ticker
+   * curl "https://brapi.dev/api/available?search=PETR"
+   *
+   * # Buscar por nome da empresa
+   * curl "https://brapi.dev/api/available?search=banco"
    * ```
    *
-   * ### Resposta:
+   * ### Índices Disponíveis
    *
-   * A resposta é um objeto JSON com duas chaves:
+   * - `^BVSP` — Ibovespa (Índice Bovespa)
+   * - `^IBX50` — IBrX 50
+   * - `^IBX100` — IBrX 100
+   * - `^IDIV` — Índice Dividendos
+   * - `^SMLL` — Índice Small Cap
+   * - `^IFIX` — Índice de Fundos Imobiliários
+   * - `^IFNC` — Índice Financeiro
+   * - `^ICON` — Índice de Consumo
+   * - `^IEEX` — Índice de Energia Elétrica
+   * - `^IMOB` — Índice Imobiliário
    *
-   * - `indexes`: Array de strings contendo os tickers dos índices disponíveis (ex:
-   *   `["^BVSP", "^IFIX"]`).
-   * - `stocks`: Array de strings contendo os tickers das ações, FIIs, BDRs e ETFs
-   *   disponíveis (ex: `["PETR4", "VALE3", "ITSA4", "MXRF11"]`).
+   * ### Campos da Resposta
+   *
+   * - `stocks` — Array com códigos das ações (ex: ["PETR4", "VALE3", "ITUB4", ...])
+   * - `indexes` — Array com códigos dos índices (ex: ["^BVSP", "^IFIX", ...])
+   *
+   * ### Como Usar
+   *
+   * Use os códigos retornados como parâmetro no endpoint `/api/quote/{tickers}` para
+   * obter cotações detalhadas.
+   *
+   * **Fonte:** B3 (Bolsa de Valores do Brasil)
+   *
+   * **Plano Mínimo:** Gratuito **Autenticação:** Não necessária (Público)
+   *
+   * @example
+   * ```ts
+   * const availables = await client.available.list();
+   * ```
    */
   list(
     query: AvailableListParams | null | undefined = {},
@@ -51,41 +79,21 @@ export class Available extends APIResource {
   }
 }
 
-/**
- * Resposta do endpoint que lista todos os tickers disponíveis.
- */
 export interface AvailableListResponse {
   /**
-   * Lista de tickers de **índices** disponíveis (ex: `^BVSP`, `^IFIX`).
+   * Lista de índices disponíveis
    */
   indexes: Array<string>;
 
   /**
-   * Lista de tickers de **ações, FIIs, BDRs e ETFs** disponíveis (ex: `PETR4`,
-   * `VALE3`, `MXRF11`).
+   * Lista de códigos de ações disponíveis
    */
   stocks: Array<string>;
 }
 
 export interface AvailableListParams {
   /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
-
-  /**
-   * **Opcional.** Termo para filtrar a lista de tickers (correspondência parcial,
-   * case-insensitive). Se omitido, retorna todos os tickers.
+   * Filtrar ações e índices por nome ou código
    */
   search?: string;
 }

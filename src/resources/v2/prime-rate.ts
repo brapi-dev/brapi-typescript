@@ -4,32 +4,70 @@ import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 
+/**
+ * Acompanhe os principais indicadores econômicos do Brasil, incluindo inflação (IPCA, IGP-M) e Taxa Selic.
+ */
 export class PrimeRate extends APIResource {
   /**
-   * Obtenha informações atualizadas sobre a taxa básica de juros (SELIC) de um país
-   * por um período determinado.
+   * Retorna dados históricos da **Taxa SELIC (Sistema Especial de Liquidação e de
+   * Custódia)**, a taxa básica de juros da economia brasileira, definida pelo COPOM
+   * (Comitê de Política Monetária) do Banco Central.
    *
-   * ### Funcionalidades:
+   * ### Funcionalidades
    *
-   * - **Seleção por País:** Especifique o país desejado usando o parâmetro `country`
-   *   (padrão: brazil).
-   * - **Período Customizado:** Defina datas de início e fim com `start` e `end` para
-   *   consultar um intervalo específico.
-   * - **Ordenação:** Ordene os resultados por data ou valor com os parâmetros
-   *   `sortBy` e `sortOrder`.
-   * - **Dados Históricos:** Solicite o histórico completo ou apenas o valor mais
-   *   recente com o parâmetro `historical`.
+   * - **Dados Diários:** Taxa SELIC diária (meta anualizada, % a.a.)
+   * - **Histórico Completo:** Dados desde janeiro/2000 até a data atual
+   * - **Filtros de Período:** Use `start` e `end` (formato DD/MM/YYYY)
+   * - **Ordenação:** Por data ou valor, crescente ou decrescente
    *
-   * ### Autenticação:
+   * ### Autenticação
    *
-   * Requer token de autenticação via `token` (query) ou `Authorization` (header).
+   * Bearer token ou query param `token`. Requer plano Startup.
    *
-   * ### Exemplo de Requisição:
-   *
-   * **Taxa de juros do Brasil entre dezembro/2021 e janeiro/2022:**
+   * ### Exemplos de Uso
    *
    * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/prime-rate?country=brazil&start=01/12/2021&end=01/01/2022&sortBy=date&sortOrder=desc&token=SEU_TOKEN"
+   * # Padrão (últimos 12 meses)
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate"
+   *
+   * # Histórico completo
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate?historical=true"
+   *
+   * # Período específico
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate?start=01/01/2023&end=31/12/2023"
+   *
+   * # Ordenado por valor (decrescente)
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate?historical=true&sortBy=value&sortOrder=desc"
+   * ```
+   *
+   * ### Parâmetros de Ordenação
+   *
+   * - `sortBy`: `date` (padrão) ou `value`
+   * - `sortOrder`: `desc` (padrão) ou `asc`
+   *
+   * ### Campos da Resposta
+   *
+   * - `date` — Data no formato DD/MM/YYYY
+   * - `value` — Taxa SELIC meta anualizada (% a.a.)
+   * - `epochDate` — Data em timestamp Unix (milissegundos)
+   *
+   * ### Sobre a SELIC
+   *
+   * A SELIC é a taxa básica de juros da economia brasileira e influencia todas as
+   * demais taxas de juros do país (empréstimos, financiamentos, aplicações
+   * financeiras). Ela é definida pelo COPOM a cada 45 dias e serve como referência
+   * para o CDI.
+   *
+   * ### Fonte dos Dados
+   *
+   * Banco Central do Brasil (BCB) — Série temporal 432 do Sistema Gerador de Séries
+   * Temporais (SGS)
+   *
+   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   *
+   * @example
+   * ```ts
+   * const primeRate = await client.v2.primeRate.retrieve();
    * ```
    */
   retrieve(
@@ -40,160 +78,95 @@ export class PrimeRate extends APIResource {
   }
 
   /**
-   * Liste todos os países disponíveis com dados de taxa básica de juros (SELIC) na
-   * API brapi. Este endpoint facilita a descoberta de quais países possuem dados
-   * disponíveis para consulta através do endpoint principal `/api/v2/prime-rate`.
+   * Retorna a lista de países disponíveis para consulta de dados de taxa de juros.
    *
-   * ### Funcionalidades:
+   * ### Países Disponíveis
    *
-   * - **Busca Filtrada:** Utilize o parâmetro `search` para filtrar países por nome
-   *   ou parte do nome.
-   * - **Ideal para Autocomplete:** Perfeito para implementar campos de busca com
-   *   autocompletar em interfaces de usuário.
+   * - **brazil** — Taxa SELIC (Banco Central)
    *
-   * ### Autenticação:
+   * Use o valor retornado como referência para futuras expansões do endpoint.
    *
-   * Requer token de autenticação via `token` (query) ou `Authorization` (header).
-   *
-   * ### Exemplo de Requisição:
-   *
-   * **Listar países que contenham "BR" no nome:**
+   * ### Exemplo de Uso
    *
    * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/prime-rate/available?search=BR&token=SEU_TOKEN"
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate/available"
+   * ```
+   *
+   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.primeRate.listAvailable();
    * ```
    */
-  listAvailable(
-    query: PrimeRateListAvailableParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<PrimeRateListAvailableResponse> {
-    return this._client.get('/api/v2/prime-rate/available', { query, ...options });
+  listAvailable(options?: RequestOptions): APIPromise<PrimeRateListAvailableResponse> {
+    return this._client.get('/api/v2/prime-rate/available', options);
   }
 }
 
-/**
- * Resposta principal do endpoint `/api/v2/prime-rate`.
- */
 export interface PrimeRateRetrieveResponse {
+  'prime-rate': Array<PrimeRateRetrieveResponse.PrimeRate>;
+
   /**
-   * Array contendo os registros históricos de taxa básica de juros (SELIC) para o
-   * país e período solicitados.
+   * Data e hora da requisição em formato ISO 8601
    */
-  'prime-rate'?: Array<PrimeRateRetrieveResponse.PrimeRate>;
+  requestedAt: string;
+
+  /**
+   * Tempo de processamento em milissegundos
+   */
+  took: number;
 }
 
 export namespace PrimeRateRetrieveResponse {
-  /**
-   * Representa um registro individual de taxa básica de juros (SELIC) para uma data
-   * específica.
-   */
   export interface PrimeRate {
-    /**
-     * Data do registro no formato DD/MM/YYYY.
-     */
-    date?: string;
+    date: string;
+
+    epochDate: number;
 
     /**
-     * Timestamp em milissegundos (formato epoch) correspondente à data do registro.
+     * Taxa SELIC meta anualizada (% a.a.)
      */
-    epochDate?: number;
-
-    /**
-     * Valor da taxa básica de juros (SELIC) para a data correspondente.
-     */
-    value?: string;
+    value: string;
   }
 }
 
-/**
- * Resposta do endpoint `/api/v2/prime-rate/available` que lista os países
- * disponíveis para consulta de taxa básica de juros (SELIC).
- */
 export interface PrimeRateListAvailableResponse {
+  countries: Array<string>;
+
+  message: string;
+
   /**
-   * Lista de países com dados de taxa básica de juros (SELIC) disponíveis para
-   * consulta.
+   * Data e hora da requisição em formato ISO 8601
    */
-  countries?: Array<string>;
+  requestedAt: string;
 }
 
 export interface PrimeRateRetrieveParams {
   /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
-
-  /**
-   * **Opcional.** O país do qual você deseja obter informações sobre a taxa básica
-   * de juros. Por padrão, o país é definido como brazil. Você pode consultar a lista
-   * de países disponíveis através do endpoint `/api/v2/prime-rate/available`.
-   */
-  country?: string;
-
-  /**
-   * **Opcional.** Data final do período para busca no formato DD/MM/YYYY. Por padrão
-   * é a data atual. Útil quando `historical=true` para restringir o período da série
-   * histórica.
+   * Data de fim (DD/MM/YYYY)
    */
   end?: string;
 
   /**
-   * **Opcional.** Define se os dados históricos serão retornados. Se definido como
-   * `true`, retorna a série histórica completa. Se `false` (padrão) ou omitido,
-   * retorna apenas o valor mais recente.
+   * Incluir dados históricos (true/false)
    */
-  historical?: boolean;
+  historical?: string;
 
   /**
-   * **Opcional.** Campo pelo qual os resultados serão ordenados. Por padrão, ordena
-   * por `date` (data).
+   * Campo para ordenação (date ou value)
    */
-  sortBy?: 'date' | 'value';
+  sortBy?: string;
 
   /**
-   * **Opcional.** Define se a ordenação será crescente (`asc`) ou decrescente
-   * (`desc`). Por padrão, é `desc` (decrescente).
+   * Ordem de classificação (asc ou desc)
    */
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: string;
 
   /**
-   * **Opcional.** Data inicial do período para busca no formato DD/MM/YYYY. Útil
-   * quando `historical=true` para restringir o período da série histórica.
+   * Data de início (DD/MM/YYYY)
    */
   start?: string;
-}
-
-export interface PrimeRateListAvailableParams {
-  /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
-
-  /**
-   * **Opcional.** Termo para filtrar a lista de países por nome. Retorna países
-   * cujos nomes contenham o termo especificado (case insensitive).
-   */
-  search?: string;
 }
 
 export declare namespace PrimeRate {
@@ -201,6 +174,5 @@ export declare namespace PrimeRate {
     type PrimeRateRetrieveResponse as PrimeRateRetrieveResponse,
     type PrimeRateListAvailableResponse as PrimeRateListAvailableResponse,
     type PrimeRateRetrieveParams as PrimeRateRetrieveParams,
-    type PrimeRateListAvailableParams as PrimeRateListAvailableParams,
   };
 }
