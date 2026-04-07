@@ -4,11 +4,7 @@ export { Available, type AvailableListResponse, type AvailableListParams } from 
 export {
   Quote,
   type BalanceSheetEntry,
-  type CashflowEntry,
-  type DefaultKeyStatisticsEntry,
   type FinancialDataEntry,
-  type IncomeStatementEntry,
-  type ValueAddedEntry,
   type QuoteRetrieveResponse,
   type QuoteListResponse,
   type QuoteRetrieveParams,

@@ -20,7 +20,6 @@ import {
 import * as InflationAPI from './inflation';
 import {
   Inflation,
-  InflationListAvailableParams,
   InflationListAvailableResponse,
   InflationRetrieveParams,
   InflationRetrieveResponse,
@@ -28,7 +27,6 @@ import {
 import * as PrimeRateAPI from './prime-rate';
 import {
   PrimeRate,
-  PrimeRateListAvailableParams,
   PrimeRateListAvailableResponse,
   PrimeRateRetrieveParams,
   PrimeRateRetrieveResponse,
@@ -68,7 +66,6 @@ export declare namespace V2 {
     type InflationRetrieveResponse as InflationRetrieveResponse,
     type InflationListAvailableResponse as InflationListAvailableResponse,
     type InflationRetrieveParams as InflationRetrieveParams,
-    type InflationListAvailableParams as InflationListAvailableParams,
   };
 
   export {
@@ -76,6 +73,5 @@ export declare namespace V2 {
     type PrimeRateRetrieveResponse as PrimeRateRetrieveResponse,
     type PrimeRateListAvailableResponse as PrimeRateListAvailableResponse,
     type PrimeRateRetrieveParams as PrimeRateRetrieveParams,
-    type PrimeRateListAvailableParams as PrimeRateListAvailableParams,
   };
 }

@@ -26,13 +26,11 @@ describe('resource primeRate', () => {
     await expect(
       client.v2.primeRate.retrieve(
         {
-          token: 'token',
-          country: 'country',
-          end: '2019-12-27',
-          historical: true,
+          end: '31/12/2023',
+          historical: 'false',
           sortBy: 'date',
-          sortOrder: 'asc',
-          start: '2019-12-27',
+          sortOrder: 'desc',
+          start: '01/01/2023',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -49,16 +47,5 @@ describe('resource primeRate', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
-  test.skip('listAvailable: request options and params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.v2.primeRate.listAvailable(
-        { token: 'token', search: 'search' },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Brapi.NotFoundError);
   });
 });

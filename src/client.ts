@@ -20,16 +20,12 @@ import { APIPromise } from './core/api-promise';
 import { Available, AvailableListParams, AvailableListResponse } from './resources/available';
 import {
   BalanceSheetEntry,
-  CashflowEntry,
-  DefaultKeyStatisticsEntry,
   FinancialDataEntry,
-  IncomeStatementEntry,
   Quote,
   QuoteListParams,
   QuoteListResponse,
   QuoteRetrieveParams,
   QuoteRetrieveResponse,
-  ValueAddedEntry,
 } from './resources/quote';
 import { V2 } from './resources/v2/v2';
 import { type Fetch } from './internal/builtin-types';
@@ -245,10 +241,9 @@ export class Brapi {
     return;
   }
 
-  protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
-    return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
-  }
-
+  /**
+   * Basic re-implementation of `qs.stringify` for primitive types.
+   */
   protected stringifyQuery(query: object | Record<string, unknown>): string {
     return stringifyQuery(query);
   }
@@ -282,8 +277,9 @@ export class Brapi {
       : new URL(baseURL + (baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
 
     const defaultQuery = this.defaultQuery();
-    if (!isEmptyObj(defaultQuery)) {
-      query = { ...defaultQuery, ...query };
+    const pathQuery = Object.fromEntries(url.searchParams);
+    if (!isEmptyObj(defaultQuery) || !isEmptyObj(pathQuery)) {
+      query = { ...pathQuery, ...defaultQuery, ...query };
     }
 
     if (typeof query === 'object' && query && !Array.isArray(query)) {
@@ -592,9 +588,9 @@ export class Brapi {
       }
     }
 
-    // If the API asks us to wait a certain amount of time (and it's a reasonable amount),
-    // just do what it says, but otherwise calculate a default
-    if (!(timeoutMillis && 0 <= timeoutMillis && timeoutMillis < 60 * 1000)) {
+    // If the API asks us to wait a certain amount of time, just do what it
+    // says, but otherwise calculate a default
+    if (timeoutMillis === undefined) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
@@ -671,7 +667,6 @@ export class Brapi {
         ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
         ...getPlatformHeaders(),
       },
-      await this.authHeaders(options),
       this._options.defaultHeaders,
       bodyHeaders,
       options.headers,
@@ -752,7 +747,13 @@ export class Brapi {
 
   static toFile = Uploads.toFile;
 
+  /**
+   * Consulte informações detalhadas sobre ações, BDRs, ETFs e índices da B3. Obtenha preços em tempo real, dados fundamentalistas, históricos e dividendos.
+   */
   quote: API.Quote = new API.Quote(this);
+  /**
+   * Ferramentas auxiliares para descobrir ativos disponíveis e verificar a saúde da API.
+   */
   available: API.Available = new API.Available(this);
   v2: API.V2 = new API.V2(this);
 }
@@ -767,11 +768,7 @@ export declare namespace Brapi {
   export {
     Quote as Quote,
     type BalanceSheetEntry as BalanceSheetEntry,
-    type CashflowEntry as CashflowEntry,
-    type DefaultKeyStatisticsEntry as DefaultKeyStatisticsEntry,
     type FinancialDataEntry as FinancialDataEntry,
-    type IncomeStatementEntry as IncomeStatementEntry,
-    type ValueAddedEntry as ValueAddedEntry,
     type QuoteRetrieveResponse as QuoteRetrieveResponse,
     type QuoteListResponse as QuoteListResponse,
     type QuoteRetrieveParams as QuoteRetrieveParams,

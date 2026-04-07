@@ -4,69 +4,100 @@ import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 
+/**
+ * Monitore taxas de câmbio entre moedas fiduciárias de todo o mundo, com atualizações frequentes e dados históricos.
+ */
 export class Currency extends APIResource {
   /**
-   * Obtenha cotações atualizadas para um ou mais pares de moedas fiduciárias (ex:
-   * USD-BRL, EUR-USD).
+   * Retorna cotações atualizadas de pares de moedas, com preço de compra/venda,
+   * variação e extremos do dia.
    *
    * ### Funcionalidades:
    *
-   * - **Cotação Múltipla:** Consulte vários pares de moedas em uma única requisição
-   *   usando o parâmetro `currency`.
-   * - **Dados Retornados:** Inclui nome do par, preços de compra (bid) e venda
-   *   (ask), variação, máximas e mínimas, e timestamp da atualização.
-   *
-   * ### Parâmetros:
-   *
-   * - **`currency` (Obrigatório):** Uma lista de pares de moedas separados por
-   *   vírgula, no formato `MOEDA_ORIGEM-MOEDA_DESTINO` (ex: `USD-BRL`, `EUR-USD`).
-   *   Consulte os pares disponíveis em
-   *   [`/api/v2/currency/available`](#/Moedas/getAvailableCurrencies).
-   * - **`token` (Obrigatório):** Seu token de autenticação.
+   * - **Cotação Atual:** Preço de compra (bid), venda (ask), máxima, mínima,
+   *   variação
+   * - **Múltiplos Pares:** Consulte vários em uma requisição (separados por vírgula)
+   * - **Formato:** `ORIGEM-DESTINO` (ex: `USD-BRL`)
    *
    * ### Autenticação:
    *
-   * Requer token de autenticação válido via `token` (query) ou `Authorization`
-   * (header).
+   * Bearer token ou query param `token`. Obtenha em brapi.dev/dashboard.
+   *
+   * ### Exemplos de Requisição:
+   *
+   * ```bash
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency?currency=USD-BRL"
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency?currency=USD-BRL,EUR-BRL,GBP-BRL"
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency?currency=BTC-BRL"
+   * ```
+   *
+   * ### Pares de Moedas Populares:
+   *
+   * - `USD-BRL` — Dólar Americano / Real
+   * - `EUR-BRL` — Euro / Real
+   * - `GBP-BRL` — Libra Esterlina / Real
+   * - `ARS-BRL` — Peso Argentino / Real
+   * - `EUR-USD` — Euro / Dólar
+   * - `BTC-BRL` — Bitcoin / Real
+   * - `ETH-BRL` — Ethereum / Real
+   *
+   * ### Campos da Resposta:
+   *
+   * - `fromCurrency` / `toCurrency` — Par de moedas
+   * - `name` — Nome do par
+   * - `bidPrice` — Preço de compra
+   * - `askPrice` — Preço de venda
+   * - `high` / `low` — Máxima/Mínima do dia
+   * - `bidVariation` — Variação do preço de compra
+   * - `percentageChange` — Variação percentual (%)
+   *
+   * ### Fonte dos Dados:
+   *
+   * Banco Central do Brasil (PTAX) / Yahoo Finance
+   *
+   * **Plano Mínimo:** Startup **Autenticação:** Necessária
+   *
+   * @example
+   * ```ts
+   * const currency = await client.v2.currency.retrieve();
+   * ```
    */
-  retrieve(query: CurrencyRetrieveParams, options?: RequestOptions): APIPromise<CurrencyRetrieveResponse> {
+  retrieve(
+    query: CurrencyRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<CurrencyRetrieveResponse> {
     return this._client.get('/api/v2/currency', { query, ...options });
   }
 
   /**
-   * Obtenha a lista completa de todas as moedas fiduciárias suportadas pela API,
-   * geralmente utilizadas no parâmetro `currency` de outros endpoints (como o de
-   * criptomoedas) ou para futuras funcionalidades de conversão.
+   * Retorna a lista de pares de moedas disponíveis para consulta no endpoint
+   * `/api/v2/currency`.
    *
-   * ### Funcionalidade:
+   * ### Formato:
    *
-   * - Retorna um array `currencies` com os nomes das moedas.
-   * - Pode ser filtrado usando o parâmetro `search`.
+   * ORIGEM-DESTINO, onde ORIGEM é o código da moeda de origem e DESTINO a moeda de
+   * destino
    *
-   * ### Autenticação:
+   * ### Pares Disponíveis:
    *
-   * Requer token de autenticação via `token` (query) ou `Authorization` (header).
+   * - **Moedas Fiduciárias:** USD-BRL, EUR-BRL, GBP-BRL, ARS-BRL, CAD-BRL, AUD-BRL,
+   *   JPY-BRL, CNY-BRL
+   * - **Cross Rates:** EUR-USD, GBP-USD
+   * - **Criptomoedas:** BTC-BRL, ETH-BRL
    *
-   * ### Exemplo de Requisição:
-   *
-   * **Listar todas as moedas disponíveis:**
-   *
-   * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/currency/available?token=SEU_TOKEN"
-   * ```
-   *
-   * **Buscar moedas cujo nome contenha 'Euro':**
+   * ### Exemplos de Requisição:
    *
    * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/currency/available?search=Euro&token=SEU_TOKEN"
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency/available"
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency/available?search=USD"
    * ```
    *
-   * ### Resposta:
+   * **Plano Mínimo:** Startup **Autenticação:** Necessária
    *
-   * A resposta é um objeto JSON com a chave `currencies`, contendo um array de
-   * objetos. Cada objeto possui uma chave `currency` com o nome completo da moeda
-   * (ex: `"Dólar Americano/Real Brasileiro"`). **Nota:** O formato do nome pode
-   * indicar um par de moedas, dependendo do contexto interno da API.
+   * @example
+   * ```ts
+   * const response = await client.v2.currency.listAvailable();
+   * ```
    */
   listAvailable(
     query: CurrencyListAvailableParams | null | undefined = {},
@@ -76,162 +107,68 @@ export class Currency extends APIResource {
   }
 }
 
-/**
- * Estrutura da **resposta principal** do endpoint `GET /api/v2/currency`.
- */
 export interface CurrencyRetrieveResponse {
-  /**
-   * Array contendo os objetos `CurrencyQuote`, um para cada par de moeda válido
-   * solicitado no parâmetro `currency`.
-   */
   currency: Array<CurrencyRetrieveResponse.Currency>;
+
+  /**
+   * Data e hora da requisição em formato ISO 8601
+   */
+  requestedAt: string;
+
+  /**
+   * Tempo de processamento em milissegundos
+   */
+  took: number;
 }
 
 export namespace CurrencyRetrieveResponse {
-  /**
-   * Contém os dados detalhados da cotação de um **par de moedas fiduciárias
-   * específico**, retornado como um elemento do array `currency` no endpoint
-   * `/api/v2/currency`.
-   */
   export interface Currency {
-    /**
-     * **Preço de Venda (Ask):** Preço atual pelo qual o mercado está disposto a vender
-     * a moeda de origem (`fromCurrency`) recebendo a moeda de destino (`toCurrency`).
-     * Formato String.
-     */
     askPrice: string;
 
-    /**
-     * **Preço de Compra (Bid):** Preço atual pelo qual o mercado está disposto a
-     * comprar a moeda de origem (`fromCurrency`) pagando com a moeda de destino
-     * (`toCurrency`). Formato String.
-     */
     bidPrice: string;
 
-    /**
-     * **Variação Absoluta (Bid):** Mudança absoluta no preço de compra (bid) desde o
-     * último fechamento ou período de referência. Formato String.
-     */
     bidVariation: string;
 
-    /**
-     * **Moeda de Origem:** Sigla da moeda base do par (ex: `USD` em `USD-BRL`).
-     */
     fromCurrency: string;
 
-    /**
-     * **Máxima:** Preço mais alto atingido pelo par no período recente (geralmente
-     * diário). Formato String.
-     */
     high: string;
 
-    /**
-     * **Mínima:** Preço mais baixo atingido pelo par no período recente (geralmente
-     * diário). Formato String.
-     */
     low: string;
 
-    /**
-     * **Nome do Par:** Nome descritivo do par de moedas (ex:
-     * `Dólar Americano/Real Brasileiro`).
-     */
     name: string;
 
-    /**
-     * **Variação Percentual:** Mudança percentual no preço do par desde o último
-     * fechamento ou período de referência. Formato String.
-     */
     percentageChange: string;
 
-    /**
-     * **Moeda de Destino:** Sigla da moeda de cotação do par (ex: `BRL` em `USD-BRL`).
-     */
     toCurrency: string;
 
-    /**
-     * **Data da Atualização:** Data e hora da última atualização da cotação, formatada
-     * de forma legível (`YYYY-MM-DD HH:MM:SS`).
-     */
     updatedAtDate: string;
 
-    /**
-     * **Timestamp da Atualização:** Data e hora da última atualização da cotação,
-     * representada como um **timestamp UNIX** (string contendo o número de segundos
-     * desde 1970-01-01 UTC).
-     */
     updatedAtTimestamp: string;
   }
 }
 
-/**
- * Resposta do endpoint que lista todas as moedas fiduciárias disponíveis.
- */
 export interface CurrencyListAvailableResponse {
-  /**
-   * Lista de objetos, cada um contendo o nome de uma moeda fiduciária ou par
-   * suportado pela API.
-   */
-  currencies?: Array<CurrencyListAvailableResponse.Currency>;
+  currencies: Array<CurrencyListAvailableResponse.Currency>;
 }
 
 export namespace CurrencyListAvailableResponse {
   export interface Currency {
-    /**
-     * Nome da moeda ou par de moedas suportado (ex: `Dólar Americano/Real Brasileiro`,
-     * `Euro/Real Brasileiro`). A sigla pode ser extraída deste nome ou consultada em
-     * documentação adicional.
-     */
-    currency?: string;
+    currency: string;
+
+    name: string;
   }
 }
 
 export interface CurrencyRetrieveParams {
   /**
-   * **Obrigatório.** Uma lista de um ou mais pares de moedas a serem consultados,
-   * separados por vírgula (`,`).
-   *
-   * - **Formato:** `MOEDA_ORIGEM-MOEDA_DESTINO` (ex: `USD-BRL`).
-   * - **Disponibilidade:** Consulte os pares válidos usando o endpoint
-   *   [`/api/v2/currency/available`](#/Moedas/getAvailableCurrencies).
-   * - **Exemplo:** `USD-BRL,EUR-BRL,BTC-BRL`
+   * Par(es) de moedas separados por vírgula (ex: USD-BRL,EUR-BRL)
    */
-  currency: string;
-
-  /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
+  currency?: string;
 }
 
 export interface CurrencyListAvailableParams {
   /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
-
-  /**
-   * **Opcional.** Termo para filtrar a lista pelo nome da moeda (correspondência
-   * parcial, case-insensitive).
+   * Filtrar pares de moedas por nome ou descrição
    */
   search?: string;
 }

@@ -3,11 +3,7 @@
 Types:
 
 - <code><a href="./src/resources/quote.ts">BalanceSheetEntry</a></code>
-- <code><a href="./src/resources/quote.ts">CashflowEntry</a></code>
-- <code><a href="./src/resources/quote.ts">DefaultKeyStatisticsEntry</a></code>
 - <code><a href="./src/resources/quote.ts">FinancialDataEntry</a></code>
-- <code><a href="./src/resources/quote.ts">IncomeStatementEntry</a></code>
-- <code><a href="./src/resources/quote.ts">ValueAddedEntry</a></code>
 - <code><a href="./src/resources/quote.ts">QuoteRetrieveResponse</a></code>
 - <code><a href="./src/resources/quote.ts">QuoteListResponse</a></code>
 
@@ -62,7 +58,7 @@ Types:
 Methods:
 
 - <code title="get /api/v2/inflation">client.v2.inflation.<a href="./src/resources/v2/inflation.ts">retrieve</a>({ ...params }) -> InflationRetrieveResponse</code>
-- <code title="get /api/v2/inflation/available">client.v2.inflation.<a href="./src/resources/v2/inflation.ts">listAvailable</a>({ ...params }) -> InflationListAvailableResponse</code>
+- <code title="get /api/v2/inflation/available">client.v2.inflation.<a href="./src/resources/v2/inflation.ts">listAvailable</a>() -> InflationListAvailableResponse</code>
 
 ## PrimeRate
 
@@ -74,4 +70,4 @@ Types:
 Methods:
 
 - <code title="get /api/v2/prime-rate">client.v2.primeRate.<a href="./src/resources/v2/prime-rate.ts">retrieve</a>({ ...params }) -> PrimeRateRetrieveResponse</code>
-- <code title="get /api/v2/prime-rate/available">client.v2.primeRate.<a href="./src/resources/v2/prime-rate.ts">listAvailable</a>({ ...params }) -> PrimeRateListAvailableResponse</code>
+- <code title="get /api/v2/prime-rate/available">client.v2.primeRate.<a href="./src/resources/v2/prime-rate.ts">listAvailable</a>() -> PrimeRateListAvailableResponse</code>
