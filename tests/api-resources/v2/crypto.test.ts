@@ -2,10 +2,7 @@
 
 import Brapi from 'brapi';
 
-const client = new Brapi({
-  apiKey: 'My API Key',
-  baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
-});
+const client = new Brapi({ apiKey: 'My API Key', baseURL: process.env["TEST_API_BASE_URL"] ?? 'http://127.0.0.1:4010' });
 
 describe('resource crypto', () => {
   // Mock server tests are disabled
@@ -23,17 +20,14 @@ describe('resource crypto', () => {
   // Mock server tests are disabled
   test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.v2.crypto.retrieve(
-        {
-          coin: 'BTC,ETH',
-          currency: 'BRL',
-          interval: 'interval',
-          range: 'range',
-        },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Brapi.NotFoundError);
+    await expect(client.v2.crypto.retrieve({
+    coin: 'BTC,ETH',
+    currency: 'BRL',
+    interval: 'interval',
+    range: 'range',
+  }, { path: '/_stainless_unknown_path' }))
+      .rejects
+      .toThrow(Brapi.NotFoundError);
   });
 
   // Mock server tests are disabled
@@ -51,8 +45,8 @@ describe('resource crypto', () => {
   // Mock server tests are disabled
   test.skip('listAvailable: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.v2.crypto.listAvailable({ search: 'BTC' }, { path: '/_stainless_unknown_path' }),
-    ).rejects.toThrow(Brapi.NotFoundError);
+    await expect(client.v2.crypto.listAvailable({ search: 'BTC' }, { path: '/_stainless_unknown_path' }))
+      .rejects
+      .toThrow(Brapi.NotFoundError);
   });
 });

@@ -62,10 +62,7 @@ export class Currency extends APIResource {
    * const currency = await client.v2.currency.retrieve();
    * ```
    */
-  retrieve(
-    query: CurrencyRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<CurrencyRetrieveResponse> {
+  retrieve(query: CurrencyRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<CurrencyRetrieveResponse> {
     return this._client.get('/api/v2/currency', { query, ...options });
   }
 
@@ -99,10 +96,7 @@ export class Currency extends APIResource {
    * const response = await client.v2.currency.listAvailable();
    * ```
    */
-  listAvailable(
-    query: CurrencyListAvailableParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<CurrencyListAvailableResponse> {
+  listAvailable(query: CurrencyListAvailableParams | null | undefined = {}, options?: RequestOptions): APIPromise<CurrencyListAvailableResponse> {
     return this._client.get('/api/v2/currency/available', { query, ...options });
   }
 }
@@ -178,6 +172,6 @@ export declare namespace Currency {
     type CurrencyRetrieveResponse as CurrencyRetrieveResponse,
     type CurrencyListAvailableResponse as CurrencyListAvailableResponse,
     type CurrencyRetrieveParams as CurrencyRetrieveParams,
-    type CurrencyListAvailableParams as CurrencyListAvailableParams,
+    type CurrencyListAvailableParams as CurrencyListAvailableParams
   };
 }
