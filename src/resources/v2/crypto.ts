@@ -54,10 +54,7 @@ export class Crypto extends APIResource {
    * const crypto = await client.v2.crypto.retrieve();
    * ```
    */
-  retrieve(
-    query: CryptoRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<CryptoRetrieveResponse> {
+  retrieve(query: CryptoRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<CryptoRetrieveResponse> {
     return this._client.get('/api/v2/crypto', { query, ...options });
   }
 
@@ -97,10 +94,7 @@ export class Crypto extends APIResource {
    * const response = await client.v2.crypto.listAvailable();
    * ```
    */
-  listAvailable(
-    query: CryptoListAvailableParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<CryptoListAvailableResponse> {
+  listAvailable(query: CryptoListAvailableParams | null | undefined = {}, options?: RequestOptions): APIPromise<CryptoListAvailableResponse> {
     return this._client.get('/api/v2/crypto/available', { query, ...options });
   }
 }
@@ -217,6 +211,6 @@ export declare namespace Crypto {
     type CryptoRetrieveResponse as CryptoRetrieveResponse,
     type CryptoListAvailableResponse as CryptoListAvailableResponse,
     type CryptoRetrieveParams as CryptoRetrieveParams,
-    type CryptoListAvailableParams as CryptoListAvailableParams,
+    type CryptoListAvailableParams as CryptoListAvailableParams
   };
 }

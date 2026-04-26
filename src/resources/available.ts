@@ -71,10 +71,7 @@ export class Available extends APIResource {
    * const availables = await client.available.list();
    * ```
    */
-  list(
-    query: AvailableListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<AvailableListResponse> {
+  list(query: AvailableListParams | null | undefined = {}, options?: RequestOptions): APIPromise<AvailableListResponse> {
     return this._client.get('/api/available', { query, ...options });
   }
 }
@@ -101,6 +98,6 @@ export interface AvailableListParams {
 export declare namespace Available {
   export {
     type AvailableListResponse as AvailableListResponse,
-    type AvailableListParams as AvailableListParams,
+    type AvailableListParams as AvailableListParams
   };
 }

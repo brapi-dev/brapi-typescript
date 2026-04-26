@@ -70,10 +70,7 @@ export class PrimeRate extends APIResource {
    * const primeRate = await client.v2.primeRate.retrieve();
    * ```
    */
-  retrieve(
-    query: PrimeRateRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<PrimeRateRetrieveResponse> {
+  retrieve(query: PrimeRateRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<PrimeRateRetrieveResponse> {
     return this._client.get('/api/v2/prime-rate', { query, ...options });
   }
 
@@ -173,6 +170,6 @@ export declare namespace PrimeRate {
   export {
     type PrimeRateRetrieveResponse as PrimeRateRetrieveResponse,
     type PrimeRateListAvailableResponse as PrimeRateListAvailableResponse,
-    type PrimeRateRetrieveParams as PrimeRateRetrieveParams,
+    type PrimeRateRetrieveParams as PrimeRateRetrieveParams
   };
 }
