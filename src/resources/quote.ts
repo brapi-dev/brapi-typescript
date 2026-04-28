@@ -147,7 +147,11 @@ export class Quote extends APIResource {
    * const quote = await client.quote.retrieve('PETR4,VALE3');
    * ```
    */
-  retrieve(tickers: string, query: QuoteRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<QuoteRetrieveResponse> {
+  retrieve(
+    tickers: string,
+    query: QuoteRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<QuoteRetrieveResponse> {
     return this._client.get(path`/api/quote/${tickers}`, { query, ...options });
   }
 
@@ -206,7 +210,10 @@ export class Quote extends APIResource {
    * const quotes = await client.quote.list();
    * ```
    */
-  list(query: QuoteListParams | null | undefined = {}, options?: RequestOptions): APIPromise<QuoteListResponse> {
+  list(
+    query: QuoteListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<QuoteListResponse> {
     return this._client.get('/api/quote/list', { query, ...options });
   }
 }
@@ -1094,6 +1101,6 @@ export declare namespace Quote {
     type QuoteRetrieveResponse as QuoteRetrieveResponse,
     type QuoteListResponse as QuoteListResponse,
     type QuoteRetrieveParams as QuoteRetrieveParams,
-    type QuoteListParams as QuoteListParams
+    type QuoteListParams as QuoteListParams,
   };
 }

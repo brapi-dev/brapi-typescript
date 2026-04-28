@@ -69,7 +69,10 @@ export class Inflation extends APIResource {
    * const inflation = await client.v2.inflation.retrieve();
    * ```
    */
-  retrieve(query: InflationRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<InflationRetrieveResponse> {
+  retrieve(
+    query: InflationRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<InflationRetrieveResponse> {
     return this._client.get('/api/v2/inflation', { query, ...options });
   }
 
@@ -169,6 +172,6 @@ export declare namespace Inflation {
   export {
     type InflationRetrieveResponse as InflationRetrieveResponse,
     type InflationListAvailableResponse as InflationListAvailableResponse,
-    type InflationRetrieveParams as InflationRetrieveParams
+    type InflationRetrieveParams as InflationRetrieveParams,
   };
 }
