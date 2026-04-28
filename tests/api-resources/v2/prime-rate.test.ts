@@ -2,7 +2,10 @@
 
 import Brapi from 'brapi';
 
-const client = new Brapi({ apiKey: 'My API Key', baseURL: process.env["TEST_API_BASE_URL"] ?? 'http://127.0.0.1:4010' });
+const client = new Brapi({
+  apiKey: 'My API Key',
+  baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+});
 
 describe('resource primeRate', () => {
   // Mock server tests are disabled
@@ -20,15 +23,18 @@ describe('resource primeRate', () => {
   // Mock server tests are disabled
   test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.v2.primeRate.retrieve({
-    end: '31/12/2023',
-    historical: 'false',
-    sortBy: 'date',
-    sortOrder: 'desc',
-    start: '01/01/2023',
-  }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Brapi.NotFoundError);
+    await expect(
+      client.v2.primeRate.retrieve(
+        {
+          end: '31/12/2023',
+          historical: 'false',
+          sortBy: 'date',
+          sortOrder: 'desc',
+          start: '01/01/2023',
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
   });
 
   // Mock server tests are disabled
