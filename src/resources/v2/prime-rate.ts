@@ -4,9 +4,6 @@ import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 
-/**
- * Acompanhe os principais indicadores econômicos do Brasil, incluindo inflação (IPCA, IGP-M) e Taxa Selic.
- */
 export class PrimeRate extends APIResource {
   /**
    * Retorna dados históricos da **Taxa SELIC (Sistema Especial de Liquidação e de
