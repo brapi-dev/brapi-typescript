@@ -4,9 +4,6 @@ import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 
-/**
- * Acompanhe os principais indicadores econômicos do Brasil, incluindo inflação (IPCA, IGP-M) e Taxa Selic.
- */
 export class Inflation extends APIResource {
   /**
    * Retorna dados históricos do **IPCA (Índice Nacional de Preços ao Consumidor
