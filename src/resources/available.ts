@@ -14,7 +14,7 @@ export class Available extends APIResource {
    *
    * ### Funcionalidades
    *
-   * - **Ações da B3:** Todas as ações, FIIs, BDRs e ETFs negociados na bolsa
+   * - **Ações brasileiras:** Todas as ações, FIIs, BDRs e ETFs negociados na bolsa
    *   brasileira
    * - **Índices:** Principais índices do mercado brasileiro (Ibovespa, IBrX, IFIX,
    *   etc.)
@@ -24,7 +24,8 @@ export class Available extends APIResource {
    *
    * - **Sem Autenticação:** Este endpoint é **público** e não requer token
    * - **Cache:** Dados cacheados por 15 minutos
-   * - **Atualização automática:** Conforme novos ativos são listados na B3
+   * - **Atualização automática:** Conforme novos ativos são listados na bolsa
+   *   brasileira
    *
    * ### Exemplos de Uso
    *
@@ -62,7 +63,7 @@ export class Available extends APIResource {
    * Use os códigos retornados como parâmetro no endpoint `/api/quote/{tickers}` para
    * obter cotações detalhadas.
    *
-   * **Fonte:** B3 (Bolsa de Valores do Brasil)
+   * **Fonte:** Bolsa de Valores do Brasil
    *
    * **Plano Mínimo:** Gratuito **Autenticação:** Não necessária (Público)
    *

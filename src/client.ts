@@ -760,7 +760,7 @@ export class Brapi {
   static toFile = Uploads.toFile;
 
   /**
-   * Consulte informações detalhadas sobre ações, BDRs, ETFs e índices da B3. Obtenha preços em tempo real, dados fundamentalistas, históricos e dividendos.
+   * Consulte informações detalhadas sobre ações, BDRs, ETFs e índices brasileiros. Obtenha preços em tempo real, dados fundamentalistas, históricos e dividendos.
    */
   quote: API.Quote = new API.Quote(this);
   /**

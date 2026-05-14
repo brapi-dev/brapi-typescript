@@ -7,7 +7,7 @@ import { RequestOptions } from '../internal/request-options';
 import { path } from '../internal/utils/path';
 
 /**
- * Consulte informações detalhadas sobre ações, BDRs, ETFs e índices da B3. Obtenha preços em tempo real, dados fundamentalistas, históricos e dividendos.
+ * Consulte informações detalhadas sobre ações, BDRs, ETFs e índices brasileiros. Obtenha preços em tempo real, dados fundamentalistas, históricos e dividendos.
  */
 export class Quote extends APIResource {
   /**
