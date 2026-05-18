@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 (2026-05-18)
+
+Full Changelog: [v1.1.0...v1.1.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.1.0...v1.1.1)
+
+### Chores
+
+* update SDK settings ([a5d40f5](https://github.com/brapi-dev/brapi-typescript/commit/a5d40f5647d60e775e8171b7939dc4d3af13683c))
+
 ## 1.1.0 (2026-05-14)
 
 Full Changelog: [v1.0.5...v1.1.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.5...v1.1.0)
