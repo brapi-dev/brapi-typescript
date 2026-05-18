@@ -6,45 +6,65 @@ import { RequestOptions } from '../../internal/request-options';
 
 export class Inflation extends APIResource {
   /**
-   * Obtenha dados históricos sobre índices de inflação para um país específico.
+   * Retorna dados históricos do **IPCA (Índice Nacional de Preços ao Consumidor
+   * Amplo)**, o índice oficial de inflação do Brasil, medido pelo IBGE.
    *
-   * ### Funcionalidades:
+   * ### Funcionalidades
    *
-   * - **Seleção de País:** Especifique o país desejado com o parâmetro `country`
-   *   (padrão: `brazil`).
-   * - **Filtragem por Período:** Defina um intervalo de datas com `start` e `end`
-   *   (formato DD/MM/YYYY).
-   * - **Inclusão de Histórico:** O parâmetro `historical` (booleano) parece
-   *   controlar a inclusão de dados históricos (verificar comportamento exato, pode
-   *   ser redundante com `start`/`end`).
-   * - **Ordenação:** Ordene os resultados por data (`date`) ou valor (`value`)
-   *   usando `sortBy` e `sortOrder`.
+   * - **Dados Mensais:** Variação percentual mensal do IPCA
+   * - **Histórico Completo:** Dados desde janeiro/2000 até o mês atual
+   * - **Filtros de Período:** Use `start` e `end` para definir período específico
+   *   (formato DD/MM/YYYY)
+   * - **Ordenação:** Ordene por data ou valor, crescente ou decrescente
    *
-   * ### Autenticação:
+   * ### Autenticação
    *
-   * Requer token de autenticação via `token` (query) ou `Authorization` (header).
+   * Bearer token ou query param `token`. Requer plano Startup.
    *
-   * ### Exemplo de Requisição:
-   *
-   * **Buscar dados de inflação do Brasil para o ano de 2022, ordenados por valor
-   * ascendente:**
+   * ### Exemplos de Uso
    *
    * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/inflation?country=brazil&start=01/01/2022&end=31/12/2022&sortBy=value&sortOrder=asc&token=SEU_TOKEN"
+   * # Padrão (últimos 12 meses)
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation"
+   *
+   * # Histórico completo
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation?historical=true"
+   *
+   * # Período específico
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation?start=01/01/2023&end=31/12/2023"
+   *
+   * # Ordenado por valor (decrescente)
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation?historical=true&sortBy=value&sortOrder=desc"
    * ```
    *
-   * **Buscar os dados mais recentes de inflação (sem período definido, ordenação
-   * padrão):**
+   * ### Parâmetros de Ordenação
    *
-   * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/inflation?country=brazil&token=SEU_TOKEN"
+   * - `sortBy`: `date` (padrão) ou `value`
+   * - `sortOrder`: `desc` (padrão) ou `asc`
+   *
+   * ### Campos da Resposta
+   *
+   * - `date` — Data no formato DD/MM/YYYY
+   * - `value` — Variação percentual do IPCA no mês
+   * - `epochDate` — Data em timestamp Unix (milissegundos)
+   *
+   * ### Sobre o IPCA
+   *
+   * O IPCA é o índice oficial de inflação do Brasil, calculado mensalmente pelo
+   * IBGE. Ele mede a variação de preços de uma cesta de produtos e serviços
+   * consumidos pelas famílias brasileiras.
+   *
+   * ### Fonte dos Dados
+   *
+   * Banco Central do Brasil (BCB) — Série temporal 13522 do Sistema Gerador de
+   * Séries Temporais (SGS)
+   *
+   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   *
+   * @example
+   * ```ts
+   * const inflation = await client.v2.inflation.retrieve();
    * ```
-   *
-   * ### Resposta:
-   *
-   * A resposta contém um array `inflation`, onde cada objeto representa um ponto de
-   * dado de inflação com sua `date` (DD/MM/YYYY), `value` (o índice de inflação como
-   * string) e `epochDate` (timestamp UNIX).
    */
   retrieve(
     query: InflationRetrieveParams | null | undefined = {},
@@ -54,166 +74,95 @@ export class Inflation extends APIResource {
   }
 
   /**
-   * Obtenha a lista completa de todos os países para os quais a API Brapi possui
-   * dados de inflação disponíveis para consulta no endpoint `/api/v2/inflation`.
+   * Retorna a lista de países disponíveis para consulta de dados de inflação.
    *
-   * ### Funcionalidade:
+   * ### Países Disponíveis
    *
-   * - Retorna um array `countries` com os nomes dos países (em minúsculas).
-   * - Pode ser filtrado usando o parâmetro `search`.
+   * - **brazil** — Dados do IPCA (IBGE)
    *
-   * ### Autenticação:
+   * Use o valor retornado como referência para futuras expansões do endpoint.
    *
-   * Requer token de autenticação via `token` (query) ou `Authorization` (header).
-   *
-   * ### Exemplo de Requisição:
-   *
-   * **Listar todos os países com dados de inflação:**
+   * ### Exemplo de Uso
    *
    * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/inflation/available?token=SEU_TOKEN"
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation/available"
    * ```
    *
-   * **Buscar países cujo nome contenha 'arg':**
+   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
    *
-   * ```bash
-   * curl -X GET "https://brapi.dev/api/v2/inflation/available?search=arg&token=SEU_TOKEN"
+   * @example
+   * ```ts
+   * const response = await client.v2.inflation.listAvailable();
    * ```
-   *
-   * ### Resposta:
-   *
-   * A resposta é um objeto JSON com a chave `countries`, contendo um array de
-   * strings com os nomes dos países (ex: `["brazil", "argentina", "usa"]`).
    */
-  listAvailable(
-    query: InflationListAvailableParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<InflationListAvailableResponse> {
-    return this._client.get('/api/v2/inflation/available', { query, ...options });
+  listAvailable(options?: RequestOptions): APIPromise<InflationListAvailableResponse> {
+    return this._client.get('/api/v2/inflation/available', options);
   }
 }
 
-/**
- * Resposta principal do endpoint `/api/v2/inflation`.
- */
 export interface InflationRetrieveResponse {
+  inflation: Array<InflationRetrieveResponse.Inflation>;
+
   /**
-   * Array contendo os registros históricos de inflação para o país e período
-   * solicitados.
+   * Data e hora da requisição em formato ISO 8601
    */
-  inflation?: Array<InflationRetrieveResponse.Inflation>;
+  requestedAt: string;
+
+  /**
+   * Tempo de processamento em milissegundos
+   */
+  took: number;
 }
 
 export namespace InflationRetrieveResponse {
-  /**
-   * Representa um ponto de dado histórico de inflação para um país.
-   */
   export interface Inflation {
-    /**
-     * Data da medição da inflação, no formato `DD/MM/YYYY`.
-     */
-    date?: string;
+    date: string;
+
+    epochDate: number;
 
     /**
-     * Timestamp UNIX (número de segundos desde 1970-01-01 UTC) correspondente à
-     * `date`.
+     * Variação percentual do IPCA no mês
      */
-    epochDate?: number;
-
-    /**
-     * Valor do índice de inflação para a data especificada (formato string, pode
-     * conter `%` ou ser apenas numérico).
-     */
-    value?: string;
+    value: string;
   }
 }
 
-/**
- * Resposta do endpoint que lista os países com dados de inflação disponíveis.
- */
 export interface InflationListAvailableResponse {
+  countries: Array<string>;
+
+  message: string;
+
   /**
-   * Lista de nomes de países (em minúsculas) para os quais há dados de inflação
-   * disponíveis (ex: `brazil`, `usa`, `argentina`).
+   * Data e hora da requisição em formato ISO 8601
    */
-  countries?: Array<string>;
+  requestedAt: string;
 }
 
 export interface InflationRetrieveParams {
   /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
-
-  /**
-   * **Opcional.** Nome do país para o qual buscar os dados de inflação. Use nomes em
-   * minúsculas. O padrão é `brazil`. Consulte `/api/v2/inflation/available` para a
-   * lista de países suportados.
-   */
-  country?: string;
-
-  /**
-   * **Opcional.** Data final do período desejado para os dados históricos, no
-   * formato `DD/MM/YYYY`. Requerido se `start` for especificado.
+   * Data de fim (DD/MM/YYYY)
    */
   end?: string;
 
   /**
-   * **Opcional.** Booleano (`true` ou `false`). Define se dados históricos devem ser
-   * incluídos. O comportamento exato em conjunto com `start`/`end` deve ser
-   * verificado. Padrão: `false`.
+   * Incluir dados históricos (true/false)
    */
-  historical?: boolean;
+  historical?: string;
 
   /**
-   * **Opcional.** Campo pelo qual os resultados da inflação serão ordenados.
+   * Campo para ordenação (date ou value)
    */
-  sortBy?: 'date' | 'value';
+  sortBy?: string;
 
   /**
-   * **Opcional.** Direção da ordenação: `asc` (ascendente) ou `desc` (descendente).
-   * Padrão: `desc`. Requer que `sortBy` seja especificado.
+   * Ordem de classificação (asc ou desc)
    */
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: string;
 
   /**
-   * **Opcional.** Data de início do período desejado para os dados históricos, no
-   * formato `DD/MM/YYYY`. Requerido se `end` for especificado.
+   * Data de início (DD/MM/YYYY)
    */
   start?: string;
-}
-
-export interface InflationListAvailableParams {
-  /**
-   * **Obrigatório caso não esteja adicionado como header "Authorization".** Seu
-   * token de autenticação pessoal da API Brapi.
-   *
-   * **Formas de Envio:**
-   *
-   * 1.  **Query Parameter:** Adicione `?token=SEU_TOKEN` ao final da URL.
-   * 2.  **HTTP Header:** Inclua o header `Authorization: Bearer SEU_TOKEN` na sua
-   *     requisição.
-   *
-   * Ambos os métodos são aceitos, mas pelo menos um deles deve ser utilizado.
-   * Obtenha seu token em [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   */
-  token?: string;
-
-  /**
-   * **Opcional.** Termo para filtrar a lista pelo nome do país (correspondência
-   * parcial, case-insensitive). Se omitido, retorna todos os países.
-   */
-  search?: string;
 }
 
 export declare namespace Inflation {
@@ -221,6 +170,5 @@ export declare namespace Inflation {
     type InflationRetrieveResponse as InflationRetrieveResponse,
     type InflationListAvailableResponse as InflationListAvailableResponse,
     type InflationRetrieveParams as InflationRetrieveParams,
-    type InflationListAvailableParams as InflationListAvailableParams,
   };
 }

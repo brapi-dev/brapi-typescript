@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.1.0 (2026-05-14)
+
+Full Changelog: [v1.0.5...v1.1.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.5...v1.1.0)
+
+### Features
+
+* **api:** api update ([d5f6e30](https://github.com/brapi-dev/brapi-typescript/commit/d5f6e300331af191998587f3c8fb022556b687a4))
+* **api:** api update ([0485af4](https://github.com/brapi-dev/brapi-typescript/commit/0485af41c8bf93d23ceb5ea96c0d467200bfa653))
+* **api:** api update ([f7373a9](https://github.com/brapi-dev/brapi-typescript/commit/f7373a96ee85060dc9a62538287db34a8f2403c2))
+* **api:** api update ([925a8c7](https://github.com/brapi-dev/brapi-typescript/commit/925a8c7f7e4225ee3b5d1852f1c3286a65d89acf))
+* **api:** api update ([2aaba0a](https://github.com/brapi-dev/brapi-typescript/commit/2aaba0aca81958fcea63f9e143267db9c1c0145e))
+
+
+### Bug Fixes
+
+* **client:** avoid memory leak with abort signals ([8d95d6f](https://github.com/brapi-dev/brapi-typescript/commit/8d95d6fd20b0c692206731b9130df6a49ef9e217))
+* **client:** avoid removing abort listener too early ([13b9922](https://github.com/brapi-dev/brapi-typescript/commit/13b99225a929f1cfc968313464df754b9f64b9fb))
+* **docs/contributing:** correct pnpm link command ([1a93d46](https://github.com/brapi-dev/brapi-typescript/commit/1a93d46145de5605b9b1fc088f5ba998626246d0))
+
+
+### Chores
+
+* **client:** do not parse responses with empty content-length ([8d77067](https://github.com/brapi-dev/brapi-typescript/commit/8d770677b7685b6b5115eec2a678f05bab13b5fd))
+* **client:** restructure abort controller binding ([940d1c2](https://github.com/brapi-dev/brapi-typescript/commit/940d1c22aec74bbb2394953b189c57eda013baff))
+* **internal/client:** fix form-urlencoded requests ([4767da4](https://github.com/brapi-dev/brapi-typescript/commit/4767da44630b6bb2ca454d103f4098ab1c57561e))
+* **internal:** avoid type checking errors with ts-reset ([fccc6b5](https://github.com/brapi-dev/brapi-typescript/commit/fccc6b5f06cb7463889b71d0792e3af84b069ff2))
+* **internal:** codegen related update ([25622be](https://github.com/brapi-dev/brapi-typescript/commit/25622bef08cc36641fc89b6e8f7351008faaa16f))
+* **internal:** codegen related update ([08f509e](https://github.com/brapi-dev/brapi-typescript/commit/08f509e2c2ae158a3a1fd13baef3684e66f131bc))
+* **internal:** codegen related update ([c933231](https://github.com/brapi-dev/brapi-typescript/commit/c933231bafcaf35d797589346fb3c6eda0b00669))
+* **internal:** codegen related update ([f717a67](https://github.com/brapi-dev/brapi-typescript/commit/f717a676e60e7b4194274b295a9a796ef6def9a8))
+* **internal:** codegen related update ([0355b44](https://github.com/brapi-dev/brapi-typescript/commit/0355b442c06b7e38af155e0306a12b5b9885d6a2))
+* **internal:** codegen related update ([4b7c5c4](https://github.com/brapi-dev/brapi-typescript/commit/4b7c5c4c51665d9e4176eeada4a670fc842c0e84))
+* **internal:** codegen related update ([4f9d430](https://github.com/brapi-dev/brapi-typescript/commit/4f9d430ea9c20845e0eac9f719fff3d728e564ec))
+* **internal:** move stringifyQuery implementation to internal function ([a538d3e](https://github.com/brapi-dev/brapi-typescript/commit/a538d3e7e21e10015da9e09005b75f898a006b31))
+* **internal:** remove mock server code ([3ed6269](https://github.com/brapi-dev/brapi-typescript/commit/3ed6269f28554ca012cd8470afd7f1d99a30b33c))
+* update mock server docs ([fde3193](https://github.com/brapi-dev/brapi-typescript/commit/fde31931e0c13f8bdca6aca52062c87e0c0d6aab))
+
 ## 1.0.5 (2026-01-24)
 
 Full Changelog: [v1.0.4...v1.0.5](https://github.com/brapi-dev/brapi-typescript/compare/v1.0.4...v1.0.5)

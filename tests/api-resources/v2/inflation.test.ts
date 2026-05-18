@@ -8,7 +8,7 @@ const client = new Brapi({
 });
 
 describe('resource inflation', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve', async () => {
     const responsePromise = client.v2.inflation.retrieve();
     const rawResponse = await responsePromise.asResponse();
@@ -20,26 +20,24 @@ describe('resource inflation', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.inflation.retrieve(
         {
-          token: 'token',
-          country: 'country',
-          end: '2019-12-27',
-          historical: true,
+          end: '31/12/2023',
+          historical: 'false',
           sortBy: 'date',
-          sortOrder: 'asc',
-          start: '2019-12-27',
+          sortOrder: 'desc',
+          start: '01/01/2023',
         },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('listAvailable', async () => {
     const responsePromise = client.v2.inflation.listAvailable();
     const rawResponse = await responsePromise.asResponse();
@@ -49,16 +47,5 @@ describe('resource inflation', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Prism tests are disabled
-  test.skip('listAvailable: request options and params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.v2.inflation.listAvailable(
-        { token: 'token', search: 'search' },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Brapi.NotFoundError);
   });
 });

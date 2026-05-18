@@ -8,7 +8,7 @@ const client = new Brapi({
 });
 
 describe('resource available', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('list', async () => {
     const responsePromise = client.available.list();
     const rawResponse = await responsePromise.asResponse();
@@ -20,11 +20,11 @@ describe('resource available', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.available.list({ token: 'token', search: 'search' }, { path: '/_stainless_unknown_path' }),
+      client.available.list({ search: 'PETR' }, { path: '/_stainless_unknown_path' }),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 });

@@ -8,9 +8,9 @@ const client = new Brapi({
 });
 
 describe('resource crypto', () => {
-  // Prism tests are disabled
-  test.skip('retrieve: only required params', async () => {
-    const responsePromise = client.v2.crypto.retrieve({ coin: 'coin' });
+  // Mock server tests are disabled
+  test.skip('retrieve', async () => {
+    const responsePromise = client.v2.crypto.retrieve();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -20,18 +20,23 @@ describe('resource crypto', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
-  test.skip('retrieve: required and optional params', async () => {
-    const response = await client.v2.crypto.retrieve({
-      coin: 'coin',
-      token: 'token',
-      currency: 'currency',
-      interval: '1m',
-      range: '1d',
-    });
+  // Mock server tests are disabled
+  test.skip('retrieve: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.v2.crypto.retrieve(
+        {
+          coin: 'BTC,ETH',
+          currency: 'BRL',
+          interval: 'interval',
+          range: 'range',
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('listAvailable', async () => {
     const responsePromise = client.v2.crypto.listAvailable();
     const rawResponse = await responsePromise.asResponse();
@@ -43,14 +48,11 @@ describe('resource crypto', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('listAvailable: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.v2.crypto.listAvailable(
-        { token: 'token', search: 'search' },
-        { path: '/_stainless_unknown_path' },
-      ),
+      client.v2.crypto.listAvailable({ search: 'BTC' }, { path: '/_stainless_unknown_path' }),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 });

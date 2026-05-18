@@ -8,9 +8,9 @@ const client = new Brapi({
 });
 
 describe('resource quote', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve', async () => {
-    const responsePromise = client.quote.retrieve('PETR4,MGLU3');
+    const responsePromise = client.quote.retrieve('PETR4,VALE3');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -20,26 +20,27 @@ describe('resource quote', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.quote.retrieve(
-        'PETR4,MGLU3',
+        'PETR4,VALE3',
         {
           token: 'token',
-          dividends: true,
-          fundamental: true,
-          interval: '1d',
-          modules: ['summaryProfile', 'balanceSheetHistory', 'financialData'],
-          range: '5d',
+          dividends: 'true',
+          endDate: '2024-12-31',
+          interval: '1m',
+          modules: 'summaryProfile,balanceSheetHistory,financialData',
+          range: '1d',
+          startDate: '2024-01-01',
         },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('list', async () => {
     const responsePromise = client.quote.list();
     const rawResponse = await responsePromise.asResponse();
@@ -51,17 +52,17 @@ describe('resource quote', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.quote.list(
         {
           token: 'token',
-          limit: 1,
-          page: 1,
+          limit: 'limit',
+          page: 'page',
           search: 'search',
-          sector: 'Retail Trade',
+          sector: 'sector',
           sortBy: 'name',
           sortOrder: 'asc',
           type: 'stock',
