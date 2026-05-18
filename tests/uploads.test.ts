@@ -1,7 +1,6 @@
 import fs from 'fs';
 import type { ResponseLike } from 'brapi/internal/to-file';
 import { toFile } from 'brapi/core/uploads';
-import { File } from 'node:buffer';
 
 class MyClass {
   name: string = 'foo';
