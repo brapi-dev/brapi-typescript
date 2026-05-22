@@ -136,7 +136,7 @@ export class Quote extends APIResource {
    *
    * ### Fonte dos Dados:
    *
-   * B3 (Bolsa de Valores do Brasil), CVM (Comissão de Valores Mobiliários)
+   * CVM (Comissão de Valores Mobiliários)
    *
    * **Plano Mínimo:** Gratuito (limitado a 1 ticker/requisição e módulos básicos)
    * **Autenticação:** Necessária para produção (tickers de teste PETR4 e VALE3
@@ -340,9 +340,19 @@ export interface FinancialDataEntry {
   debtToEquity: number | null;
 
   /**
-   * Crescimento do lucro
+   * Crescimento do lucro do controlador (TTM) — variação dos últimos 4 trimestres em
+   * relação aos 4 trimestres imediatamente anteriores, usando Lucro Líquido
+   * Atribuível aos Controladores. Para crescimento anual (DRE de exercício vs.
+   * exercício anterior), use earningsGrowthAnnual.
    */
   earningsGrowth: number | null;
+
+  /**
+   * Crescimento anual do lucro do controlador — variação do Lucro Líquido Atribuível
+   * aos Controladores do último exercício social completo em relação ao exercício
+   * anterior.
+   */
+  earningsGrowthAnnual: number | null;
 
   /**
    * EBITDA
@@ -405,9 +415,17 @@ export interface FinancialDataEntry {
   returnOnEquity: number | null;
 
   /**
-   * Crescimento da receita
+   * Crescimento da receita (TTM) — variação da receita dos últimos 4 trimestres em
+   * relação aos 4 trimestres imediatamente anteriores. Para crescimento anual (DRE
+   * de exercício vs. exercício anterior), use revenueGrowthAnnual.
    */
   revenueGrowth: number | null;
+
+  /**
+   * Crescimento anual da receita — variação da Receita Líquida do último exercício
+   * social completo em relação ao exercício anterior.
+   */
+  revenueGrowthAnnual: number | null;
 
   /**
    * Receita por ação
