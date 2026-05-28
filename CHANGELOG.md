@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.0 (2026-05-28)
+
+Full Changelog: [v1.1.1...v1.2.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.1.1...v1.2.0)
+
+### Features
+
+* **api:** api update ([fdab6ee](https://github.com/brapi-dev/brapi-typescript/commit/fdab6eea1e7da145d1f13c3f31b71eac56c1874d))
+* **api:** api update ([0dceeff](https://github.com/brapi-dev/brapi-typescript/commit/0dceeff4032a4bf37648de730003b365cad6d9fa))
+
+
+### Chores
+
+* **internal:** codegen related update ([157d513](https://github.com/brapi-dev/brapi-typescript/commit/157d5138aba519100de4d9ab330d54c2b1668575))
+
 ## 1.1.1 (2026-05-18)
 
 Full Changelog: [v1.1.0...v1.1.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.1.0...v1.1.1)
