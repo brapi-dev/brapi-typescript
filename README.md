@@ -29,7 +29,7 @@ const client = new Brapi({
 
 const quote = await client.quote.retrieve('REPLACE_ME');
 
-console.log(quote.requestedAt);
+console.log(quote.guidance);
 ```
 
 ### Request & Response types
@@ -146,7 +146,7 @@ console.log(response.statusText); // access the underlying Response object
 
 const { data: quote, response: raw } = await client.quote.retrieve('REPLACE_ME').withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(quote.requestedAt);
+console.log(quote.guidance);
 ```
 
 ### Logging
