@@ -65,6 +65,7 @@ describe('resource quote', () => {
           sector: 'sector',
           sortBy: 'name',
           sortOrder: 'asc',
+          subType: 'stock',
           type: 'stock',
         },
         { path: '/_stainless_unknown_path' },

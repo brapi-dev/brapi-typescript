@@ -136,7 +136,7 @@ export class Quote extends APIResource {
    *
    * ### Fonte dos Dados:
    *
-   * B3 (Bolsa de Valores do Brasil), CVM (Comissão de Valores Mobiliários)
+   * CVM (Comissão de Valores Mobiliários)
    *
    * **Plano Mínimo:** Gratuito (limitado a 1 ticker/requisição e módulos básicos)
    * **Autenticação:** Necessária para produção (tickers de teste PETR4 e VALE3
@@ -165,6 +165,8 @@ export class Quote extends APIResource {
    * - **Busca por Nome ou Ticker:** Encontre ativos digitando "Petrobras", "PETR4"
    *   ou qualquer termo.
    * - **Filtros por Tipo:** Ações (stock), Fundos Imobiliários (fund), BDRs (bdr).
+   * - **Filtros por Subtipo:** Units, FIIs, ETFs, FI-Infra, FI-Agro, FIPs, FIDCs e
+   *   BDRs via `subType`.
    * - **Filtros por Setor:** Energia, Financeiro, Tecnologia, Saúde, etc.
    * - **Ordenação Flexível:** Ordene por volume, preço, market cap ou nome.
    * - **Paginação:** Controle o número de resultados com `limit` e `page`.
@@ -185,6 +187,9 @@ export class Quote extends APIResource {
    *
    * # Filtrar por tipo e ordenar por volume
    * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?type=stock&sortBy=volume&sortOrder=desc&limit=10"
+   *
+   * # Filtrar por subtipo
+   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?subType=fi-agro&limit=10"
    *
    * # Listar apenas FIIs de um setor específico
    * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?type=fund&sector=Logística&limit=20"
@@ -340,9 +345,19 @@ export interface FinancialDataEntry {
   debtToEquity: number | null;
 
   /**
-   * Crescimento do lucro
+   * Crescimento do lucro do controlador (TTM) — variação dos últimos 4 trimestres em
+   * relação aos 4 trimestres imediatamente anteriores, usando Lucro Líquido
+   * Atribuível aos Controladores. Para crescimento anual (DRE de exercício vs.
+   * exercício anterior), use earningsGrowthAnnual.
    */
   earningsGrowth: number | null;
+
+  /**
+   * Crescimento anual do lucro do controlador — variação do Lucro Líquido Atribuível
+   * aos Controladores do último exercício social completo em relação ao exercício
+   * anterior.
+   */
+  earningsGrowthAnnual: number | null;
 
   /**
    * EBITDA
@@ -405,9 +420,17 @@ export interface FinancialDataEntry {
   returnOnEquity: number | null;
 
   /**
-   * Crescimento da receita
+   * Crescimento da receita (TTM) — variação da receita dos últimos 4 trimestres em
+   * relação aos 4 trimestres imediatamente anteriores. Para crescimento anual (DRE
+   * de exercício vs. exercício anterior), use revenueGrowthAnnual.
    */
   revenueGrowth: number | null;
+
+  /**
+   * Crescimento anual da receita — variação da Receita Líquida do último exercício
+   * social completo em relação ao exercício anterior.
+   */
+  revenueGrowthAnnual: number | null;
 
   /**
    * Receita por ação
@@ -462,6 +485,12 @@ export interface QuoteRetrieveResponse {
    * Tempo de processamento em milissegundos
    */
   took: number;
+
+  /**
+   * Dicas contextuais quando a requisição funciona mas existe um endpoint mais
+   * adequado para o caso de uso.
+   */
+  guidance?: Array<QuoteRetrieveResponse.Guidance>;
 }
 
 export namespace QuoteRetrieveResponse {
@@ -938,12 +967,30 @@ export namespace QuoteRetrieveResponse {
       zip: string | null;
     }
   }
+
+  export interface Guidance {
+    code: string;
+
+    details: Guidance.Details;
+
+    message: string;
+  }
+
+  export namespace Guidance {
+    export interface Details {
+      reason: string;
+
+      suggestedEndpoint: string;
+    }
+  }
 }
 
 export interface QuoteListResponse {
   availableSectors: Array<string>;
 
   availableStockTypes: Array<string>;
+
+  availableSubTypeTypes: Array<string>;
 
   indexes: Array<QuoteListResponse.Index>;
 
@@ -1002,6 +1049,12 @@ export namespace QuoteListResponse {
      * Ticker do ativo
      */
     stock: string;
+
+    /**
+     * Classificação aditiva do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip,
+     * fidc ou bdr
+     */
+    subType: string | null;
 
     /**
      * Tipo do ativo
@@ -1087,6 +1140,12 @@ export interface QuoteListParams {
    * Ordem de classificação
    */
   sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Filtrar por classificação aditiva: stock, unit, fii, etf, fi-infra, fi-agro,
+   * fip, fidc ou bdr
+   */
+  subType?: 'stock' | 'unit' | 'fii' | 'etf' | 'fi-infra' | 'fi-agro' | 'fip' | 'fidc' | 'bdr';
 
   /**
    * Filtrar por tipo de ativo
