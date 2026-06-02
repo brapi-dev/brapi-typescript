@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1 (2026-06-02)
+
+Full Changelog: [v1.2.0...v1.2.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.2.0...v1.2.1)
+
+### Bug Fixes
+
+* use npm publish instead of yarn publish ([c13c699](https://github.com/brapi-dev/brapi-typescript/commit/c13c6997d0043df0641bb028d92e08c893fb7aed))
+
 ## 1.2.0 (2026-05-28)
 
 Full Changelog: [v1.1.1...v1.2.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.1.1...v1.2.0)
