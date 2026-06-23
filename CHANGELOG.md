@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.3.0 (2026-06-23)
+
+Full Changelog: [v1.2.1...v1.3.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.2.1...v1.3.0)
+
+### Features
+
+* **api:** api update ([0703142](https://github.com/brapi-dev/brapi-typescript/commit/07031421bd1f81ac6dc21ecba607fceb81822caa))
+
+
+### Bug Fixes
+
+* **client:** send content-type header for requests with an omitted optional body ([8fcb3f6](https://github.com/brapi-dev/brapi-typescript/commit/8fcb3f65e97decc540e94e65b05232f510bf9266))
+
 ## 1.2.1 (2026-06-02)
 
 Full Changelog: [v1.2.0...v1.2.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.2.0...v1.2.1)
