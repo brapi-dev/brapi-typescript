@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.0 (2026-07-11)
+
+Full Changelog: [v1.3.0...v1.4.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.3.0...v1.4.0)
+
+### Features
+
+* **api:** api update ([3794140](https://github.com/brapi-dev/brapi-typescript/commit/379414081641b3d861fbbd7a04cb4537032ed42a))
+* **api:** api update ([60d3317](https://github.com/brapi-dev/brapi-typescript/commit/60d331746bff1a95e2aca80f96e4ab6f94e65591))
+
+
+### Bug Fixes
+
+* **ci:** bump @arethetypeswrong/cli to ^0.18.0 and run CI workflows on Node 24 ([4b96f43](https://github.com/brapi-dev/brapi-typescript/commit/4b96f435e88320a9e5bdab0825828f5b2ef55413))
+
 ## 1.3.0 (2026-06-23)
 
 Full Changelog: [v1.2.1...v1.3.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.2.1...v1.3.0)
