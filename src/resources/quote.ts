@@ -990,6 +990,8 @@ export interface QuoteListResponse {
 
   availableStockTypes: Array<string>;
 
+  availableSubsectors: Array<string>;
+
   availableSubTypeTypes: Array<string>;
 
   indexes: Array<QuoteListResponse.Index>;
@@ -1049,6 +1051,11 @@ export namespace QuoteListResponse {
      * Ticker do ativo
      */
     stock: string;
+
+    /**
+     * Subsetor B3
+     */
+    subsector: string | null;
 
     /**
      * Classificação aditiva do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip,
@@ -1140,6 +1147,11 @@ export interface QuoteListParams {
    * Ordem de classificação
    */
   sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Filtrar pelo subsetor B3
+   */
+  subsector?: string;
 
   /**
    * Filtrar por classificação aditiva: stock, unit, fii, etf, fi-infra, fi-agro,

@@ -65,6 +65,7 @@ describe('resource quote', () => {
           sector: 'sector',
           sortBy: 'name',
           sortOrder: 'asc',
+          subsector: 'subsector',
           subType: 'stock',
           type: 'stock',
         },
