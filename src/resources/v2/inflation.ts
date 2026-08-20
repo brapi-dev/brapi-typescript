@@ -44,9 +44,9 @@ export class Inflation extends APIResource {
    *
    * ### Campos da Resposta
    *
-   * - `date` — Data no formato DD/MM/YYYY
-   * - `value` — Variação percentual do IPCA no mês
-   * - `epochDate` — Data em timestamp Unix (milissegundos)
+   * - `date` - Data no formato DD/MM/YYYY
+   * - `value` - Variação percentual do IPCA no mês
+   * - `epochDate` - Data em timestamp Unix (milissegundos)
    *
    * ### Sobre o IPCA
    *
@@ -56,7 +56,7 @@ export class Inflation extends APIResource {
    *
    * ### Fonte dos Dados
    *
-   * Banco Central do Brasil (BCB) — indicador IPCA publicado como série temporal
+   * Banco Central do Brasil (BCB) - indicador IPCA publicado como série temporal
    * oficial
    *
    * **Plano Mínimo:** Startup | **Autenticação:** Necessária
@@ -78,7 +78,7 @@ export class Inflation extends APIResource {
    *
    * ### Países Disponíveis
    *
-   * - **brazil** — Dados do IPCA (IBGE)
+   * - **brazil** - Dados do IPCA (IBGE)
    *
    * Use o valor retornado como referência para futuras expansões do endpoint.
    *
