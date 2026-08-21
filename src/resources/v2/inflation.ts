@@ -95,8 +95,11 @@ export class Inflation extends APIResource {
    * const response = await client.v2.inflation.listAvailable();
    * ```
    */
-  listAvailable(options?: RequestOptions): APIPromise<InflationListAvailableResponse> {
-    return this._client.get('/api/v2/inflation/available', options);
+  listAvailable(
+    query: InflationListAvailableParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<InflationListAvailableResponse> {
+    return this._client.get('/api/v2/inflation/available', { query, ...options });
   }
 }
 
@@ -165,10 +168,18 @@ export interface InflationRetrieveParams {
   start?: string;
 }
 
+export interface InflationListAvailableParams {
+  /**
+   * Formato da resposta. JSON é o formato suportado.
+   */
+  format?: 'json';
+}
+
 export declare namespace Inflation {
   export {
     type InflationRetrieveResponse as InflationRetrieveResponse,
     type InflationListAvailableResponse as InflationListAvailableResponse,
     type InflationRetrieveParams as InflationRetrieveParams,
+    type InflationListAvailableParams as InflationListAvailableParams,
   };
 }

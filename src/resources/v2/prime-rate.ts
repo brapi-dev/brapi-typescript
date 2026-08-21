@@ -95,8 +95,11 @@ export class PrimeRate extends APIResource {
    * const response = await client.v2.primeRate.listAvailable();
    * ```
    */
-  listAvailable(options?: RequestOptions): APIPromise<PrimeRateListAvailableResponse> {
-    return this._client.get('/api/v2/prime-rate/available', options);
+  listAvailable(
+    query: PrimeRateListAvailableParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<PrimeRateListAvailableResponse> {
+    return this._client.get('/api/v2/prime-rate/available', { query, ...options });
   }
 }
 
@@ -165,10 +168,18 @@ export interface PrimeRateRetrieveParams {
   start?: string;
 }
 
+export interface PrimeRateListAvailableParams {
+  /**
+   * Formato da resposta. JSON é o formato suportado.
+   */
+  format?: 'json';
+}
+
 export declare namespace PrimeRate {
   export {
     type PrimeRateRetrieveResponse as PrimeRateRetrieveResponse,
     type PrimeRateListAvailableResponse as PrimeRateListAvailableResponse,
     type PrimeRateRetrieveParams as PrimeRateRetrieveParams,
+    type PrimeRateListAvailableParams as PrimeRateListAvailableParams,
   };
 }
