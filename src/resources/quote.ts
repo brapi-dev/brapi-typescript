@@ -11,136 +11,62 @@ import { path } from '../internal/utils/path';
  */
 export class Quote extends APIResource {
   /**
-   * **O ENDPOINT MAIS IMPORTANTE DA API.** Obtém dados detalhados e abrangentes de
-   * um ou múltiplos ativos (ações, FIIs, BDRs) em uma única requisição. Combine
-   * cotações em tempo real, dados históricos, fundamentos e dividendos conforme
-   * necessário.
+   * Devolve cotação, histórico, dividendos e fundamentos de um ou mais ativos em uma
+   * única resposta. É o endpoint original da brapi e continua funcionando sem data
+   * de remoção.
    *
-   * ### Funcionalidades:
+   * Para integrações novas, prefira `/api/v2/stocks/*`. Lá cada chamada traz um tipo
+   * de dado e a resposta chega menor. Veja o guia em
+   * [brapi.dev/docs/acoes/migracao-v2](https://brapi.dev/docs/acoes/migracao-v2).
    *
-   * - **Cotação em Tempo Real:** Preço atual, variação absoluta e percentual,
-   *   volume, máxima/mínima do dia, range de 52 semanas.
-   * - **Dados Históricos:** Preços OHLCV (Open, High, Low, Close, Volume) com
-   *   intervalos flexíveis (1d, 5d, 1wk, 1mo, 3mo) e períodos (1d até max).
-   * - **Fundamentos:** Balanço Patrimonial, DRE, Fluxo de Caixa, DVA,
-   *   Indicadores-chave (P/L, P/VP, ROE, etc) via parâmetro `modules`.
-   * - **Dividendos:** Histórico completo de proventos em dinheiro (dividendos, JCP)
-   *   e bonificações.
+   * ### O que a resposta traz
    *
-   * ### Autenticação:
+   * Sempre: `symbol`, `shortName`, `currency`, `regularMarketPrice`,
+   * `regularMarketChange`, `regularMarketChangePercent`, `regularMarketVolume`,
+   * `regularMarketDayHigh`, `regularMarketDayLow`, `fiftyTwoWeekHigh`,
+   * `fiftyTwoWeekLow` e `marketCap`.
    *
-   * Requer token Bearer no header ou como query param. Tickers de teste **PETR4** e
-   * **VALE3** funcionam sem autenticação.
+   * Com `range` e `interval`: `historicalDataPrice` com a série OHLCV. Com
+   * `dividends=true`: `dividendsData` com dividendos, JCP e bonificações. Com
+   * `modules`: um objeto por módulo pedido.
+   *
+   * ### Parâmetros de histórico
+   *
+   * `interval` aceita `1d`, `5d`, `1wk`, `1mo` e `3mo`. `range` aceita `1d`, `5d`,
+   * `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd` e `max`. O quanto de
+   * histórico você enxerga depende do plano.
+   *
+   * ### Módulos
+   *
+   * `modules` aceita uma lista separada por vírgula:
+   *
+   * - `summaryProfile` - cadastro da empresa: CNPJ, setor, descrição, site,
+   *   funcionários
+   * - `defaultKeyStatistics` - múltiplos nos últimos 12 meses: P/L, P/VP, ROE,
+   *   dividend yield
+   * - `financialData` - receita, EBITDA, margens e dívida nos últimos 12 meses
+   * - `balanceSheetHistory` - balanço patrimonial anual
+   * - `incomeStatementHistory` - DRE anual
+   * - `cashflowHistory` - fluxo de caixa anual
+   * - `valueAddedHistory` - DVA anual
+   *
+   * Cada módulo de histórico tem a versão trimestral com o sufixo `Quarterly`. Os
+   * módulos `defaultKeyStatistics` e `financialData` também aceitam os sufixos
+   * `History` e `HistoryQuarterly`.
    *
    * ```bash
-   * # Via header (recomendado)
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/PETR4"
-   *
-   * # Via query param
-   * curl "https://brapi.dev/api/quote/PETR4?token=SEU_TOKEN"
+   * curl -H "Authorization: Bearer SEU_TOKEN" \
+   *   "https://brapi.dev/api/quote/PETR4?range=6mo&interval=1d&dividends=true&modules=defaultKeyStatistics"
    * ```
    *
-   * ### Exemplos de Requisição:
+   * ### Autenticação
    *
-   * ```bash
-   * # Simples: apenas cotação atual
-   * curl "https://brapi.dev/api/quote/PETR4?token=SEU_TOKEN"
+   * PETR4, MGLU3, VALE3 e ITUB4 respondem sem token, com todos os recursos. Se você
+   * misturar um desses com outro ticker na mesma requisição, a chamada inteira passa
+   * a exigir token. Envie o token no header `Authorization` sempre que a sua
+   * ferramenta permitir.
    *
-   * # Múltiplos tickers em uma requisição
-   * curl "https://brapi.dev/api/quote/PETR4,VALE3,ITUB4?token=SEU_TOKEN"
-   *
-   * # Com dados históricos (últimos 12 meses, diário)
-   * curl "https://brapi.dev/api/quote/PETR4?range=1y&interval=1d&token=SEU_TOKEN"
-   *
-   * # Com módulos de fundamentos (balanço e DRE)
-   * curl "https://brapi.dev/api/quote/PETR4?modules=balanceSheetHistory,incomeStatementHistory&token=SEU_TOKEN"
-   *
-   * # Completo: histórico + dividendos + estatísticas-chave
-   * curl "https://brapi.dev/api/quote/PETR4?range=6mo&interval=1d&dividends=true&modules=balanceSheetHistory,defaultKeyStatistics&token=SEU_TOKEN"
-   * ```
-   *
-   * ### Módulos Disponíveis:
-   *
-   * - `summaryProfile` - Perfil da empresa (CNPJ, setor, descrição, website,
-   *   funcionários)
-   * - `balanceSheetHistory` - Balanço Patrimonial anual
-   * - `balanceSheetHistoryQuarterly` - Balanço Patrimonial trimestral
-   * - `incomeStatementHistory` - DRE anual (Demonstração de Resultado do Exercício)
-   * - `incomeStatementHistoryQuarterly` - DRE trimestral
-   * - `financialData` - Indicadores financeiros atuais (TTM - Trailing Twelve
-   *   Months)
-   * - `financialDataHistory` - Histórico anual de indicadores financeiros
-   * - `financialDataHistoryQuarterly` - Histórico trimestral de indicadores
-   *   financeiros
-   * - `defaultKeyStatistics` - Estatísticas-chave (P/L, P/VP, ROE, Dividend Yield,
-   *   etc)
-   * - `defaultKeyStatisticsHistory` - Histórico anual de estatísticas-chave
-   * - `defaultKeyStatisticsHistoryQuarterly` - Histórico trimestral de
-   *   estatísticas-chave
-   * - `cashflowHistory` - Fluxo de Caixa anual
-   * - `cashflowHistoryQuarterly` - Fluxo de Caixa trimestral
-   * - `valueAddedHistory` - DVA anual (Demonstração de Valor Adicionado)
-   * - `valueAddedHistoryQuarterly` - DVA trimestral
-   *
-   * ### Intervalos Válidos (histórico):
-   *
-   * - `1d` - Diário
-   * - `5d` - 5 dias
-   * - `1wk` - Semanal
-   * - `1mo` - Mensal
-   * - `3mo` - Trimestral
-   *
-   * ### Períodos Válidos (range):
-   *
-   * - `1d` - Último dia
-   * - `5d` - Últimos 5 dias
-   * - `1mo` - Último mês
-   * - `3mo` - Últimos 3 meses
-   * - `6mo` - Últimos 6 meses
-   * - `1y` - Último ano
-   * - `2y` - Últimos 2 anos
-   * - `5y` - Últimos 5 anos
-   * - `10y` - Últimos 10 anos
-   * - `ytd` - Ano até hoje
-   * - `max` - Máximo disponível
-   *
-   * ### Campos Principais da Resposta:
-   *
-   * - `symbol` - Ticker do ativo (ex: PETR4)
-   * - `shortName` - Nome curto da empresa
-   * - `currency` - Moeda (BRL)
-   * - `regularMarketPrice` - Preço atual em BRL
-   * - `regularMarketChange` - Variação absoluta
-   * - `regularMarketChangePercent` - Variação percentual (%)
-   * - `regularMarketVolume` - Volume de negociação do dia
-   * - `regularMarketDayHigh` - Máxima do dia
-   * - `regularMarketDayLow` - Mínima do dia
-   * - `fiftyTwoWeekHigh` - Máxima de 52 semanas
-   * - `fiftyTwoWeekLow` - Mínima de 52 semanas
-   * - `marketCap` - Capitalização de mercado
-   * - `historicalDataPrice` - Array de dados OHLCV (quando `range`/`interval`
-   *   fornecidos)
-   * - `dividendsData` - Histórico de dividendos (quando `dividends=true`)
-   *
-   * ### Tickers Populares (Teste):
-   *
-   * - `PETR4` - Petrobras (Energia)
-   * - `VALE3` - Vale (Mineração)
-   * - `ITUB4` - Itaú Unibanco (Financeiro)
-   * - `BBDC4` - Bradesco (Financeiro)
-   * - `ABEV3` - Ambev (Consumo)
-   * - `WEGE3` - WEG (Indústria)
-   * - `RENT3` - Localiza (Transporte)
-   * - `BBAS3` - Banco do Brasil (Financeiro)
-   * - `MGLU3` - Magazine Luiza (Varejo)
-   *
-   * ### Fonte dos Dados:
-   *
-   * CVM (Comissão de Valores Mobiliários)
-   *
-   * **Plano Mínimo:** Gratuito (limitado a 1 ticker/requisição e módulos básicos)
-   * **Autenticação:** Necessária para produção (tickers de teste PETR4 e VALE3
-   * funcionam sem token)
+   * Os fundamentos vêm dos documentos que as companhias entregam à CVM.
    *
    * @example
    * ```ts
@@ -156,59 +82,27 @@ export class Quote extends APIResource {
   }
 
   /**
-   * Retorna uma lista paginada de todos os ativos disponíveis na API (Ações, FIIs,
-   * BDRs, ETFs, Índices). Use este endpoint para construir screeners, exploradores
-   * de ações ou para descobrir novos ativos.
+   * Lista paginada de ativos da B3 com a cotação de cada um. Serve para montar
+   * screener, tabela de mercado ou autocomplete de busca.
    *
-   * ### Funcionalidades:
+   * Busque por nome ou ticker com `search`, aceitando tanto "Petrobras" quanto
+   * "PETR4". Filtre por `type` (`stock`, `fund`, `bdr`), por `subType` (units, FIIs,
+   * ETFs, FI-Infra, FI-Agro, FIPs, FIDCs, BDRs) e por `sector`.
    *
-   * - **Busca por Nome ou Ticker:** Encontre ativos digitando "Petrobras", "PETR4"
-   *   ou qualquer termo.
-   * - **Filtros por Tipo:** Ações (stock), Fundos Imobiliários (fund), BDRs (bdr).
-   * - **Filtros por Subtipo:** Units, FIIs, ETFs, FI-Infra, FI-Agro, FIPs, FIDCs e
-   *   BDRs via `subType`.
-   * - **Filtros por Setor:** Energia, Financeiro, Tecnologia, Saúde, etc.
-   * - **Ordenação Flexível:** Ordene por volume, preço, market cap ou nome.
-   * - **Paginação:** Controle o número de resultados com `limit` e `page`.
+   * Ordene com `sortBy` usando `volume`, `close`, `market_cap_basic` ou `name`, mais
+   * `sortOrder`. Pagine com `page` e `limit`. O padrão devolve os primeiros 100
+   * ativos.
    *
-   * ### Autenticação:
-   *
-   * Requer token Bearer. Obtenha seu token em
-   * [brapi.dev/dashboard](https://brapi.dev/dashboard).
-   *
-   * ### Exemplos de Requisição:
+   * A resposta também traz `availableSectors` e `availableStockTypes`, então você
+   * monta os filtros da sua interface sem manter uma lista fixa no código.
    *
    * ```bash
-   * # Listar todos os ativos (primeiros 100)
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list"
-   *
-   * # Buscar por nome ou ticker
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?search=petrobras"
-   *
-   * # Filtrar por tipo e ordenar por volume
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?type=stock&sortBy=volume&sortOrder=desc&limit=10"
-   *
-   * # Filtrar por subtipo
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?subType=fi-agro&limit=10"
-   *
-   * # Listar apenas FIIs de um setor específico
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/quote/list?type=fund&sector=Logística&limit=20"
+   * curl -H "Authorization: Bearer SEU_TOKEN" \
+   *   "https://brapi.dev/api/quote/list?type=stock&sortBy=volume&sortOrder=desc&limit=10"
    * ```
    *
-   * ### Parâmetros de Ordenação:
-   *
-   * - `volume` - Volume de negociação do dia
-   * - `close` - Preço de fechamento
-   * - `market_cap_basic` - Capitalização de mercado
-   * - `name` - Nome da empresa (alfabético)
-   *
-   * ### Tipos de Ativo:
-   *
-   * - `stock` - Ações (Ações ordinárias e preferenciais)
-   * - `fund` - Fundos Imobiliários (FIIs) e ETFs
-   * - `bdr` - BDRs (Brazilian Depositary Receipts)
-   *
-   * **Plano Mínimo:** Gratuito **Autenticação:** Necessária (Bearer Token)
+   * Exige token, disponível em qualquer plano. Para buscar e validar símbolos sem
+   * carregar cotação, `/api/v2/tickers` é mais leve.
    *
    * @example
    * ```ts
