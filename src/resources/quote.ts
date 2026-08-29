@@ -27,8 +27,10 @@ export class Quote extends APIResource {
    * `fiftyTwoWeekLow` e `marketCap`.
    *
    * Com `range` e `interval`: `historicalDataPrice` com a série OHLCV. Com
-   * `dividends=true`: `dividendsData` com dividendos, JCP e bonificações. Com
-   * `modules`: um objeto por módulo pedido.
+   * `includeRaw=true` e intervalo diário: os campos `rawOpen`, `rawHigh`, `rawLow` e
+   * `rawClose` quando existirem no banco. Intervalos intradiários não retornam
+   * campos `raw*`. Com `dividends=true`: `dividendsData` com dividendos, JCP e
+   * bonificações. Com `modules`: um objeto por módulo pedido.
    *
    * ### Parâmetros de histórico
    *
@@ -744,6 +746,34 @@ export namespace QuoteRetrieveResponse {
        * Volume financeiro negociado no intervalo.
        */
       volume: number;
+
+      /**
+       * Preço de fechamento original armazenado no banco da brapi. Retornado com
+       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
+       * houver valor no banco.
+       */
+      rawClose?: number | null;
+
+      /**
+       * Preço máximo original armazenado no banco da brapi. Retornado com
+       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
+       * houver valor no banco.
+       */
+      rawHigh?: number | null;
+
+      /**
+       * Preço mínimo original armazenado no banco da brapi. Retornado com
+       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
+       * houver valor no banco.
+       */
+      rawLow?: number | null;
+
+      /**
+       * Preço de abertura original armazenado no banco da brapi. Retornado com
+       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
+       * houver valor no banco.
+       */
+      rawOpen?: number | null;
     }
 
     /**
@@ -984,6 +1014,12 @@ export interface QuoteRetrieveParams {
    * Data final para dados históricos (formato YYYY-MM-DD)
    */
   endDate?: string;
+
+  /**
+   * Incluir preços OHLC originais armazenados no banco da brapi para intervalos
+   * diários. Use includeRaw=true. Disponível no plano Pro.
+   */
+  includeRaw?: 'true' | 'false';
 
   /**
    * Intervalo/granularidade dos dados históricos
