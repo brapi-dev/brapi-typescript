@@ -6,60 +6,19 @@ import { RequestOptions } from '../../internal/request-options';
 
 export class Inflation extends APIResource {
   /**
-   * Retorna dados históricos do **IPCA (Índice Nacional de Preços ao Consumidor
-   * Amplo)**, o índice oficial de inflação do Brasil, medido pelo IBGE.
+   * Série do IPCA, o índice oficial de inflação do Brasil, publicada pelo Banco
+   * Central.
    *
-   * ### Funcionalidades
+   * Os dados são mensais e começam em janeiro de 2000. Cada ponto é a variação
+   * percentual do mês, não o acumulado do ano.
    *
-   * - **Dados Mensais:** Variação percentual mensal do IPCA
-   * - **Histórico Completo:** Dados desde janeiro/2000 até o mês atual
-   * - **Filtros de Período:** Use `start` e `end` para definir período específico
-   *   (formato DD/MM/YYYY)
-   * - **Ordenação:** Ordene por data ou valor, crescente ou decrescente
+   * Filtre o período com `start` e `end` no formato `DD/MM/YYYY`. Ordene por data ou
+   * por valor.
    *
-   * ### Autenticação
+   * O IPCA sai por volta do dia 10 do mês seguinte. O mês corrente nunca está na
+   * série.
    *
-   * Bearer token ou query param `token`. Requer plano Startup.
-   *
-   * ### Exemplos de Uso
-   *
-   * ```bash
-   * # Padrão (últimos 12 meses)
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation"
-   *
-   * # Histórico completo
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation?historical=true"
-   *
-   * # Período específico
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation?start=01/01/2023&end=31/12/2023"
-   *
-   * # Ordenado por valor (decrescente)
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation?historical=true&sortBy=value&sortOrder=desc"
-   * ```
-   *
-   * ### Parâmetros de Ordenação
-   *
-   * - `sortBy`: `date` (padrão) ou `value`
-   * - `sortOrder`: `desc` (padrão) ou `asc`
-   *
-   * ### Campos da Resposta
-   *
-   * - `date` — Data no formato DD/MM/YYYY
-   * - `value` — Variação percentual do IPCA no mês
-   * - `epochDate` — Data em timestamp Unix (milissegundos)
-   *
-   * ### Sobre o IPCA
-   *
-   * O IPCA é o índice oficial de inflação do Brasil, calculado mensalmente pelo
-   * IBGE. Ele mede a variação de preços de uma cesta de produtos e serviços
-   * consumidos pelas famílias brasileiras.
-   *
-   * ### Fonte dos Dados
-   *
-   * Banco Central do Brasil (BCB) — indicador IPCA publicado como série temporal
-   * oficial
-   *
-   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   * Plano Startup.
    *
    * @example
    * ```ts
@@ -74,29 +33,22 @@ export class Inflation extends APIResource {
   }
 
   /**
-   * Retorna a lista de países disponíveis para consulta de dados de inflação.
+   * Os países que `/api/v2/inflation` aceita.
    *
-   * ### Países Disponíveis
+   * Hoje só `brazil`, com o IPCA publicado pelo Banco Central.
    *
-   * - **brazil** — Dados do IPCA (IBGE)
-   *
-   * Use o valor retornado como referência para futuras expansões do endpoint.
-   *
-   * ### Exemplo de Uso
-   *
-   * ```bash
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/inflation/available"
-   * ```
-   *
-   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   * Plano Startup.
    *
    * @example
    * ```ts
    * const response = await client.v2.inflation.listAvailable();
    * ```
    */
-  listAvailable(options?: RequestOptions): APIPromise<InflationListAvailableResponse> {
-    return this._client.get('/api/v2/inflation/available', options);
+  listAvailable(
+    query: InflationListAvailableParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<InflationListAvailableResponse> {
+    return this._client.get('/api/v2/inflation/available', { query, ...options });
   }
 }
 
@@ -165,10 +117,18 @@ export interface InflationRetrieveParams {
   start?: string;
 }
 
+export interface InflationListAvailableParams {
+  /**
+   * Formato da resposta. JSON é o formato suportado.
+   */
+  format?: 'json';
+}
+
 export declare namespace Inflation {
   export {
     type InflationRetrieveResponse as InflationRetrieveResponse,
     type InflationListAvailableResponse as InflationListAvailableResponse,
     type InflationRetrieveParams as InflationRetrieveParams,
+    type InflationListAvailableParams as InflationListAvailableParams,
   };
 }

@@ -9,54 +9,19 @@ import { RequestOptions } from '../internal/request-options';
  */
 export class Available extends APIResource {
   /**
-   * Retorna a lista completa de **ações e índices** disponíveis para consulta na API
-   * brapi.
+   * Lista todos os ativos que a API aceita: ações, FIIs, BDRs e ETFs da B3, mais os
+   * índices com cotação disponível.
    *
-   * ### Funcionalidades
-   *
-   * - **Ações brasileiras:** Todas as ações, FIIs, BDRs e ETFs negociados na bolsa
-   *   brasileira
-   * - **Índices:** Índices do mercado brasileiro com cotação disponível na API
-   * - **Filtro por Nome:** Use `search` para filtrar por código ou nome do ativo
-   *
-   * ### Características
-   *
-   * - **Sem Autenticação:** Este endpoint é **público** e não requer token
-   * - **Cache:** Dados cacheados por 15 minutos
-   * - **Atualização automática:** Conforme novos ativos são listados na bolsa
-   *   brasileira
-   *
-   * ### Exemplos de Uso
+   * Filtre por código ou nome com `search`.
    *
    * ```bash
-   * # Listar todos os ativos
-   * curl "https://brapi.dev/api/available"
-   *
-   * # Buscar por código de ticker
    * curl "https://brapi.dev/api/available?search=PETR"
-   *
-   * # Buscar por nome da empresa
-   * curl "https://brapi.dev/api/available?search=banco"
    * ```
    *
-   * ### Índices Disponíveis
+   * Endpoint público, sem token. A resposta fica em cache por 15 minutos e é
+   * atualizada conforme novos ativos entram na bolsa.
    *
-   * - `^BVSP` — Ibovespa (Índice Bovespa)
-   * - `IFIX.SA` — Índice de Fundos Imobiliários
-   *
-   * ### Campos da Resposta
-   *
-   * - `stocks` — Array com códigos das ações (ex: ["PETR4", "VALE3", "ITUB4", ...])
-   * - `indexes` — Array com códigos dos índices (ex: ["^BVSP", "IFIX.SA"])
-   *
-   * ### Como Usar
-   *
-   * Use os códigos retornados como parâmetro no endpoint `/api/quote/{tickers}` para
-   * obter cotações detalhadas.
-   *
-   * **Fonte:** Bolsa de Valores do Brasil
-   *
-   * **Plano Mínimo:** Gratuito **Autenticação:** Não necessária (Público)
+   * Para busca com filtros por setor e tipo, `/api/v2/tickers` é mais completo.
    *
    * @example
    * ```ts

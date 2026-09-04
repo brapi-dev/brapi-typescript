@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.5.0 (2026-09-04)
+
+Full Changelog: [v1.4.0...v1.5.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.4.0...v1.5.0)
+
+### Features
+
+* **api:** api update ([fad401f](https://github.com/brapi-dev/brapi-typescript/commit/fad401f042a1d8d94fcb308f55fadff38b3375a4))
+* **api:** api update ([89e0ed5](https://github.com/brapi-dev/brapi-typescript/commit/89e0ed542b4a227fac546703463ac9832f555137))
+* **api:** api update ([43eec39](https://github.com/brapi-dev/brapi-typescript/commit/43eec39ce6e2cdedd03a50673b2a862fd71833c0))
+* **api:** api update ([f34d87f](https://github.com/brapi-dev/brapi-typescript/commit/f34d87f4c523563956ab52a4c7f302c3f069698a))
+* **api:** api update ([24739c3](https://github.com/brapi-dev/brapi-typescript/commit/24739c37994c72c61f4cfcea3bdc8cc3066ae2c0))
+* **api:** api update ([fdcbfce](https://github.com/brapi-dev/brapi-typescript/commit/fdcbfce0b8e4b2879f2ccd13042349494c11a6d8))
+* **api:** api update ([ce0ed22](https://github.com/brapi-dev/brapi-typescript/commit/ce0ed22b5c394bb5ecc2efbd41ddac4b5cebdf85))
+* **api:** api update ([837c83e](https://github.com/brapi-dev/brapi-typescript/commit/837c83e5403b176d7eea50a183499780e146fcb3))
+* **stlc:** configurable CI runner and private-production-repo support in workflow templates ([2bc7dc6](https://github.com/brapi-dev/brapi-typescript/commit/2bc7dc6b25bc92651dc858541f91001f385b9da5))
+
+
+### Bug Fixes
+
+* **stlc:** stop hand-edited CI workflows from blocking seals and builds ([072806f](https://github.com/brapi-dev/brapi-typescript/commit/072806f05caf7820b5b804d1e0a29b7853f0cb18))
+
+
+### Chores
+
+* **internal:** codegen related update ([602c4d1](https://github.com/brapi-dev/brapi-typescript/commit/602c4d1ac58243cce40b36c713c6063e42e200cc))
+
 ## 1.4.0 (2026-07-11)
 
 Full Changelog: [v1.3.0...v1.4.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.3.0...v1.4.0)
