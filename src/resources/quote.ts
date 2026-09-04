@@ -669,6 +669,12 @@ export namespace QuoteRetrieveResponse {
          * Observações
          */
         remarks: string;
+
+        /**
+         * Valor por ação convertido para a escala dos preços brutos com base histórica.
+         * Retornado com includeRaw=true.
+         */
+        rawRate?: number | null;
       }
 
       export interface StockDividend {
