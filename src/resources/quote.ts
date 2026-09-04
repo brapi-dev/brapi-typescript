@@ -631,6 +631,11 @@ export namespace QuoteRetrieveResponse {
         assetIssued: string;
 
         /**
+         * Data ex (primeiro dia sem direito ao provento)
+         */
+        exDate: string | null;
+
+        /**
          * Código ISIN
          */
         isinCode: string;
@@ -681,6 +686,11 @@ export namespace QuoteRetrieveResponse {
          * Fator completo (ex: 2 para 1)
          */
         completeFactor: string;
+
+        /**
+         * Data ex do evento corporativo
+         */
+        exDate: string | null;
 
         /**
          * Fator do desdobramento/grupamento
