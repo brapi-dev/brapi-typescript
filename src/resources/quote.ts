@@ -52,9 +52,14 @@ export class Quote extends APIResource {
    * - `cashflowHistory` - fluxo de caixa anual
    * - `valueAddedHistory` - DVA anual
    *
-   * Cada módulo de histórico tem a versão trimestral com o sufixo `Quarterly`. Os
-   * módulos `defaultKeyStatistics` e `financialData` também aceitam os sufixos
-   * `History` e `HistoryQuarterly`.
+   * Cada módulo de histórico tem a versão trimestral com o sufixo `Quarterly`. Para
+   * DRE, DFC e DVA, os trimestres seguem a base consolidada ou individual do
+   * relatório anual do mesmo ano-calendário. Sem relatório anual, usamos a base com
+   * o trimestre mais recente; a consolidada tem preferência em empate. Não
+   * completamos lacunas com trimestres de outra base. Fluxos trimestrais sem os
+   * períodos necessários retornam `null`. Saldos de caixa representam o início e o
+   * fim do trimestre, não sua variação. Os módulos `defaultKeyStatistics` e
+   * `financialData` também aceitam os sufixos `History` e `HistoryQuarterly`.
    *
    * ```bash
    * curl -H "Authorization: Bearer SEU_TOKEN" \
