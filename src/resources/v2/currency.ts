@@ -9,53 +9,20 @@ import { RequestOptions } from '../../internal/request-options';
  */
 export class Currency extends APIResource {
   /**
-   * Retorna cotações atualizadas de pares de moedas, com preço de compra/venda,
-   * variação e extremos do dia.
+   * Cotação atual de pares de moedas, com preço de compra, preço de venda, máxima,
+   * mínima e variação do dia. Os pares cobertos pelo Banco Central usam a PTAX.
    *
-   * ### Funcionalidades:
+   * Use para converter valores, mostrar o dólar do dia e atualizar planilhas.
    *
-   * - **Cotação Atual:** Preço de compra (bid), venda (ask), máxima, mínima,
-   *   variação
-   * - **Múltiplos Pares:** Consulte vários em uma requisição (separados por vírgula)
-   * - **Formato:** `ORIGEM-DESTINO` (ex: `USD-BRL`)
+   * Informe os pares em `currency` no formato `ORIGEM-DESTINO`, como
+   * `USD-BRL,EUR-BRL`. Os números vêm como texto.
    *
-   * ### Autenticação:
+   * A diferença entre `bidPrice` e `askPrice` é o spread de referência. Bancos e
+   * casas de câmbio cobram um spread maior.
    *
-   * Bearer token ou query param `token`. Obtenha em brapi.dev/dashboard.
-   *
-   * ### Exemplos de Requisição:
-   *
-   * ```bash
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency?currency=USD-BRL"
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency?currency=USD-BRL,EUR-BRL,GBP-BRL"
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency?currency=BTC-BRL"
-   * ```
-   *
-   * ### Pares de Moedas Populares:
-   *
-   * - `USD-BRL` — Dólar Americano / Real
-   * - `EUR-BRL` — Euro / Real
-   * - `GBP-BRL` — Libra Esterlina / Real
-   * - `ARS-BRL` — Peso Argentino / Real
-   * - `EUR-USD` — Euro / Dólar
-   * - `BTC-BRL` — Bitcoin / Real
-   * - `ETH-BRL` — Ethereum / Real
-   *
-   * ### Campos da Resposta:
-   *
-   * - `fromCurrency` / `toCurrency` — Par de moedas
-   * - `name` — Nome do par
-   * - `bidPrice` — Preço de compra
-   * - `askPrice` — Preço de venda
-   * - `high` / `low` — Máxima/Mínima do dia
-   * - `bidVariation` — Variação do preço de compra
-   * - `percentageChange` — Variação percentual (%)
-   *
-   * ### Fonte dos Dados:
-   *
-   * Banco Central do Brasil (PTAX) / Yahoo Finance
-   *
-   * **Plano Mínimo:** Startup **Autenticação:** Necessária
+   * Veja os pares em [listar pares](https://brapi.dev/docs/moedas/available) e a
+   * série diária em [histórico de câmbio](https://brapi.dev/docs/moedas/historico).
+   * Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -70,29 +37,13 @@ export class Currency extends APIResource {
   }
 
   /**
-   * Retorna a lista de pares de moedas disponíveis para consulta no endpoint
-   * `/api/v2/currency`.
+   * Lista os pares de moedas que a
+   * [cotação de câmbio](https://brapi.dev/docs/moedas) aceita, no formato
+   * `ORIGEM-DESTINO`, com o nome de cada par.
    *
-   * ### Formato:
+   * Use para montar seletores de moeda e validar pares antes da chamada.
    *
-   * ORIGEM-DESTINO, onde ORIGEM é o código da moeda de origem e DESTINO a moeda de
-   * destino
-   *
-   * ### Pares Disponíveis:
-   *
-   * - **Moedas Fiduciárias:** USD-BRL, EUR-BRL, GBP-BRL, ARS-BRL, CAD-BRL, AUD-BRL,
-   *   JPY-BRL, CNY-BRL
-   * - **Cross Rates:** EUR-USD, GBP-USD
-   * - **Criptomoedas:** BTC-BRL, ETH-BRL
-   *
-   * ### Exemplos de Requisição:
-   *
-   * ```bash
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency/available"
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/currency/available?search=USD"
-   * ```
-   *
-   * **Plano Mínimo:** Startup **Autenticação:** Necessária
+   * Filtre com `search`. Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -111,12 +62,12 @@ export interface CurrencyRetrieveResponse {
   currency: Array<CurrencyRetrieveResponse.Currency>;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 
   /**
-   * Tempo de processamento em milissegundos
+   * Tempo de processamento, em milissegundos.
    */
   took: number;
 }
@@ -161,14 +112,14 @@ export namespace CurrencyListAvailableResponse {
 
 export interface CurrencyRetrieveParams {
   /**
-   * Par(es) de moedas separados por vírgula (ex: USD-BRL,EUR-BRL)
+   * Pares no formato ORIGEM-DESTINO, separados por vírgula. Ex.: USD-BRL,EUR-BRL.
    */
   currency?: string;
 }
 
 export interface CurrencyListAvailableParams {
   /**
-   * Filtrar pares de moedas por nome ou descrição
+   * Texto buscado no par e no nome das moedas.
    */
   search?: string;
 }

@@ -9,54 +9,16 @@ import { RequestOptions } from '../internal/request-options';
  */
 export class Available extends APIResource {
   /**
-   * Retorna a lista completa de **ações e índices** disponíveis para consulta na API
-   * brapi.
+   * Lista simples de tickers aceitos pela API: ativos brasileiros, como ações, FIIs,
+   * BDRs e ETFs, em `stocks`, e índices em `indexes`.
    *
-   * ### Funcionalidades
+   * Use para validar um ticker ou preencher uma lista de opções.
    *
-   * - **Ações brasileiras:** Todas as ações, FIIs, BDRs e ETFs negociados na bolsa
-   *   brasileira
-   * - **Índices:** Índices do mercado brasileiro com cotação disponível na API
-   * - **Filtro por Nome:** Use `search` para filtrar por código ou nome do ativo
+   * `search` filtra por parte do ticker. Tickers antigos não entram na lista. A
+   * lista é atualizada a cada 15 minutos.
    *
-   * ### Características
-   *
-   * - **Sem Autenticação:** Este endpoint é **público** e não requer token
-   * - **Cache:** Dados cacheados por 15 minutos
-   * - **Atualização automática:** Conforme novos ativos são listados na bolsa
-   *   brasileira
-   *
-   * ### Exemplos de Uso
-   *
-   * ```bash
-   * # Listar todos os ativos
-   * curl "https://brapi.dev/api/available"
-   *
-   * # Buscar por código de ticker
-   * curl "https://brapi.dev/api/available?search=PETR"
-   *
-   * # Buscar por nome da empresa
-   * curl "https://brapi.dev/api/available?search=banco"
-   * ```
-   *
-   * ### Índices Disponíveis
-   *
-   * - `^BVSP` — Ibovespa (Índice Bovespa)
-   * - `IFIX.SA` — Índice de Fundos Imobiliários
-   *
-   * ### Campos da Resposta
-   *
-   * - `stocks` — Array com códigos das ações (ex: ["PETR4", "VALE3", "ITUB4", ...])
-   * - `indexes` — Array com códigos dos índices (ex: ["^BVSP", "IFIX.SA"])
-   *
-   * ### Como Usar
-   *
-   * Use os códigos retornados como parâmetro no endpoint `/api/quote/{tickers}` para
-   * obter cotações detalhadas.
-   *
-   * **Fonte:** Bolsa de Valores do Brasil
-   *
-   * **Plano Mínimo:** Gratuito **Autenticação:** Não necessária (Público)
+   * Não exige token. Para filtros por setor e tipo, use a
+   * [lista de tickers](https://brapi.dev/docs/tickers).
    *
    * @example
    * ```ts
@@ -73,19 +35,19 @@ export class Available extends APIResource {
 
 export interface AvailableListResponse {
   /**
-   * Lista de índices disponíveis
+   * Tickers de índices.
    */
   indexes: Array<string>;
 
   /**
-   * Lista de códigos de ações disponíveis
+   * Tickers de ativos.
    */
   stocks: Array<string>;
 }
 
 export interface AvailableListParams {
   /**
-   * Filtrar ações e índices por nome ou código
+   * Parte do ticker. Filtra ativos e índices.
    */
   search?: string;
 }
