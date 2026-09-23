@@ -6,19 +6,16 @@ import { RequestOptions } from '../../internal/request-options';
 
 export class PrimeRate extends APIResource {
   /**
-   * Série da taxa SELIC, a taxa básica de juros da economia brasileira, definida
-   * pelo COPOM.
+   * Série diária da meta da taxa Selic, definida pelo Copom, em % ao ano.
    *
-   * Os dados são diários e começam em janeiro de 2000. O valor é a meta anualizada,
-   * em porcentagem ao ano.
+   * Endpoint descontinuado. Use as
+   * [séries macroeconômicas](https://brapi.dev/docs/macro) com `symbols=selic`.
    *
-   * Filtre o período com `start` e `end` no formato `DD/MM/YYYY`. Ordene por data ou
-   * por valor.
+   * Sem filtros, devolve os últimos 12 meses. Filtre com `start` e `end` no formato
+   * `DD/MM/YYYY`. A meta só muda nas reuniões do Copom, então a série repete o mesmo
+   * valor entre uma reunião e outra.
    *
-   * A meta muda só nas reuniões do COPOM, a cada 45 dias. Entre uma reunião e outra,
-   * a série repete o mesmo valor todo dia útil.
-   *
-   * Plano Startup.
+   * Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -33,11 +30,10 @@ export class PrimeRate extends APIResource {
   }
 
   /**
-   * Os países que `/api/v2/prime-rate` aceita.
+   * Lista os países que o endpoint da Selic aceita. Hoje só `brazil`.
    *
-   * Hoje só `brazil`, com a SELIC do Banco Central.
-   *
-   * Plano Startup.
+   * Endpoint descontinuado. Use as
+   * [séries macroeconômicas](https://brapi.dev/docs/macro). Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -56,12 +52,12 @@ export interface PrimeRateRetrieveResponse {
   'prime-rate': Array<PrimeRateRetrieveResponse.PrimeRate>;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 
   /**
-   * Tempo de processamento em milissegundos
+   * Tempo de processamento, em milissegundos.
    */
   took: number;
 }
@@ -73,7 +69,7 @@ export namespace PrimeRateRetrieveResponse {
     epochDate: number;
 
     /**
-     * Taxa SELIC meta anualizada (% a.a.)
+     * Meta da Selic, em % ao ano.
      */
     value: string;
   }
@@ -85,41 +81,42 @@ export interface PrimeRateListAvailableResponse {
   message: string;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 }
 
 export interface PrimeRateRetrieveParams {
   /**
-   * Data de fim (DD/MM/YYYY)
+   * Data final no formato DD/MM/YYYY. Padrão: hoje.
    */
   end?: string;
 
   /**
-   * Incluir dados históricos (true/false)
+   * true devolve a série desde 01/01/2000. Sem datas e sem este parâmetro, devolve
+   * os últimos 12 meses.
    */
   historical?: string;
 
   /**
-   * Campo para ordenação (date ou value)
+   * Campo de ordenação: date ou value. Padrão: date.
    */
   sortBy?: string;
 
   /**
-   * Ordem de classificação (asc ou desc)
+   * Ordem: asc ou desc. Padrão: desc.
    */
   sortOrder?: string;
 
   /**
-   * Data de início (DD/MM/YYYY)
+   * Data inicial no formato DD/MM/YYYY.
    */
   start?: string;
 }
 
 export interface PrimeRateListAvailableParams {
   /**
-   * Formato da resposta. JSON é o formato suportado.
+   * Formato da resposta. Só aceita json.
    */
   format?: 'json';
 }

@@ -11,69 +11,50 @@ import { path } from '../internal/utils/path';
  */
 export class Quote extends APIResource {
   /**
-   * Devolve cotação, histórico, dividendos e fundamentos de um ou mais ativos em uma
-   * única resposta. É o endpoint original da brapi e continua funcionando sem data
-   * de remoção.
+   * Cotação de um ou mais ativos brasileiros. A mesma resposta pode trazer histórico
+   * de preços, proventos e dados das demonstrações financeiras.
    *
-   * Para integrações novas, prefira `/api/v2/stocks/*`. Lá cada chamada traz um tipo
-   * de dado e a resposta chega menor. Veja o guia em
-   * [brapi.dev/docs/acoes/migracao-v2](https://brapi.dev/docs/acoes/migracao-v2).
+   * Use para integrações que já usam este formato. Para integrações novas, use os
+   * endpoints `/api/v2/stocks/*`, que trazem um tipo de dado por chamada. Veja o
+   * [guia de migração](https://brapi.dev/docs/acoes/migracao-v2).
    *
-   * ### O que a resposta traz
+   * Este é o endpoint original da brapi. Ele continua ativo e não tem data de
+   * remoção.
    *
-   * Sempre: `symbol`, `shortName`, `currency`, `regularMarketPrice`,
-   * `regularMarketChange`, `regularMarketChangePercent`, `regularMarketVolume`,
-   * `regularMarketDayHigh`, `regularMarketDayLow`, `fiftyTwoWeekHigh`,
-   * `fiftyTwoWeekLow` e `marketCap`.
+   * A resposta sempre traz a cotação: preço, variação, volume, máxima e mínima do
+   * dia, faixa de 52 semanas e `marketCap`. Estes parâmetros adicionam outros dados:
    *
-   * Com `range` e `interval`: `historicalDataPrice` com a série OHLCV. Com
-   * `includeRaw=true` e intervalo diário: os campos `rawOpen`, `rawHigh`, `rawLow` e
-   * `rawClose` quando existirem no banco. Intervalos intradiários não retornam
-   * campos `raw*`. Com `dividends=true`: `dividendsData` com dividendos, JCP e
-   * bonificações. Com `modules`: um objeto por módulo pedido.
+   * - `range` e `interval`, ou `startDate` e `endDate`: `historicalDataPrice`, a
+   *   série de preços.
+   * - `includeRaw=true`: os preços originais sem ajuste `rawOpen`, `rawHigh`,
+   *   `rawLow` e `rawClose`, só em intervalos diários. Exige o plano Pro.
+   * - `dividends=true`: `dividendsData`, com dividendos, JCP e eventos em ações.
+   * - `modules`: um objeto para cada módulo pedido.
    *
-   * ### Parâmetros de histórico
+   * Módulos aceitos em `modules`, separados por vírgula:
    *
-   * `interval` aceita `1d`, `5d`, `1wk`, `1mo` e `3mo`. `range` aceita `1d`, `5d`,
-   * `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd` e `max`. O quanto de
-   * histórico você enxerga depende do plano.
+   * - `summaryProfile`: cadastro da empresa.
+   * - `defaultKeyStatistics`: múltiplos dos últimos 12 meses, como P/L, P/VP e
+   *   dividend yield.
+   * - `financialData`: receita, EBITDA, margens e dívida dos últimos 12 meses.
+   * - `balanceSheetHistory`: balanço patrimonial anual.
+   * - `incomeStatementHistory`: DRE anual.
+   * - `cashflowHistory`: fluxo de caixa anual.
+   * - `valueAddedHistory`: DVA anual.
    *
-   * ### Módulos
+   * Cada módulo de demonstração tem uma versão trimestral com o sufixo `Quarterly`,
+   * como `balanceSheetHistoryQuarterly`. `defaultKeyStatistics` e `financialData`
+   * também aceitam os sufixos `History` e `HistoryQuarterly`. Os dados trimestrais
+   * seguem as mesmas regras dos endpoints v2 de
+   * [DRE](https://brapi.dev/docs/acoes/dre),
+   * [fluxo de caixa](https://brapi.dev/docs/acoes/fluxo-de-caixa) e
+   * [DVA](https://brapi.dev/docs/acoes/valor-adicionado).
    *
-   * `modules` aceita uma lista separada por vírgula:
+   * O plano define os valores aceitos em `range`, `interval` e `modules`. Um valor
+   * fora do plano retorna erro.
    *
-   * - `summaryProfile` - cadastro da empresa: CNPJ, setor, descrição, site,
-   *   funcionários
-   * - `defaultKeyStatistics` - múltiplos nos últimos 12 meses: P/L, P/VP, ROE,
-   *   dividend yield
-   * - `financialData` - receita, EBITDA, margens e dívida nos últimos 12 meses
-   * - `balanceSheetHistory` - balanço patrimonial anual
-   * - `incomeStatementHistory` - DRE anual
-   * - `cashflowHistory` - fluxo de caixa anual
-   * - `valueAddedHistory` - DVA anual
-   *
-   * Cada módulo de histórico tem a versão trimestral com o sufixo `Quarterly`. Para
-   * DRE, DFC e DVA, os trimestres seguem a base consolidada ou individual do
-   * relatório anual do mesmo ano-calendário. Sem relatório anual, usamos a base com
-   * o trimestre mais recente; a consolidada tem preferência em empate. Não
-   * completamos lacunas com trimestres de outra base. Fluxos trimestrais sem os
-   * períodos necessários retornam `null`. Saldos de caixa representam o início e o
-   * fim do trimestre, não sua variação. Os módulos `defaultKeyStatistics` e
-   * `financialData` também aceitam os sufixos `History` e `HistoryQuarterly`.
-   *
-   * ```bash
-   * curl -H "Authorization: Bearer SEU_TOKEN" \
-   *   "https://brapi.dev/api/quote/PETR4?range=6mo&interval=1d&dividends=true&modules=defaultKeyStatistics"
-   * ```
-   *
-   * ### Autenticação
-   *
-   * PETR4, MGLU3, VALE3 e ITUB4 respondem sem token, com todos os recursos. Se você
-   * misturar um desses com outro ticker na mesma requisição, a chamada inteira passa
-   * a exigir token. Envie o token no header `Authorization` sempre que a sua
-   * ferramenta permitir.
-   *
-   * Os fundamentos vêm dos documentos que as companhias entregam à CVM.
+   * PETR4, MGLU3, VALE3 e ITUB4 respondem sem token. Se a chamada juntar um deles
+   * com outro ticker, ela exige token.
    *
    * @example
    * ```ts
@@ -89,27 +70,24 @@ export class Quote extends APIResource {
   }
 
   /**
-   * Lista paginada de ativos da B3 com a cotação de cada um. Serve para montar
-   * screener, tabela de mercado ou autocomplete de busca.
+   * Lista de ações, FIIs, BDRs e ETFs com preço de fechamento, variação, volume,
+   * market cap, setor e logo de cada um. A resposta também traz os índices
+   * disponíveis.
    *
-   * Busque por nome ou ticker com `search`, aceitando tanto "Petrobras" quanto
-   * "PETR4". Filtre por `type` (`stock`, `fund`, `bdr`), por `subType` (units, FIIs,
-   * ETFs, FI-Infra, FI-Agro, FIPs, FIDCs, BDRs) e por `sector`.
+   * Use para screeners, tabelas de mercado e busca de ativos com cotação.
    *
-   * Ordene com `sortBy` usando `volume`, `close`, `market_cap_basic` ou `name`, mais
-   * `sortOrder`. Pagine com `page` e `limit`. O padrão devolve os primeiros 100
-   * ativos.
+   * `search` busca por parte do ticker ou do nome da empresa. Filtre por `type`,
+   * `subType`, `sector` e `subsector`. A ordem padrão é por volume, decrescente.
    *
-   * A resposta também traz `availableSectors` e `availableStockTypes`, então você
-   * monta os filtros da sua interface sem manter uma lista fixa no código.
+   * Sem `limit`, a resposta traz até 2.000 ativos e não traz os campos de paginação.
+   * Com `limit`, ela traz `currentPage`, `totalPages`, `itemsPerPage`, `totalCount`
+   * e `hasNextPage`.
    *
-   * ```bash
-   * curl -H "Authorization: Bearer SEU_TOKEN" \
-   *   "https://brapi.dev/api/quote/list?type=stock&sortBy=volume&sortOrder=desc&limit=10"
-   * ```
+   * `availableSectors`, `availableSubsectors`, `availableStockTypes` e
+   * `availableSubTypeTypes` listam os valores aceitos nos filtros.
    *
-   * Exige token, disponível em qualquer plano. Para buscar e validar símbolos sem
-   * carregar cotação, `/api/v2/tickers` é mais leve.
+   * Este endpoint não exige token. Para buscar e validar tickers, a
+   * [lista de tickers](https://brapi.dev/docs/tickers) traz uma resposta menor.
    *
    * @example
    * ```ts
@@ -227,7 +205,7 @@ export interface BalanceSheetEntry {
 }
 
 /**
- * Dados financeiros e indicadores TTM
+ * Dados financeiros dos últimos 12 meses.
  */
 export interface FinancialDataEntry {
   /**
@@ -246,17 +224,15 @@ export interface FinancialDataEntry {
   debtToEquity: number | null;
 
   /**
-   * Crescimento do lucro do controlador (TTM) - variação dos últimos 4 trimestres em
-   * relação aos 4 trimestres imediatamente anteriores, usando Lucro Líquido
-   * Atribuível aos Controladores. Para crescimento anual (DRE de exercício vs.
-   * exercício anterior), use earningsGrowthAnnual.
+   * Crescimento do lucro atribuível aos controladores nos últimos 4 trimestres,
+   * contra os 4 trimestres anteriores. Para a variação anual, use
+   * `earningsGrowthAnnual`.
    */
   earningsGrowth: number | null;
 
   /**
-   * Crescimento anual do lucro do controlador - variação do Lucro Líquido Atribuível
-   * aos Controladores do último exercício social completo em relação ao exercício
-   * anterior.
+   * Crescimento do lucro atribuível aos controladores no último exercício completo,
+   * contra o exercício anterior.
    */
   earningsGrowthAnnual: number | null;
 
@@ -321,15 +297,14 @@ export interface FinancialDataEntry {
   returnOnEquity: number | null;
 
   /**
-   * Crescimento da receita (TTM) - variação da receita dos últimos 4 trimestres em
-   * relação aos 4 trimestres imediatamente anteriores. Para crescimento anual (DRE
-   * de exercício vs. exercício anterior), use revenueGrowthAnnual.
+   * Crescimento da receita nos últimos 4 trimestres, contra os 4 trimestres
+   * anteriores. Para a variação anual, use `revenueGrowthAnnual`.
    */
   revenueGrowth: number | null;
 
   /**
-   * Crescimento anual da receita - variação da Receita Líquida do último exercício
-   * social completo em relação ao exercício anterior.
+   * Crescimento da receita líquida no último exercício completo, contra o exercício
+   * anterior.
    */
   revenueGrowthAnnual: number | null;
 
@@ -376,20 +351,20 @@ export interface FinancialDataEntry {
 
 export interface QuoteRetrieveResponse {
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 
   results: Array<QuoteRetrieveResponse.Result>;
 
   /**
-   * Tempo de processamento em milissegundos
+   * Tempo de processamento, em milissegundos.
    */
   took: number;
 
   /**
-   * Dicas contextuais quando a requisição funciona mas existe um endpoint mais
-   * adequado para o caso de uso.
+   * Dicas que apontam um endpoint mais adequado para o pedido. A requisição funciona
+   * mesmo assim.
    */
   guidance?: Array<QuoteRetrieveResponse.Guidance>;
 }
@@ -397,228 +372,228 @@ export interface QuoteRetrieveResponse {
 export namespace QuoteRetrieveResponse {
   export interface Result {
     /**
-     * Média do volume diário nos últimos 10 dias
+     * Volume médio diário dos últimos 10 dias.
      */
     averageDailyVolume10Day: number | null;
 
     /**
-     * Média do volume diário nos últimos 3 meses
+     * Volume médio diário dos últimos 3 meses.
      */
     averageDailyVolume3Month: number | null;
 
     /**
-     * Moeda na qual os valores são expressos (geralmente BRL)
+     * Moeda dos valores. Em geral, BRL.
      */
     currency: string;
 
     /**
-     * Lucro Por Ação (LPA) TTM
+     * Lucro por ação (LPA) dos últimos 12 meses.
      */
     earningsPerShare: number | null;
 
     /**
-     * Preço máximo nas últimas 52 semanas
+     * Preço máximo das últimas 52 semanas.
      */
     fiftyTwoWeekHigh: number | null;
 
     /**
-     * Variação entre preço atual e máximo de 52 semanas
+     * Diferença entre o preço atual e o máximo de 52 semanas.
      */
     fiftyTwoWeekHighChange: number | null;
 
     /**
-     * Variação percentual entre preço atual e máximo de 52 semanas
+     * Diferença entre o preço atual e o máximo de 52 semanas, em porcentagem.
      */
     fiftyTwoWeekHighChangePercent: number | null;
 
     /**
-     * Preço mínimo nas últimas 52 semanas
+     * Preço mínimo das últimas 52 semanas.
      */
     fiftyTwoWeekLow: number | null;
 
     /**
-     * Variação entre preço atual e mínimo de 52 semanas
+     * Diferença entre o preço atual e o mínimo de 52 semanas.
      */
     fiftyTwoWeekLowChange: number | null;
 
     /**
-     * Intervalo de preço das últimas 52 semanas
+     * Faixa de preço das últimas 52 semanas no formato mínimo - máximo.
      */
     fiftyTwoWeekRange: string | null;
 
     /**
-     * URL do logo do ativo
+     * URL do logo do ativo.
      */
     logourl: string | null;
 
     /**
-     * Nome completo da empresa
+     * Nome completo da empresa.
      */
     longName: string | null;
 
     /**
-     * Capitalização de mercado total
+     * Valor de mercado, em reais.
      */
     marketCap: number | null;
 
     /**
-     * Indicador Preço/Lucro (P/L)
+     * Preço sobre lucro (P/L).
      */
     priceEarnings: number | null;
 
     /**
-     * Variação absoluta do preço no dia em relação ao fechamento anterior
+     * Variação do preço no dia em relação ao fechamento anterior, em reais.
      */
     regularMarketChange: number | null;
 
     /**
-     * Variação percentual do preço no dia
+     * Variação do preço no dia, em porcentagem.
      */
     regularMarketChangePercent: number | null;
 
     /**
-     * Preço máximo atingido no dia
+     * Preço máximo do dia.
      */
     regularMarketDayHigh: number | null;
 
     /**
-     * Preço mínimo atingido no dia
+     * Preço mínimo do dia.
      */
     regularMarketDayLow: number | null;
 
     /**
-     * Intervalo de preço do dia (Mínimo - Máximo)
+     * Faixa de preço do dia no formato mínimo - máximo.
      */
     regularMarketDayRange: string | null;
 
     /**
-     * Preço de abertura no dia
+     * Preço de abertura do dia.
      */
     regularMarketOpen: number | null;
 
     /**
-     * Preço de fechamento do pregão anterior
+     * Fechamento do pregão anterior.
      */
     regularMarketPreviousClose: number | null;
 
     /**
-     * Preço atual ou do último negócio registrado
+     * Preço do último negócio.
      */
     regularMarketPrice: number | null;
 
     /**
-     * Data/hora da última atualização da cotação (ISO 8601)
+     * Horário da cotação em ISO 8601.
      */
     regularMarketTime: string | null;
 
     /**
-     * Volume financeiro negociado no dia
+     * Volume negociado no dia.
      */
     regularMarketVolume: number | null;
 
     /**
-     * Nome curto ou abreviado da empresa
+     * Nome curto do ativo.
      */
     shortName: string | null;
 
     /**
-     * Ticker (símbolo) do ativo (ex: PETR4, ^BVSP)
+     * Ticker do ativo. Ex.: PETR4, ^BVSP.
      */
     symbol: string;
 
     /**
-     * Média móvel de 200 dias
+     * Média móvel de 200 dias.
      */
     twoHundredDayAverage: number | null;
 
     /**
-     * Variação entre preço atual e média de 200 dias
+     * Diferença entre o preço atual e a média de 200 dias.
      */
     twoHundredDayAverageChange: number | null;
 
     /**
-     * Variação percentual entre preço atual e média de 200 dias
+     * Diferença entre o preço atual e a média de 200 dias, em porcentagem.
      */
     twoHundredDayAverageChangePercent: number | null;
 
     /**
-     * Intervalo efetivamente utilizado para dados históricos
+     * Intervalo usado na série de preços.
      */
     usedInterval: string | null;
 
     /**
-     * Período efetivamente utilizado para dados históricos
+     * Janela usada na série de preços.
      */
     usedRange: string | null;
 
     /**
-     * Histórico anual do Balanço Patrimonial
+     * Balanço patrimonial anual.
      */
     balanceSheetHistory?: Array<QuoteAPI.BalanceSheetEntry>;
 
     /**
-     * Histórico trimestral do Balanço Patrimonial
+     * Balanço patrimonial trimestral.
      */
     balanceSheetHistoryQuarterly?: Array<QuoteAPI.BalanceSheetEntry>;
 
     /**
-     * Dados de dividendos (quando dividends=true)
+     * Proventos. Vem com `dividends=true`.
      */
     dividendsData?: Result.DividendsData;
 
     /**
-     * Dados financeiros e indicadores TTM
+     * Dados financeiros dos últimos 12 meses.
      */
     financialData?: QuoteAPI.FinancialDataEntry;
 
     /**
-     * Histórico anual de dados financeiros
+     * Dados financeiros anuais.
      */
     financialDataHistory?: Array<QuoteAPI.FinancialDataEntry>;
 
     /**
-     * Histórico trimestral de dados financeiros
+     * Dados financeiros trimestrais.
      */
     financialDataHistoryQuarterly?: Array<QuoteAPI.FinancialDataEntry>;
 
     /**
-     * Série histórica de preços (quando range/interval fornecidos)
+     * Série de preços. Vem quando a requisição define a janela.
      */
     historicalDataPrice?: Array<Result.HistoricalDataPrice>;
 
     /**
-     * Perfil da empresa (quando modules inclui summaryProfile)
+     * Cadastro da empresa. Vem com o módulo `summaryProfile`.
      */
     summaryProfile?: Result.SummaryProfile;
 
     /**
-     * Valores válidos para o parâmetro interval
+     * Valores aceitos em `interval`.
      */
     validIntervals?: Array<string>;
 
     /**
-     * Valores válidos para o parâmetro range
+     * Valores aceitos em `range`.
      */
     validRanges?: Array<string>;
   }
 
   export namespace Result {
     /**
-     * Dados de dividendos (quando dividends=true)
+     * Proventos. Vem com `dividends=true`.
      */
     export interface DividendsData {
       /**
-       * Histórico de dividendos e JCP em dinheiro
+       * Dividendos e JCP pagos em dinheiro.
        */
       cashDividends: Array<DividendsData.CashDividend>;
 
       /**
-       * Histórico de bonificações e desdobramentos
+       * Eventos em ações: desdobramentos, grupamentos e bonificações.
        */
       stockDividends: Array<DividendsData.StockDividend>;
 
       /**
-       * Histórico de subscrições
+       * Direitos de subscrição.
        */
       subscriptions: Array<unknown>;
     }
@@ -626,105 +601,104 @@ export namespace QuoteRetrieveResponse {
     export namespace DividendsData {
       export interface CashDividend {
         /**
-         * Data de aprovação
+         * Data de aprovação.
          */
         approvedOn: string | null;
 
         /**
-         * Código ISIN do ativo emissor
+         * Código ISIN do ativo que dá direito ao provento.
          */
         assetIssued: string;
 
         /**
-         * Data ex (primeiro dia sem direito ao provento)
+         * Data ex, o primeiro dia sem direito ao provento. Pode ser nulo.
          */
         exDate: string | null;
 
         /**
-         * Código ISIN
+         * Código ISIN.
          */
         isinCode: string;
 
         /**
-         * Tipo (DIVIDENDO, JCP)
+         * Tipo do provento: DIVIDENDO ou JCP.
          */
         label: string;
 
         /**
-         * Data-com (último dia antes da data ex)
+         * Data-com, o último dia para comprar o ativo e ter direito ao provento.
          */
         lastDatePrior: string | null;
 
         /**
-         * Data de pagamento
+         * Data de pagamento.
          */
         paymentDate: string | null;
 
         /**
-         * Valor por ação
+         * Valor por ação, em reais.
          */
         rate: number;
 
         /**
-         * Período de referência
+         * Período a que o provento se refere. Ex.: 1º Trimestre/2024.
          */
         relatedTo: string;
 
         /**
-         * Observações
+         * Observações.
          */
         remarks: string;
 
         /**
-         * Valor por ação convertido para a escala dos preços brutos com base histórica.
-         * Retornado com includeRaw=true.
+         * Valor por ação na escala dos preços sem ajuste. Vem com `includeRaw=true`.
          */
         rawRate?: number | null;
       }
 
       export interface StockDividend {
         /**
-         * Data de aprovação
+         * Data de aprovação.
          */
         approvedOn: string | null;
 
         /**
-         * Código ISIN do ativo emissor
+         * Código ISIN do ativo que dá direito ao provento.
          */
         assetIssued: string;
 
         /**
-         * Fator completo (ex: 2 para 1)
+         * Fator em texto. Ex.: 2 para 1.
          */
         completeFactor: string;
 
         /**
-         * Data ex do evento corporativo
+         * Data ex, o primeiro dia sem direito ao evento. Pode ser nulo.
          */
         exDate: string | null;
 
         /**
-         * Fator do desdobramento/grupamento
+         * Fator do evento. Ex.: 2 em um desdobramento de 2 para 1.
          */
         factor: number;
 
         /**
-         * Código ISIN
+         * Código ISIN.
          */
         isinCode: string;
 
         /**
-         * Tipo (DESDOBRAMENTO, GRUPAMENTO)
+         * Tipo do evento: DESDOBRAMENTO, GRUPAMENTO ou BONIFICAÇÃO.
          */
         label: string;
 
         /**
-         * Data de corte
+         * Data-com, o último dia para comprar o ativo e ter direito ao evento.
          */
         lastDatePrior: string | null;
 
         /**
-         * Observações
+         * Observações.
          */
         remarks: string;
       }
@@ -732,73 +706,68 @@ export namespace QuoteRetrieveResponse {
 
     export interface HistoricalDataPrice {
       /**
-       * Preço de fechamento ajustado para proventos (dividendos, JCP, bonificações,
-       * etc.) e desdobramentos/grupamentos.
+       * Fechamento ajustado por proventos, desdobramentos e grupamentos. Use para
+       * calcular retorno.
        */
       adjustedClose: number;
 
       /**
-       * Preço de fechamento do ativo no intervalo.
+       * Preço de fechamento no intervalo.
        */
       close: number;
 
       /**
-       * Data do pregão ou do ponto de dados, representada como um timestamp UNIX (número
-       * de segundos desde 1970-01-01 UTC).
+       * Data do ponto em Unix timestamp, em segundos.
        */
       date: number;
 
       /**
-       * Preço máximo atingido pelo ativo no intervalo.
+       * Preço máximo no intervalo.
        */
       high: number;
 
       /**
-       * Preço mínimo atingido pelo ativo no intervalo.
+       * Preço mínimo no intervalo.
        */
       low: number;
 
       /**
-       * Preço de abertura do ativo no intervalo (dia, semana, mês, etc.).
+       * Preço de abertura no intervalo.
        */
       open: number;
 
       /**
-       * Volume financeiro negociado no intervalo.
+       * Volume negociado no intervalo.
        */
       volume: number;
 
       /**
-       * Preço de fechamento original armazenado no banco da brapi. Retornado com
-       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
-       * houver valor no banco.
+       * Preço de fechamento original, sem ajuste. Vem com `includeRaw=true` em
+       * intervalos diários. Pode ser nulo.
        */
       rawClose?: number | null;
 
       /**
-       * Preço máximo original armazenado no banco da brapi. Retornado com
-       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
-       * houver valor no banco.
+       * Preço máximo original, sem ajuste. Vem com `includeRaw=true` em intervalos
+       * diários. Pode ser nulo.
        */
       rawHigh?: number | null;
 
       /**
-       * Preço mínimo original armazenado no banco da brapi. Retornado com
-       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
-       * houver valor no banco.
+       * Preço mínimo original, sem ajuste. Vem com `includeRaw=true` em intervalos
+       * diários. Pode ser nulo.
        */
       rawLow?: number | null;
 
       /**
-       * Preço de abertura original armazenado no banco da brapi. Retornado com
-       * includeRaw=true em intervalos diários no plano Pro. Pode ser nulo quando não
-       * houver valor no banco.
+       * Preço de abertura original, sem ajuste. Vem com `includeRaw=true` em intervalos
+       * diários. Pode ser nulo.
        */
       rawOpen?: number | null;
     }
 
     /**
-     * Perfil da empresa (quando modules inclui summaryProfile)
+     * Cadastro da empresa. Vem com o módulo `summaryProfile`.
      */
     export interface SummaryProfile {
       /**
@@ -963,58 +932,57 @@ export namespace QuoteListResponse {
 
   export interface Stock {
     /**
-     * Variação percentual
+     * Variação no dia, em porcentagem.
      */
     change: number | null;
 
     /**
-     * Preço de fechamento
+     * Último preço.
      */
     close: number | null;
 
     /**
-     * URL do logo
+     * URL do logo.
      */
     logo: string | null;
 
     /**
-     * Capitalização de mercado
+     * Valor de mercado, em reais.
      */
     market_cap: number | null;
 
     /**
-     * Nome da empresa
+     * Nome da empresa.
      */
     name: string;
 
     /**
-     * Setor
+     * Setor.
      */
     sector: string | null;
 
     /**
-     * Ticker do ativo
+     * Ticker do ativo.
      */
     stock: string;
 
     /**
-     * Subsetor B3
+     * Subsetor.
      */
     subsector: string | null;
 
     /**
-     * Classificação aditiva do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip,
-     * fidc ou bdr
+     * Subtipo do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip, fidc ou bdr.
      */
     subType: string | null;
 
     /**
-     * Tipo do ativo
+     * Tipo do ativo.
      */
     type: string | null;
 
     /**
-     * Volume negociado
+     * Volume negociado.
      */
     volume: number | null;
   }
@@ -1022,96 +990,96 @@ export namespace QuoteListResponse {
 
 export interface QuoteRetrieveParams {
   /**
-   * Token de autenticação (alternativa ao header Authorization)
+   * Token de acesso. Use no lugar do header `Authorization`.
    */
   token?: string;
 
   /**
-   * Incluir histórico de dividendos e JCP
+   * Inclui `dividendsData` com dividendos, JCP e eventos em ações.
    */
   dividends?: 'true' | 'false';
 
   /**
-   * Data final para dados históricos (formato YYYY-MM-DD)
+   * Data final da série de preços no formato YYYY-MM-DD.
    */
   endDate?: string;
 
   /**
-   * Incluir preços OHLC originais armazenados no banco da brapi para intervalos
-   * diários. Use includeRaw=true. Disponível no plano Pro.
+   * Inclui os preços originais sem ajuste (`rawOpen`, `rawHigh`, `rawLow`,
+   * `rawClose`) em intervalos diários. Exige o plano Pro.
    */
   includeRaw?: 'true' | 'false';
 
   /**
-   * Intervalo/granularidade dos dados históricos
+   * Intervalo entre os pontos da série de preços.
    */
   interval?: '1m' | '2m' | '5m' | '15m' | '30m' | '60m' | '90m' | '1h' | '1d' | '5d' | '1wk' | '1mo' | '3mo';
 
   /**
-   * Módulos de dados adicionais separados por vírgula
+   * Módulos extras separados por vírgula.
    */
   modules?: string;
 
   /**
-   * Período para dados históricos de preço
+   * Janela relativa da série de preços.
    */
   range?: '1d' | '2d' | '5d' | '7d' | '1mo' | '3mo' | '6mo' | '1y' | '2y' | '5y' | '10y' | 'ytd' | 'max';
 
   /**
-   * Data inicial para dados históricos (formato YYYY-MM-DD)
+   * Data inicial da série de preços no formato YYYY-MM-DD.
    */
   startDate?: string;
 }
 
 export interface QuoteListParams {
   /**
-   * Token de autenticação (alternativa ao header Authorization)
+   * Token de acesso. Use no lugar do header `Authorization`.
    */
   token?: string;
 
   /**
-   * Número máximo de resultados
+   * Itens por página. Máximo: 2000. Sem este parâmetro, a resposta traz até 2000
+   * itens e não traz paginação.
    */
   limit?: string;
 
   /**
-   * Número da página (paginação)
+   * Número da página. Começa em 1.
    */
   page?: string;
 
   /**
-   * Termo de busca para filtrar ativos
+   * Parte do ticker ou do nome da empresa.
    */
   search?: string;
 
   /**
-   * Filtrar por setor
+   * Setor.
    */
   sector?: string;
 
   /**
-   * Campo para ordenação
+   * Campo de ordenação. Padrão: volume.
    */
   sortBy?: 'name' | 'close' | 'change' | 'change_abs' | 'volume' | 'market_cap_basic';
 
   /**
-   * Ordem de classificação
+   * Ordem. Padrão: desc.
    */
   sortOrder?: 'asc' | 'desc';
 
   /**
-   * Filtrar pelo subsetor B3
+   * Subsetor.
    */
   subsector?: string;
 
   /**
-   * Filtrar por classificação aditiva: stock, unit, fii, etf, fi-infra, fi-agro,
-   * fip, fidc ou bdr
+   * Subtipo do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip, fidc ou bdr.
    */
   subType?: 'stock' | 'unit' | 'fii' | 'etf' | 'fi-infra' | 'fi-agro' | 'fip' | 'fidc' | 'bdr';
 
   /**
-   * Filtrar por tipo de ativo
+   * Tipo do ativo.
    */
   type?: 'stock' | 'fund' | 'bdr';
 }

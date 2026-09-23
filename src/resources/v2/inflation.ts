@@ -6,19 +6,17 @@ import { RequestOptions } from '../../internal/request-options';
 
 export class Inflation extends APIResource {
   /**
-   * Série do IPCA, o índice oficial de inflação do Brasil, publicada pelo Banco
-   * Central.
+   * Série mensal do IPCA acumulado em 12 meses, o índice oficial de inflação do
+   * Brasil. Cada ponto é o acumulado dos 12 meses até aquela data.
    *
-   * Os dados são mensais e começam em janeiro de 2000. Cada ponto é a variação
-   * percentual do mês, não o acumulado do ano.
+   * Endpoint descontinuado. Use as
+   * [séries macroeconômicas](https://brapi.dev/docs/macro) com `symbols=ipca12m`
+   * para o acumulado ou `symbols=ipca` para a variação do mês.
    *
-   * Filtre o período com `start` e `end` no formato `DD/MM/YYYY`. Ordene por data ou
-   * por valor.
+   * Sem filtros, devolve os últimos 12 meses. Filtre com `start` e `end` no formato
+   * `DD/MM/YYYY`. O IPCA de um mês sai no mês seguinte.
    *
-   * O IPCA sai por volta do dia 10 do mês seguinte. O mês corrente nunca está na
-   * série.
-   *
-   * Plano Startup.
+   * Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -33,11 +31,10 @@ export class Inflation extends APIResource {
   }
 
   /**
-   * Os países que `/api/v2/inflation` aceita.
+   * Lista os países que o endpoint de inflação aceita. Hoje só `brazil`.
    *
-   * Hoje só `brazil`, com o IPCA publicado pelo Banco Central.
-   *
-   * Plano Startup.
+   * Endpoint descontinuado. Use as
+   * [séries macroeconômicas](https://brapi.dev/docs/macro). Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -56,12 +53,12 @@ export interface InflationRetrieveResponse {
   inflation: Array<InflationRetrieveResponse.Inflation>;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 
   /**
-   * Tempo de processamento em milissegundos
+   * Tempo de processamento, em milissegundos.
    */
   took: number;
 }
@@ -73,7 +70,7 @@ export namespace InflationRetrieveResponse {
     epochDate: number;
 
     /**
-     * Variação percentual do IPCA no mês
+     * IPCA acumulado em 12 meses, em %.
      */
     value: string;
   }
@@ -85,41 +82,42 @@ export interface InflationListAvailableResponse {
   message: string;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 }
 
 export interface InflationRetrieveParams {
   /**
-   * Data de fim (DD/MM/YYYY)
+   * Data final no formato DD/MM/YYYY. Padrão: hoje.
    */
   end?: string;
 
   /**
-   * Incluir dados históricos (true/false)
+   * true devolve a série desde 01/01/2000. Sem datas e sem este parâmetro, devolve
+   * os últimos 12 meses.
    */
   historical?: string;
 
   /**
-   * Campo para ordenação (date ou value)
+   * Campo de ordenação: date ou value. Padrão: date.
    */
   sortBy?: string;
 
   /**
-   * Ordem de classificação (asc ou desc)
+   * Ordem: asc ou desc. Padrão: desc.
    */
   sortOrder?: string;
 
   /**
-   * Data de início (DD/MM/YYYY)
+   * Data inicial no formato DD/MM/YYYY.
    */
   start?: string;
 }
 
 export interface InflationListAvailableParams {
   /**
-   * Formato da resposta. JSON é o formato suportado.
+   * Formato da resposta. Só aceita json.
    */
   format?: 'json';
 }
