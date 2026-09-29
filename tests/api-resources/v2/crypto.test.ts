@@ -8,8 +8,7 @@ const client = new Brapi({
 });
 
 describe('resource crypto', () => {
-  // Mock server tests are disabled
-  test.skip('retrieve', async () => {
+  test('retrieve', async () => {
     const responsePromise = client.v2.crypto.retrieve();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -20,8 +19,7 @@ describe('resource crypto', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('retrieve: request options and params are passed correctly', async () => {
+  test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.crypto.retrieve(
@@ -36,8 +34,7 @@ describe('resource crypto', () => {
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 
-  // Mock server tests are disabled
-  test.skip('listAvailable', async () => {
+  test('listAvailable', async () => {
     const responsePromise = client.v2.crypto.listAvailable();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -48,8 +45,7 @@ describe('resource crypto', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('listAvailable: request options and params are passed correctly', async () => {
+  test('listAvailable: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.crypto.listAvailable({ search: 'BTC' }, { path: '/_stainless_unknown_path' }),

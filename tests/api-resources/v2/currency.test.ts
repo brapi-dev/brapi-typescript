@@ -8,8 +8,7 @@ const client = new Brapi({
 });
 
 describe('resource currency', () => {
-  // Mock server tests are disabled
-  test.skip('retrieve', async () => {
+  test('retrieve', async () => {
     const responsePromise = client.v2.currency.retrieve();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -20,16 +19,35 @@ describe('resource currency', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('retrieve: request options and params are passed correctly', async () => {
+  test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.currency.retrieve({ currency: 'USD-BRL' }, { path: '/_stainless_unknown_path' }),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 
-  // Mock server tests are disabled
-  test.skip('listAvailable', async () => {
+  test('historical: only required params', async () => {
+    const responsePromise = client.v2.currency.historical({ currency: 'USD-BRL,EUR-BRL' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('historical: required and optional params', async () => {
+    const response = await client.v2.currency.historical({
+      currency: 'USD-BRL,EUR-BRL',
+      endDate: '2024-12-31',
+      limit: 365,
+      sortOrder: 'desc',
+      startDate: '2024-01-01',
+    });
+  });
+
+  test('listAvailable', async () => {
     const responsePromise = client.v2.currency.listAvailable();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -40,8 +58,7 @@ describe('resource currency', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('listAvailable: request options and params are passed correctly', async () => {
+  test('listAvailable: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.currency.listAvailable({ search: 'USD' }, { path: '/_stainless_unknown_path' }),
