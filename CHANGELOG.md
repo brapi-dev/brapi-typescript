@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.5.0...v1.6.0) (2026-09-29)
+
+
+### Features
+
+* full API coverage and auth fix ([7f67fcc](https://github.com/brapi-dev/brapi-typescript/commit/7f67fcc50691a3738083b61b3a4f1e8cf2f570f3))
+
 ## 1.5.0 (2026-09-23)
 
 Full Changelog: [v1.4.0...v1.5.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.4.0...v1.5.0)
