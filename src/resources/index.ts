@@ -4,6 +4,7 @@ export { Available, type AvailableListResponse, type AvailableListParams } from 
 export {
   Quote,
   type BalanceSheetEntry,
+  type DividendsData,
   type FinancialDataEntry,
   type QuoteRetrieveResponse,
   type QuoteListResponse,

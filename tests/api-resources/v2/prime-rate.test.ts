@@ -8,8 +8,7 @@ const client = new Brapi({
 });
 
 describe('resource primeRate', () => {
-  // Mock server tests are disabled
-  test.skip('retrieve', async () => {
+  test('retrieve', async () => {
     const responsePromise = client.v2.primeRate.retrieve();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -20,8 +19,7 @@ describe('resource primeRate', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('retrieve: request options and params are passed correctly', async () => {
+  test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.primeRate.retrieve(
@@ -37,8 +35,7 @@ describe('resource primeRate', () => {
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 
-  // Mock server tests are disabled
-  test.skip('listAvailable', async () => {
+  test('listAvailable', async () => {
     const responsePromise = client.v2.primeRate.listAvailable();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -49,8 +46,7 @@ describe('resource primeRate', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('listAvailable: request options and params are passed correctly', async () => {
+  test('listAvailable: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.v2.primeRate.listAvailable({ format: 'json' }, { path: '/_stainless_unknown_path' }),

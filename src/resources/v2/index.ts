@@ -10,10 +10,59 @@ export {
 export {
   Currency,
   type CurrencyRetrieveResponse,
+  type CurrencyHistoricalResponse,
   type CurrencyListAvailableResponse,
   type CurrencyRetrieveParams,
+  type CurrencyHistoricalParams,
   type CurrencyListAvailableParams,
 } from './currency';
+export { Dictionary, type DictionaryRetrieveResponse, type DictionaryRetrieveParams } from './dictionary';
+export {
+  Fii,
+  type PaginationMeta,
+  type FiiListResponse,
+  type FiiAnnualReportsResponse,
+  type FiiDividendsResponse,
+  type FiiFinancialsResponse,
+  type FiiHistoricalResponse,
+  type FiiReportsResponse,
+  type FiiListParams,
+  type FiiAnnualReportsParams,
+  type FiiDividendsParams,
+  type FiiFinancialsParams,
+  type FiiHistoricalParams,
+  type FiiReportsParams,
+} from './fii/index';
+export {
+  Funds,
+  type FundHolding,
+  type FundPaginationMeta,
+  type FundListResponse,
+  type FundDividendsResponse,
+  type FundIndicatorsResponse,
+  type FundPortfolioResponse,
+  type FundProfileResponse,
+  type FundListParams,
+  type FundDividendsParams,
+  type FundIndicatorsParams,
+  type FundPortfolioParams,
+  type FundProfileParams,
+} from './funds/index';
+export {
+  Futures,
+  type FutureQuote,
+  type FutureSpecs,
+  type FutureListResponse,
+  type FutureHistoricalResponse,
+  type FutureQuoteResponse,
+  type FutureSpecsResponse,
+  type FutureTermStructureResponse,
+  type FutureListParams,
+  type FutureHistoricalParams,
+  type FutureQuoteParams,
+  type FutureSpecsParams,
+  type FutureTermStructureParams,
+} from './futures/index';
 export {
   Inflation,
   type InflationRetrieveResponse,
@@ -22,10 +71,77 @@ export {
   type InflationListAvailableParams,
 } from './inflation';
 export {
+  Macro,
+  type MacroSeriesAliasWarning,
+  type MacroSeriesError,
+  type MacroSeriesObservation,
+  type MacroSeriesPublic,
+  type MacroRetrieveResponse,
+  type MacroLatestResponse,
+  type MacroListAvailableResponse,
+  type MacroRetrieveParams,
+  type MacroLatestParams,
+  type MacroListAvailableParams,
+} from './macro';
+export {
+  Options,
+  type OptionSeries,
+  type OptionChainResponse,
+  type OptionExpirationsResponse,
+  type OptionHistoricalResponse,
+  type OptionStrikesResponse,
+  type OptionChainParams,
+  type OptionExpirationsParams,
+  type OptionHistoricalParams,
+  type OptionStrikesParams,
+} from './options/index';
+export {
   PrimeRate,
   type PrimeRateRetrieveResponse,
   type PrimeRateListAvailableResponse,
   type PrimeRateRetrieveParams,
   type PrimeRateListAvailableParams,
 } from './prime-rate';
+export {
+  Stocks,
+  type StockFundamentalsSeries,
+  type StockBalanceSheetResponse,
+  type StockCashFlowResponse,
+  type StockDividendsResponse,
+  type StockFinancialDataResponse,
+  type StockHistoricalResponse,
+  type StockIncomeStatementResponse,
+  type StockProfileResponse,
+  type StockQuoteResponse,
+  type StockStatisticsResponse,
+  type StockValueAddedResponse,
+  type StockBalanceSheetParams,
+  type StockCashFlowParams,
+  type StockDividendsParams,
+  type StockFinancialDataParams,
+  type StockHistoricalParams,
+  type StockIncomeStatementParams,
+  type StockProfileParams,
+  type StockQuoteParams,
+  type StockStatisticsParams,
+  type StockValueAddedParams,
+} from './stocks';
+export {
+  Tickers,
+  type TickerListResponse,
+  type TickerCoverageResponse,
+  type TickerRenamesResponse,
+  type TickerResolveResponse,
+  type TickerListParams,
+  type TickerCoverageParams,
+  type TickerRenamesParams,
+  type TickerResolveParams,
+} from './tickers';
+export {
+  Treasury,
+  type TreasuryListItem,
+  type TreasuryListResponse,
+  type TreasuryListParams,
+} from './treasury/index';
+export { User, type UserUsageResponse, type UserUsageParams } from './user';
 export { V2 } from './v2';

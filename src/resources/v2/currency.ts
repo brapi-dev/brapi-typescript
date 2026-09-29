@@ -37,6 +37,40 @@ export class Currency extends APIResource {
   }
 
   /**
+   * Série diária de câmbio pela PTAX de fechamento do Banco Central. Cobre USD, EUR,
+   * GBP, JPY, CHF, CAD, AUD, DKK, NOK e SEK contra o real e entre si.
+   *
+   * Use para backtests, conversão de valores em datas passadas e gráficos de câmbio.
+   *
+   * Há três tipos de par:
+   *
+   * - Direto, como `USD-BRL`: planos Startup e Pro.
+   * - Inverso, como `BRL-USD`: calculado como `1 / USD-BRL`. Só no plano Pro.
+   * - Cruzado, como `EUR-USD`: calculado como `EUR-BRL / USD-BRL` nas datas em que
+   *   as duas séries têm valor. Só no plano Pro.
+   *
+   * Peça até 20 pares por chamada. Sem datas, a janela é dos últimos 12 meses. A
+   * PTAX sai uma vez por dia útil, então não há pontos em fins de semana e feriados.
+   *
+   * Um par não aceito ou fora do plano gera um item em `errors` e não derruba os
+   * outros pares. Para cripto, use a
+   * [cotação de criptomoedas](https://brapi.dev/docs/criptomoedas).
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.currency.historical({
+   *   currency: 'USD-BRL,EUR-BRL',
+   * });
+   * ```
+   */
+  historical(
+    query: CurrencyHistoricalParams,
+    options?: RequestOptions,
+  ): APIPromise<CurrencyHistoricalResponse> {
+    return this._client.get('/api/v2/currency/historical', { query, ...options });
+  }
+
+  /**
    * Lista os pares de moedas que a
    * [cotação de câmbio](https://brapi.dev/docs/moedas) aceita, no formato
    * `ORIGEM-DESTINO`, com o nome de cada par.
@@ -98,6 +132,52 @@ export namespace CurrencyRetrieveResponse {
   }
 }
 
+export interface CurrencyHistoricalResponse {
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<CurrencyHistoricalResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+
+  errors?: Array<CurrencyHistoricalResponse.Error>;
+}
+
+export namespace CurrencyHistoricalResponse {
+  export interface Result {
+    fromCurrency: string;
+
+    observations: Array<Result.Observation>;
+
+    pair: string;
+
+    toCurrency: string;
+  }
+
+  export namespace Result {
+    export interface Observation {
+      date: string;
+
+      value: number;
+    }
+  }
+
+  export interface Error {
+    code: string;
+
+    message: string;
+
+    pair: string;
+
+    details?: { [key: string]: unknown };
+  }
+}
+
 export interface CurrencyListAvailableResponse {
   currencies: Array<CurrencyListAvailableResponse.Currency>;
 }
@@ -117,6 +197,34 @@ export interface CurrencyRetrieveParams {
   currency?: string;
 }
 
+export interface CurrencyHistoricalParams {
+  /**
+   * Pares no formato ORIGEM-DESTINO, separados por vírgula, até 20. Ex.:
+   * USD-BRL,EUR-BRL.
+   */
+  currency: string;
+
+  /**
+   * Data final no formato YYYY-MM-DD. Padrão: hoje.
+   */
+  endDate?: string;
+
+  /**
+   * Máximo de pontos por par. Padrão: 365.
+   */
+  limit?: number;
+
+  /**
+   * Ordem por data. Padrão: desc.
+   */
+  sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Data inicial no formato YYYY-MM-DD. Padrão: 12 meses atrás.
+   */
+  startDate?: string;
+}
+
 export interface CurrencyListAvailableParams {
   /**
    * Texto buscado no par e no nome das moedas.
@@ -127,8 +235,10 @@ export interface CurrencyListAvailableParams {
 export declare namespace Currency {
   export {
     type CurrencyRetrieveResponse as CurrencyRetrieveResponse,
+    type CurrencyHistoricalResponse as CurrencyHistoricalResponse,
     type CurrencyListAvailableResponse as CurrencyListAvailableResponse,
     type CurrencyRetrieveParams as CurrencyRetrieveParams,
+    type CurrencyHistoricalParams as CurrencyHistoricalParams,
     type CurrencyListAvailableParams as CurrencyListAvailableParams,
   };
 }

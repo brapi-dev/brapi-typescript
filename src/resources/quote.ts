@@ -205,6 +205,139 @@ export interface BalanceSheetEntry {
 }
 
 /**
+ * Proventos. Vem com `dividends=true`.
+ */
+export interface DividendsData {
+  /**
+   * Dividendos e JCP pagos em dinheiro.
+   */
+  cashDividends: Array<DividendsData.CashDividend>;
+
+  /**
+   * Eventos em ações: desdobramentos, grupamentos e bonificações.
+   */
+  stockDividends: Array<DividendsData.StockDividend>;
+
+  /**
+   * Direitos de subscrição.
+   */
+  subscriptions: Array<unknown>;
+}
+
+export namespace DividendsData {
+  export interface CashDividend {
+    /**
+     * Data de aprovação.
+     */
+    approvedOn: string | null;
+
+    /**
+     * Código ISIN do ativo que dá direito ao provento.
+     */
+    assetIssued: string;
+
+    /**
+     * Data ex, o primeiro dia sem direito ao provento. Pode ser nulo.
+     */
+    exDate: string | null;
+
+    /**
+     * Código ISIN.
+     */
+    isinCode: string;
+
+    /**
+     * Tipo do provento: DIVIDENDO ou JCP.
+     */
+    label: string;
+
+    /**
+     * Data-com, o último dia para comprar o ativo e ter direito ao provento.
+     */
+    lastDatePrior: string | null;
+
+    /**
+     * Data de pagamento.
+     */
+    paymentDate: string | null;
+
+    /**
+     * `true` quando a empresa informou só o prazo máximo do pagamento ("até
+     * 31/12/2026"). Nesse caso, `paymentDate` é o prazo e muda quando a empresa
+     * divulgar a data.
+     */
+    paymentDateIsDeadline: boolean;
+
+    /**
+     * Valor por ação, em reais.
+     */
+    rate: number;
+
+    /**
+     * Período a que o provento se refere. Ex.: 1º Trimestre/2024.
+     */
+    relatedTo: string;
+
+    /**
+     * Observações.
+     */
+    remarks: string;
+
+    /**
+     * Valor por ação na escala dos preços sem ajuste. Vem com `includeRaw=true`.
+     */
+    rawRate?: number | null;
+  }
+
+  export interface StockDividend {
+    /**
+     * Data de aprovação.
+     */
+    approvedOn: string | null;
+
+    /**
+     * Código ISIN do ativo que dá direito ao provento.
+     */
+    assetIssued: string;
+
+    /**
+     * Fator em texto. Ex.: 2 para 1.
+     */
+    completeFactor: string;
+
+    /**
+     * Data ex, o primeiro dia sem direito ao evento. Pode ser nulo.
+     */
+    exDate: string | null;
+
+    /**
+     * Fator do evento. Ex.: 2 em um desdobramento de 2 para 1.
+     */
+    factor: number;
+
+    /**
+     * Código ISIN.
+     */
+    isinCode: string;
+
+    /**
+     * Tipo do evento: DESDOBRAMENTO, GRUPAMENTO ou BONIFICAÇÃO.
+     */
+    label: string;
+
+    /**
+     * Data-com, o último dia para comprar o ativo e ter direito ao evento.
+     */
+    lastDatePrior: string | null;
+
+    /**
+     * Observações.
+     */
+    remarks: string;
+  }
+}
+
+/**
  * Dados financeiros dos últimos 12 meses.
  */
 export interface FinancialDataEntry {
@@ -539,7 +672,7 @@ export namespace QuoteRetrieveResponse {
     /**
      * Proventos. Vem com `dividends=true`.
      */
-    dividendsData?: Result.DividendsData;
+    dividendsData?: QuoteAPI.DividendsData;
 
     /**
      * Dados financeiros dos últimos 12 meses.
@@ -578,132 +711,6 @@ export namespace QuoteRetrieveResponse {
   }
 
   export namespace Result {
-    /**
-     * Proventos. Vem com `dividends=true`.
-     */
-    export interface DividendsData {
-      /**
-       * Dividendos e JCP pagos em dinheiro.
-       */
-      cashDividends: Array<DividendsData.CashDividend>;
-
-      /**
-       * Eventos em ações: desdobramentos, grupamentos e bonificações.
-       */
-      stockDividends: Array<DividendsData.StockDividend>;
-
-      /**
-       * Direitos de subscrição.
-       */
-      subscriptions: Array<unknown>;
-    }
-
-    export namespace DividendsData {
-      export interface CashDividend {
-        /**
-         * Data de aprovação.
-         */
-        approvedOn: string | null;
-
-        /**
-         * Código ISIN do ativo que dá direito ao provento.
-         */
-        assetIssued: string;
-
-        /**
-         * Data ex, o primeiro dia sem direito ao provento. Pode ser nulo.
-         */
-        exDate: string | null;
-
-        /**
-         * Código ISIN.
-         */
-        isinCode: string;
-
-        /**
-         * Tipo do provento: DIVIDENDO ou JCP.
-         */
-        label: string;
-
-        /**
-         * Data-com, o último dia para comprar o ativo e ter direito ao provento.
-         */
-        lastDatePrior: string | null;
-
-        /**
-         * Data de pagamento.
-         */
-        paymentDate: string | null;
-
-        /**
-         * Valor por ação, em reais.
-         */
-        rate: number;
-
-        /**
-         * Período a que o provento se refere. Ex.: 1º Trimestre/2024.
-         */
-        relatedTo: string;
-
-        /**
-         * Observações.
-         */
-        remarks: string;
-
-        /**
-         * Valor por ação na escala dos preços sem ajuste. Vem com `includeRaw=true`.
-         */
-        rawRate?: number | null;
-      }
-
-      export interface StockDividend {
-        /**
-         * Data de aprovação.
-         */
-        approvedOn: string | null;
-
-        /**
-         * Código ISIN do ativo que dá direito ao provento.
-         */
-        assetIssued: string;
-
-        /**
-         * Fator em texto. Ex.: 2 para 1.
-         */
-        completeFactor: string;
-
-        /**
-         * Data ex, o primeiro dia sem direito ao evento. Pode ser nulo.
-         */
-        exDate: string | null;
-
-        /**
-         * Fator do evento. Ex.: 2 em um desdobramento de 2 para 1.
-         */
-        factor: number;
-
-        /**
-         * Código ISIN.
-         */
-        isinCode: string;
-
-        /**
-         * Tipo do evento: DESDOBRAMENTO, GRUPAMENTO ou BONIFICAÇÃO.
-         */
-        label: string;
-
-        /**
-         * Data-com, o último dia para comprar o ativo e ter direito ao evento.
-         */
-        lastDatePrior: string | null;
-
-        /**
-         * Observações.
-         */
-        remarks: string;
-      }
-    }
-
     export interface HistoricalDataPrice {
       /**
        * Fechamento ajustado por proventos, desdobramentos e grupamentos. Use para
@@ -1087,6 +1094,7 @@ export interface QuoteListParams {
 export declare namespace Quote {
   export {
     type BalanceSheetEntry as BalanceSheetEntry,
+    type DividendsData as DividendsData,
     type FinancialDataEntry as FinancialDataEntry,
     type QuoteRetrieveResponse as QuoteRetrieveResponse,
     type QuoteListResponse as QuoteListResponse,
