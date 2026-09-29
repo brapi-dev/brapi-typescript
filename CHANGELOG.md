@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.6.0...v1.7.0) (2026-09-29)
+
+
+### Features
+
+* **sdk:** generate the TypeScript and Python SDKs with stlc ([1f6299e](https://github.com/brapi-dev/brapi-typescript/commit/1f6299ec5b3797f731c5f7be9efd179219a2aefe))
+
 ## [1.6.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.5.0...v1.6.0) (2026-09-29)
 
 
