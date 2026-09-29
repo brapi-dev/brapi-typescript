@@ -6,60 +6,16 @@ import { RequestOptions } from '../../internal/request-options';
 
 export class PrimeRate extends APIResource {
   /**
-   * Retorna dados históricos da **Taxa SELIC (Sistema Especial de Liquidação e de
-   * Custódia)**, a taxa básica de juros da economia brasileira, definida pelo COPOM
-   * (Comitê de Política Monetária) do Banco Central.
+   * Série diária da meta da taxa Selic, definida pelo Copom, em % ao ano.
    *
-   * ### Funcionalidades
+   * Endpoint descontinuado. Use as
+   * [séries macroeconômicas](https://brapi.dev/docs/macro) com `symbols=selic`.
    *
-   * - **Dados Diários:** Taxa SELIC diária (meta anualizada, % a.a.)
-   * - **Histórico Completo:** Dados desde janeiro/2000 até a data atual
-   * - **Filtros de Período:** Use `start` e `end` (formato DD/MM/YYYY)
-   * - **Ordenação:** Por data ou valor, crescente ou decrescente
+   * Sem filtros, devolve os últimos 12 meses. Filtre com `start` e `end` no formato
+   * `DD/MM/YYYY`. A meta só muda nas reuniões do Copom, então a série repete o mesmo
+   * valor entre uma reunião e outra.
    *
-   * ### Autenticação
-   *
-   * Bearer token ou query param `token`. Requer plano Startup.
-   *
-   * ### Exemplos de Uso
-   *
-   * ```bash
-   * # Padrão (últimos 12 meses)
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate"
-   *
-   * # Histórico completo
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate?historical=true"
-   *
-   * # Período específico
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate?start=01/01/2023&end=31/12/2023"
-   *
-   * # Ordenado por valor (decrescente)
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate?historical=true&sortBy=value&sortOrder=desc"
-   * ```
-   *
-   * ### Parâmetros de Ordenação
-   *
-   * - `sortBy`: `date` (padrão) ou `value`
-   * - `sortOrder`: `desc` (padrão) ou `asc`
-   *
-   * ### Campos da Resposta
-   *
-   * - `date` — Data no formato DD/MM/YYYY
-   * - `value` — Taxa SELIC meta anualizada (% a.a.)
-   * - `epochDate` — Data em timestamp Unix (milissegundos)
-   *
-   * ### Sobre a SELIC
-   *
-   * A SELIC é a taxa básica de juros da economia brasileira e influencia todas as
-   * demais taxas de juros do país (empréstimos, financiamentos, aplicações
-   * financeiras). Ela é definida pelo COPOM a cada 45 dias e serve como referência
-   * para o CDI.
-   *
-   * ### Fonte dos Dados
-   *
-   * Banco Central do Brasil (BCB) — meta SELIC publicada como série temporal oficial
-   *
-   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   * Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -74,29 +30,21 @@ export class PrimeRate extends APIResource {
   }
 
   /**
-   * Retorna a lista de países disponíveis para consulta de dados de taxa de juros.
+   * Lista os países que o endpoint da Selic aceita. Hoje só `brazil`.
    *
-   * ### Países Disponíveis
-   *
-   * - **brazil** — Taxa SELIC (Banco Central)
-   *
-   * Use o valor retornado como referência para futuras expansões do endpoint.
-   *
-   * ### Exemplo de Uso
-   *
-   * ```bash
-   * curl -H "Authorization: Bearer SEU_TOKEN" "https://brapi.dev/api/v2/prime-rate/available"
-   * ```
-   *
-   * **Plano Mínimo:** Startup | **Autenticação:** Necessária
+   * Endpoint descontinuado. Use as
+   * [séries macroeconômicas](https://brapi.dev/docs/macro). Planos Startup e Pro.
    *
    * @example
    * ```ts
    * const response = await client.v2.primeRate.listAvailable();
    * ```
    */
-  listAvailable(options?: RequestOptions): APIPromise<PrimeRateListAvailableResponse> {
-    return this._client.get('/api/v2/prime-rate/available', options);
+  listAvailable(
+    query: PrimeRateListAvailableParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<PrimeRateListAvailableResponse> {
+    return this._client.get('/api/v2/prime-rate/available', { query, ...options });
   }
 }
 
@@ -104,12 +52,12 @@ export interface PrimeRateRetrieveResponse {
   'prime-rate': Array<PrimeRateRetrieveResponse.PrimeRate>;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 
   /**
-   * Tempo de processamento em milissegundos
+   * Tempo de processamento, em milissegundos.
    */
   took: number;
 }
@@ -121,7 +69,7 @@ export namespace PrimeRateRetrieveResponse {
     epochDate: number;
 
     /**
-     * Taxa SELIC meta anualizada (% a.a.)
+     * Meta da Selic, em % ao ano.
      */
     value: string;
   }
@@ -133,36 +81,44 @@ export interface PrimeRateListAvailableResponse {
   message: string;
 
   /**
-   * Data e hora da requisição em formato ISO 8601
+   * Data e hora da requisição em ISO 8601.
    */
   requestedAt: string;
 }
 
 export interface PrimeRateRetrieveParams {
   /**
-   * Data de fim (DD/MM/YYYY)
+   * Data final no formato DD/MM/YYYY. Padrão: hoje.
    */
   end?: string;
 
   /**
-   * Incluir dados históricos (true/false)
+   * true devolve a série desde 01/01/2000. Sem datas e sem este parâmetro, devolve
+   * os últimos 12 meses.
    */
   historical?: string;
 
   /**
-   * Campo para ordenação (date ou value)
+   * Campo de ordenação: date ou value. Padrão: date.
    */
   sortBy?: string;
 
   /**
-   * Ordem de classificação (asc ou desc)
+   * Ordem: asc ou desc. Padrão: desc.
    */
   sortOrder?: string;
 
   /**
-   * Data de início (DD/MM/YYYY)
+   * Data inicial no formato DD/MM/YYYY.
    */
   start?: string;
+}
+
+export interface PrimeRateListAvailableParams {
+  /**
+   * Formato da resposta. Só aceita json.
+   */
+  format?: 'json';
 }
 
 export declare namespace PrimeRate {
@@ -170,5 +126,6 @@ export declare namespace PrimeRate {
     type PrimeRateRetrieveResponse as PrimeRateRetrieveResponse,
     type PrimeRateListAvailableResponse as PrimeRateListAvailableResponse,
     type PrimeRateRetrieveParams as PrimeRateRetrieveParams,
+    type PrimeRateListAvailableParams as PrimeRateListAvailableParams,
   };
 }

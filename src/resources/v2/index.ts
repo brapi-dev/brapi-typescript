@@ -19,11 +19,13 @@ export {
   type InflationRetrieveResponse,
   type InflationListAvailableResponse,
   type InflationRetrieveParams,
+  type InflationListAvailableParams,
 } from './inflation';
 export {
   PrimeRate,
   type PrimeRateRetrieveResponse,
   type PrimeRateListAvailableResponse,
   type PrimeRateRetrieveParams,
+  type PrimeRateListAvailableParams,
 } from './prime-rate';
 export { V2 } from './v2';

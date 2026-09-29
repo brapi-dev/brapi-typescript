@@ -58,7 +58,7 @@ Types:
 Methods:
 
 - <code title="get /api/v2/inflation">client.v2.inflation.<a href="./src/resources/v2/inflation.ts">retrieve</a>({ ...params }) -> InflationRetrieveResponse</code>
-- <code title="get /api/v2/inflation/available">client.v2.inflation.<a href="./src/resources/v2/inflation.ts">listAvailable</a>() -> InflationListAvailableResponse</code>
+- <code title="get /api/v2/inflation/available">client.v2.inflation.<a href="./src/resources/v2/inflation.ts">listAvailable</a>({ ...params }) -> InflationListAvailableResponse</code>
 
 ## PrimeRate
 
@@ -70,4 +70,4 @@ Types:
 Methods:
 
 - <code title="get /api/v2/prime-rate">client.v2.primeRate.<a href="./src/resources/v2/prime-rate.ts">retrieve</a>({ ...params }) -> PrimeRateRetrieveResponse</code>
-- <code title="get /api/v2/prime-rate/available">client.v2.primeRate.<a href="./src/resources/v2/prime-rate.ts">listAvailable</a>() -> PrimeRateListAvailableResponse</code>
+- <code title="get /api/v2/prime-rate/available">client.v2.primeRate.<a href="./src/resources/v2/prime-rate.ts">listAvailable</a>({ ...params }) -> PrimeRateListAvailableResponse</code>
