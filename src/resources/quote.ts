@@ -284,6 +284,13 @@ export namespace DividendsData {
     remarks: string;
 
     /**
+     * `true` quando o provento foi conferido em um documento publicado pela empresa ou
+     * pelo fundo. `false` quando vem de dados históricos que ainda não têm esse
+     * documento.
+     */
+    verified: boolean;
+
+    /**
      * Valor por ação na escala dos preços sem ajuste. Vem com `includeRaw=true`.
      */
     rawRate?: number | null;
