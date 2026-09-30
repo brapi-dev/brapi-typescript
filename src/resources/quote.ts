@@ -21,6 +21,10 @@ export class Quote extends APIResource {
    * Este é o endpoint original da brapi. Ele continua ativo e não tem data de
    * remoção.
    *
+   * AXIA5 e AXIA6 retornam a cotação de uma ação AXIA3. Seus preços históricos e
+   * proventos continuam separados por classe. Os campos `historicalSymbol` e
+   * `dividendsSymbol` identificam o ticker desses históricos.
+   *
    * A resposta sempre traz a cotação: preço, variação, volume, máxima e mínima do
    * dia, faixa de 52 semanas e `marketCap`. Estes parâmetros adicionam outros dados:
    *
@@ -682,6 +686,11 @@ export namespace QuoteRetrieveResponse {
     dividendsData?: QuoteAPI.DividendsData;
 
     /**
+     * Ticker do histórico de proventos quando ele difere do ticker da cotação.
+     */
+    dividendsSymbol?: string;
+
+    /**
      * Dados financeiros dos últimos 12 meses.
      */
     financialData?: QuoteAPI.FinancialDataEntry;
@@ -700,6 +709,16 @@ export namespace QuoteRetrieveResponse {
      * Série de preços. Vem quando a requisição define a janela.
      */
     historicalDataPrice?: Array<Result.HistoricalDataPrice>;
+
+    /**
+     * Ticker do histórico de preços quando ele difere do ticker da cotação.
+     */
+    historicalSymbol?: string;
+
+    /**
+     * Ticker enviado quando a cotação pertence a outro ticker.
+     */
+    requestedSymbol?: string;
 
     /**
      * Cadastro da empresa. Vem com o módulo `summaryProfile`.
