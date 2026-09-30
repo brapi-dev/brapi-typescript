@@ -19,8 +19,14 @@ export class Crypto extends APIResource {
    * em `historicalDataPrice` e o período aplicado em `usedRange` e `usedInterval`.
    * Intervalos curtos limitam o período.
    *
-   * Cripto negocia 24 horas por dia. A variação é uma janela móvel de 24 horas.
-   * `marketCap` vem sempre como 0.
+   * Cripto negocia 24 horas por dia. A variação é uma janela móvel de 24 horas. O
+   * histórico usa o câmbio diário da data de fechamento em UTC. Em dias sem cotação
+   * de câmbio, usa a última cotação disponível até essa data. Todos os preços de um
+   * ponto usam esse câmbio. Moedas vinculadas ao dólar usam paridade de 1:1 com USD.
+   * A conversão histórica aceita BRL, USD, EUR, GBP, JPY, CHF, CAD, AUD, DKK, NOK e
+   * SEK. Sem câmbio histórico disponível, os preços do ponto vêm como `null`. O
+   * campo `currencyRateFromUSD` informa o câmbio atual, não o câmbio de cada ponto
+   * histórico. `marketCap` vem sempre como 0.
    *
    * Veja as siglas em
    * [listar criptomoedas](https://brapi.dev/docs/criptomoedas/available). Planos
