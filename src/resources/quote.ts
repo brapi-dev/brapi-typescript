@@ -205,7 +205,8 @@ export interface BalanceSheetEntry {
 }
 
 /**
- * Proventos. Vem com `dividends=true`.
+ * Proventos. Na rota `/api/quote/{tickers}`, vem com `dividends=true`. Na rota
+ * `/api/v2/stocks/dividends`, não exige esse parâmetro.
  */
 export interface DividendsData {
   /**
@@ -677,7 +678,8 @@ export namespace QuoteRetrieveResponse {
     balanceSheetHistoryQuarterly?: Array<QuoteAPI.BalanceSheetEntry>;
 
     /**
-     * Proventos. Vem com `dividends=true`.
+     * Proventos. Na rota `/api/quote/{tickers}`, vem com `dividends=true`. Na rota
+     * `/api/v2/stocks/dividends`, não exige esse parâmetro.
      */
     dividendsData?: QuoteAPI.DividendsData;
 
