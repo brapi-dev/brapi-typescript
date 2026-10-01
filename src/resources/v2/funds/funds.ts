@@ -44,6 +44,9 @@ export class Funds extends APIResource {
    * Busque por `symbols`, `cnpjs` ou `search`. O `search` procura no ticker, no
    * nome, na razão social, no ISIN e no CNPJ.
    *
+   * Os tipos `fiinfra` e `fiagro` equivalem a `fi-infra` e `fi-agro` no catálogo de
+   * tickers.
+   *
    * Nem todo ticker terminado em 11 é FII. `JURO11` é FI-Infra e não responde nos
    * [endpoints de FIIs](https://brapi.dev/docs/fiis).
    *
