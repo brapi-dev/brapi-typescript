@@ -35,14 +35,25 @@ export class Funds extends APIResource {
   fip: FipAPI.Fip = new FipAPI.Fip(this._client);
 
   /**
-   * Lista fundos brasileiros: FII, FIAGRO, FI-Infra, FIF, FIDC, FIP, ETF e outros.
-   * Cada item traz ticker, CNPJ, tipo, classificações, administrador, gestor e
-   * indicadores atuais.
+   * Lista fundos brasileiros com dados disponíveis: FII, FIAGRO, FI-Infra, FIF,
+   * FIDC, FIP e outros. Cada item traz ticker, CNPJ, tipo, classificações,
+   * administrador, gestor e os últimos indicadores disponíveis.
+   *
+   * A lista ainda não inclui ETFs. Consulte suas cotações e preços históricos nos
+   * endpoints de ações. A presença no catálogo de tickers não garante indicadores de
+   * fundos.
+   *
+   * `updatedAt` informa a atualização do cadastro. Consulte `asOfDate` em
+   * `/api/v2/funds/indicators` para a data dos indicadores. Os indicadores não têm a
+   * mesma frequência das cotações.
    *
    * Use para descobrir o tipo de um fundo, achar um CNPJ ou filtrar fundos por tipo.
    *
    * Busque por `symbols`, `cnpjs` ou `search`. O `search` procura no ticker, no
    * nome, na razão social, no ISIN e no CNPJ.
+   *
+   * Os tipos `fiinfra` e `fiagro` equivalem a `fi-infra` e `fi-agro` no catálogo de
+   * tickers.
    *
    * Nem todo ticker terminado em 11 é FII. `JURO11` é FI-Infra e não responde nos
    * [endpoints de FIIs](https://brapi.dev/docs/fiis).
