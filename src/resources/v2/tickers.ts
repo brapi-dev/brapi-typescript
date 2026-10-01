@@ -48,6 +48,9 @@ export class Tickers extends APIResource {
    * com `status` igual a `unknown` e links de busca. Um ticker de opção vem com
    * `wrong_endpoint` e links para os endpoints de opções.
    *
+   * Em conversões de ações, os links de histórico e proventos usam o ticker da
+   * classe original.
+   *
    * Este endpoint não traz dados de mercado. Não exige token.
    *
    * @example
@@ -63,6 +66,9 @@ export class Tickers extends APIResource {
 
   /**
    * Mudanças de ticker, com o ticker antigo, o novo, o atual e a data efetiva.
+   *
+   * Conversões de ações incluem `conversionRatio`, a quantidade de ações novas por
+   * ação antiga. O histórico de cada classe permanece separado.
    *
    * Use para explicar por que um ticker antigo leva a outro e para corrigir séries
    * salvas com o ticker antigo.
@@ -96,6 +102,9 @@ export class Tickers extends APIResource {
    * Envie até 20 tickers em `symbols`. A resposta segue a ordem enviada, sem
    * repetidos. `status` é `renamed` quando o ticker mudou e `active` quando não há
    * renome conhecido.
+   *
+   * Conversões também retornam `renamed`. `conversionRatio` informa a quantidade de
+   * ações novas por ação antiga. Use o ticker original para consultar seu histórico.
    *
    * Este endpoint não confirma se o ticker existe. Para isso, use a
    * [cobertura por ticker](https://brapi.dev/docs/tickers/cobertura).
@@ -372,7 +381,7 @@ export namespace TickerRenamesResponse {
     canonicalSymbol: string;
 
     /**
-     * Data efetiva do renome no formato YYYY-MM-DD.
+     * Data de início da negociação do novo ticker no formato YYYY-MM-DD.
      */
     effectiveDate: string;
 
@@ -385,6 +394,12 @@ export namespace TickerRenamesResponse {
      * Ticker antigo.
      */
     oldSymbol: string;
+
+    /**
+     * Quantidade de ações novas por ação antiga. Presente quando houve conversão de
+     * ações.
+     */
+    conversionRatio?: number;
   }
 }
 
@@ -410,7 +425,7 @@ export namespace TickerResolveResponse {
     changed: boolean;
 
     /**
-     * Data efetiva do renome. Nulo quando não há renome.
+     * Data de início da negociação do novo ticker. Nulo quando não há mudança.
      */
     effectiveDate: string | null;
 
@@ -429,6 +444,12 @@ export namespace TickerResolveResponse {
      * Ticker atual. Use este nas próximas consultas.
      */
     symbol: string;
+
+    /**
+     * Quantidade de ações novas por ação antiga. Presente quando houve conversão de
+     * ações.
+     */
+    conversionRatio?: number;
   }
 }
 
