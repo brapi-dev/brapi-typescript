@@ -134,6 +134,32 @@ describe('resource stocks', () => {
     });
   });
 
+  test('insiderTransactions: only required params', async () => {
+    const responsePromise = client.v2.stocks.insiderTransactions({ symbols: 'PETR4,VALE3' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('insiderTransactions: required and optional params', async () => {
+    const response = await client.v2.stocks.insiderTransactions({
+      symbols: 'PETR4,VALE3',
+      allVersions: 'true',
+      companyRelation: 'company',
+      direction: 'credit',
+      endDate: '2026-08-31',
+      limit: 1,
+      movementType: 'Compra à vista',
+      page: 1,
+      roleGroup: 'controller',
+      startDate: '2026-01-01',
+    });
+  });
+
   test('profile: only required params', async () => {
     const responsePromise = client.v2.stocks.profile({ symbols: 'PETR4,VALE3' });
     const rawResponse = await responsePromise.asResponse();
