@@ -136,7 +136,12 @@ export class Stocks extends APIResource {
    * O plano define os valores aceitos em `range` e `interval` e o tamanho máximo da
    * janela por data. Um pedido acima do limite do plano retorna erro 400.
    *
-   * Use `adjustedClose` para calcular retorno. Ele considera proventos,
+   * Em intervalos diários, `open`, `high`, `low` e `close` podem vir ajustados.
+   * Nesses pontos, `close` coincide com `adjustedClose`. Outros pontos podem trazer
+   * `close` sem ajuste ou `adjustedClose` nulo. Os campos `raw*`, quando
+   * disponíveis, trazem os preços originais.
+   *
+   * Use `adjustedClose` para calcular retorno diário. Ele considera proventos,
    * desdobramentos e grupamentos.
    *
    * `includeRaw=true` exige o plano Pro. Em intervalos diários, ele adiciona
@@ -215,6 +220,9 @@ export class Stocks extends APIResource {
    *
    * Envie vários tickers em `symbols`, separados por vírgula. O número máximo de
    * tickers por chamada depende do plano.
+   *
+   * Quando alguns tickers não existem, eles ficam fora de `results`. Se nenhum
+   * ticker tem cotação, a resposta retorna 404.
    *
    * Um ticker antigo é trocado pelo ticker atual. Nesse caso, `changed` é `true` e
    * `requestedSymbol` guarda o ticker enviado.
@@ -347,7 +355,8 @@ export namespace StockDividendsResponse {
     changed: boolean;
 
     /**
-     * Proventos. Vem com `dividends=true`.
+     * Proventos. Na rota `/api/quote/{tickers}`, vem com `dividends=true`. Na rota
+     * `/api/v2/stocks/dividends`, não exige esse parâmetro.
      */
     data: QuoteAPI.DividendsData;
 
