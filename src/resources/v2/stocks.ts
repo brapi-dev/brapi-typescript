@@ -71,6 +71,9 @@ export class Stocks extends APIResource {
    * Use para calcular dividend yield, montar calendários de proventos e registrar
    * proventos em carteiras.
    *
+   * Em conversões de ações, os proventos de cada classe permanecem separados. Uma
+   * consulta por AXIA6 retorna os proventos de AXIA6 e ELET6.
+   *
    * `lastDatePrior` é a data-com, o último dia para comprar a ação e ter direito ao
    * provento. `exDate` é a data ex, o primeiro dia sem esse direito. `exDate` pode
    * ser nulo.
@@ -129,6 +132,9 @@ export class Stocks extends APIResource {
    * histórico.
    *
    * Use para gráficos, backtests e cálculo de retorno.
+   *
+   * Em conversões de ações, use o ticker original para consultar o histórico daquela
+   * classe. Por exemplo, AXIA6 mantém seu próprio histórico.
    *
    * Defina a janela com `range` e `interval`, por exemplo `range=1y&interval=1d`, ou
    * com `startDate` e `endDate`. O padrão é `range=1mo` e `interval=1d`.
@@ -226,6 +232,9 @@ export class Stocks extends APIResource {
    *
    * Um ticker antigo é trocado pelo ticker atual. Nesse caso, `changed` é `true` e
    * `requestedSymbol` guarda o ticker enviado.
+   *
+   * AXIA5 e AXIA6 retornam a cotação de uma ação AXIA3. Consulte a resolução de
+   * tickers para ver a proporção de conversão.
    *
    * Para a série de preços, use o
    * [histórico de preços](https://brapi.dev/docs/acoes/historico). Para achar
