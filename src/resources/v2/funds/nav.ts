@@ -11,7 +11,8 @@ import { RequestOptions } from '../../../internal/request-options';
 export class Nav extends APIResource {
   /**
    * Série do valor patrimonial por cota, com patrimônio, ativos, cotistas,
-   * aplicações e resgates. FI e FIF têm pontos diários. FIDC tem pontos mensais por
+   * aplicações e resgates. FI e FIF podem ter pontos diários. A cobertura varia por
+   * CNPJ. Alguns fundos não têm histórico disponível. FIDC tem pontos mensais por
    * classe ou série, com a rentabilidade do mês em `monthlyReturn`.
    *
    * Use para gráficos de valor da cota, cálculo de rentabilidade e acompanhamento do
