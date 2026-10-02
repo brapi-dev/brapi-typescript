@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.7.0...v1.7.1) (2026-10-01)
+
+
+### Bug Fixes
+
+* **api:** reject unavailable crypto quotes and clarify response docs ([4ca70f6](https://github.com/brapi-dev/brapi-typescript/commit/4ca70f61eb48bfcb42a76c1bb91bbf90b844caf7))
+* **api:** resolve AXIA share conversions without merging history ([953bb51](https://github.com/brapi-dev/brapi-typescript/commit/953bb51579d9094e1c8ee705167b0efaa0daf7de))
+* **api:** use historical exchange rates for crypto prices ([3669890](https://github.com/brapi-dev/brapi-typescript/commit/3669890acf46c4472f77896d9e10da0035f6012d))
+
 ## [1.7.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.6.0...v1.7.0) (2026-09-29)
 
 
