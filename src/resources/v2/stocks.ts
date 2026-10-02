@@ -198,6 +198,39 @@ export class Stocks extends APIResource {
   }
 
   /**
+   * Movimentações de valores mobiliários por administradores, controladores e
+   * pessoas vinculadas, por empresa e período. Os relatórios são mensais. A
+   * atualização ocorre semanalmente.
+   *
+   * O ticker identifica a empresa do relatório. PETR3 e PETR4 retornam os mesmos
+   * dados. Os registros agrupam pessoas por cargo, sem identificar cada pessoa ou o
+   * ticker negociado.
+   *
+   * `direction` indica entrada ou saída da posição, inclusive transferências. Use
+   * `movementType` para identificar compras e vendas.
+   *
+   * A resposta traz as movimentações mais recentes primeiro e a última versão de
+   * cada relatório. Use `allVersions=true` para incluir versões anteriores. Não some
+   * essas versões, pois elas podem repetir movimentações. Saldos iniciais não entram
+   * na lista.
+   *
+   * Plano Pro. PETR4, MGLU3, VALE3 e ITUB4 permitem testes gratuitos, sem token.
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.stocks.insiderTransactions(
+   *   { symbols: 'VALE3' },
+   * );
+   * ```
+   */
+  insiderTransactions(
+    query: StockInsiderTransactionsParams,
+    options?: RequestOptions,
+  ): APIPromise<StockInsiderTransactionsResponse> {
+    return this._client.get('/api/v2/stocks/insider-transactions', { query, ...options });
+  }
+
+  /**
    * Dados cadastrais da empresa por trás do ticker: razão social, CNPJ, setor,
    * indústria, endereço, site, telefone, número de funcionários e descrição da
    * atividade.
@@ -499,6 +532,152 @@ export interface StockIncomeStatementResponse {
   took: number;
 }
 
+export interface StockInsiderTransactionsResponse {
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<StockInsiderTransactionsResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace StockInsiderTransactionsResponse {
+  export interface Result {
+    changed: boolean;
+
+    data: Result.Data;
+
+    requestedSymbol: string;
+
+    symbol: string;
+  }
+
+  export namespace Result {
+    export interface Data {
+      cnpj: string;
+
+      companyName: string | null;
+
+      /**
+       * Movimentações agrupadas por cargo. Os dados não identificam cada pessoa.
+       */
+      disclosureLevel: 'roleGroup';
+
+      endDate: string;
+
+      /**
+       * Primeiro mês de relatório disponível para a empresa. Pode haver meses sem dados.
+       */
+      firstReportDate: string | null;
+
+      /**
+       * Data de apresentação mais recente. Uma correção pode se referir a um mês
+       * anterior.
+       */
+      latestFilingDate: string | null;
+
+      /**
+       * Último mês de relatório disponível para a empresa.
+       */
+      latestReportDate: string | null;
+
+      pagination: Data.Pagination;
+
+      startDate: string;
+
+      /**
+       * Movimentações que correspondem aos filtros. Uma lista vazia não indica posição
+       * igual a zero.
+       */
+      transactions: Array<Data.Transaction>;
+    }
+
+    export namespace Data {
+      export interface Pagination {
+        hasMore: boolean;
+
+        limit: number;
+
+        page: number;
+
+        total: number;
+      }
+
+      export interface Transaction {
+        /**
+         * Identificador da movimentação nesta versão do relatório.
+         */
+        id: string;
+
+        companyRelation: 'company' | 'parent' | 'subsidiary';
+
+        description: string | null;
+
+        direction: 'credit' | 'debit';
+
+        /**
+         * Data de apresentação do relatório.
+         */
+        filingDate: string;
+
+        intermediary: string | null;
+
+        movementType: string;
+
+        /**
+         * Quantidade inteira exata. Pode ser negativa.
+         */
+        quantity: string | null;
+
+        /**
+         * Primeiro dia do mês de referência. Não é a data da movimentação.
+         */
+        reportDate: string;
+
+        roleDescription: string | null;
+
+        roleGroup: 'controller' | 'board' | 'director' | 'fiscalCouncil' | 'statutoryBody' | null;
+
+        securityClass: string | null;
+
+        /**
+         * Nome da empresa que emite o valor mobiliário.
+         */
+        securityCompany: string;
+
+        securityType: string;
+
+        /**
+         * Data da movimentação em YYYY-MM-DD.
+         */
+        transactionDate: string | null;
+
+        /**
+         * Valor decimal exato em texto, sem ajuste por desdobramentos. null indica valor
+         * ausente.
+         */
+        unitPrice: string | null;
+
+        /**
+         * Versão do relatório. Uma correção substitui a versão anterior.
+         */
+        version: number;
+
+        /**
+         * Valor decimal exato em texto, sem ajuste por desdobramentos. null indica valor
+         * ausente.
+         */
+        volume: string | null;
+      }
+    }
+  }
+}
+
 export interface StockProfileResponse {
   /**
    * Data e hora da requisição em ISO 8601.
@@ -791,6 +970,61 @@ export interface StockIncomeStatementParams {
   startDate?: string;
 }
 
+export interface StockInsiderTransactionsParams {
+  /**
+   * Tickers separados por vírgula. Máximo de 20. Cada ticker identifica a empresa
+   * que apresenta o relatório.
+   */
+  symbols: string;
+
+  /**
+   * Inclui versões anteriores dos relatórios. Padrão: false. Versões anteriores
+   * podem repetir movimentações.
+   */
+  allVersions?: 'true' | 'false';
+
+  /**
+   * Empresa que emite o valor mobiliário: a própria empresa, sua controladora ou sua
+   * controlada.
+   */
+  companyRelation?: 'company' | 'parent' | 'subsidiary' | 'all';
+
+  /**
+   * Entrada ou saída da posição. Inclui transferências e outras movimentações.
+   */
+  direction?: 'credit' | 'debit';
+
+  /**
+   * Data final da movimentação. Padrão: hoje.
+   */
+  endDate?: string;
+
+  /**
+   * Máximo de movimentações por empresa e página.
+   */
+  limit?: number;
+
+  /**
+   * Tipo de movimentação, com o texto exato do relatório.
+   */
+  movementType?: string;
+
+  /**
+   * Página de cada empresa.
+   */
+  page?: number;
+
+  /**
+   * Grupo de cargos. Cada grupo inclui pessoas vinculadas.
+   */
+  roleGroup?: 'controller' | 'board' | 'director' | 'fiscalCouncil' | 'statutoryBody';
+
+  /**
+   * Data inicial da movimentação. Padrão: 365 dias antes de endDate.
+   */
+  startDate?: string;
+}
+
 export interface StockProfileParams {
   /**
    * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
@@ -867,6 +1101,7 @@ export declare namespace Stocks {
     type StockFinancialDataResponse as StockFinancialDataResponse,
     type StockHistoricalResponse as StockHistoricalResponse,
     type StockIncomeStatementResponse as StockIncomeStatementResponse,
+    type StockInsiderTransactionsResponse as StockInsiderTransactionsResponse,
     type StockProfileResponse as StockProfileResponse,
     type StockQuoteResponse as StockQuoteResponse,
     type StockStatisticsResponse as StockStatisticsResponse,
@@ -877,6 +1112,7 @@ export declare namespace Stocks {
     type StockFinancialDataParams as StockFinancialDataParams,
     type StockHistoricalParams as StockHistoricalParams,
     type StockIncomeStatementParams as StockIncomeStatementParams,
+    type StockInsiderTransactionsParams as StockInsiderTransactionsParams,
     type StockProfileParams as StockProfileParams,
     type StockQuoteParams as StockQuoteParams,
     type StockStatisticsParams as StockStatisticsParams,
