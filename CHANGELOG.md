@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.7.1...v1.8.0) (2026-10-02)
+
+
+### Features
+
+* **api:** publish insider transactions in API, pricing, chat, and MCP ([1393ee7](https://github.com/brapi-dev/brapi-typescript/commit/1393ee79b8faaf92929ee68769523a131ef5c501))
+
 ## [1.7.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.7.0...v1.7.1) (2026-10-01)
 
 
