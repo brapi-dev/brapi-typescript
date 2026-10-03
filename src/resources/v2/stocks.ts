@@ -74,6 +74,12 @@ export class Stocks extends APIResource {
    * Em conversões de ações, os proventos de cada classe permanecem separados. Uma
    * consulta por AXIA6 retorna os proventos de AXIA6 e ELET6.
    *
+   * Os proventos de LCAM3 e BRFS3 permanecem separados de RENT3 e MBRF3. PRGA3 usa
+   * BRFS3. MRFG3 usa MBRF3.
+   *
+   * Os proventos disponíveis podem ser consultados mesmo quando o ticker não tem
+   * cotação atual.
+   *
    * `lastDatePrior` é a data-com, o último dia para comprar a ação e ter direito ao
    * provento. `exDate` é a data ex, o primeiro dia sem esse direito. `exDate` pode
    * ser nulo.
@@ -135,6 +141,12 @@ export class Stocks extends APIResource {
    *
    * Em conversões de ações, use o ticker original para consultar o histórico daquela
    * classe. Por exemplo, AXIA6 mantém seu próprio histórico.
+   *
+   * LCAM3 e BRFS3 também mantêm históricos próprios, separados de RENT3 e MBRF3.
+   * PRGA3 usa a série de BRFS3. MRFG3 usa MBRF3.
+   *
+   * O histórico disponível pode ser consultado mesmo quando o ticker não tem cotação
+   * atual.
    *
    * Defina a janela com `range` e `interval`, por exemplo `range=1y&interval=1d`, ou
    * com `startDate` e `endDate`. O padrão é `range=1mo` e `interval=1d`.
@@ -392,7 +404,7 @@ export interface StockDividendsResponse {
 export namespace StockDividendsResponse {
   export interface Result {
     /**
-     * `true` quando o ticker enviado foi trocado pelo ticker atual.
+     * `true` quando `symbol` difere de `requestedSymbol`.
      */
     changed: boolean;
 
@@ -408,7 +420,7 @@ export namespace StockDividendsResponse {
     requestedSymbol: string;
 
     /**
-     * Ticker atual, depois de resolver renomes.
+     * Ticker usado para os dados retornados.
      */
     symbol: string;
   }
@@ -445,7 +457,7 @@ export interface StockHistoricalResponse {
 export namespace StockHistoricalResponse {
   export interface Result {
     /**
-     * `true` quando o ticker enviado foi trocado pelo ticker atual.
+     * `true` quando `symbol` difere de `requestedSymbol`.
      */
     changed: boolean;
 
@@ -457,7 +469,7 @@ export namespace StockHistoricalResponse {
     requestedSymbol: string;
 
     /**
-     * Ticker atual, depois de resolver renomes.
+     * Ticker usado para os dados retornados.
      */
     symbol: string;
   }
@@ -709,7 +721,7 @@ export interface StockQuoteResponse {
 export namespace StockQuoteResponse {
   export interface Result {
     /**
-     * `true` quando o ticker enviado foi trocado pelo ticker atual.
+     * `true` quando `symbol` difere de `requestedSymbol`.
      */
     changed: boolean;
 
@@ -721,7 +733,7 @@ export namespace StockQuoteResponse {
     requestedSymbol: string;
 
     /**
-     * Ticker atual, depois de resolver renomes.
+     * Ticker usado para os dados retornados.
      */
     symbol: string;
   }
@@ -800,8 +812,8 @@ export interface StockValueAddedResponse {
 
 export interface StockBalanceSheetParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -823,8 +835,8 @@ export interface StockBalanceSheetParams {
 
 export interface StockCashFlowParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -846,8 +858,8 @@ export interface StockCashFlowParams {
 
 export interface StockDividendsParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -882,8 +894,8 @@ export interface StockDividendsParams {
 
 export interface StockFinancialDataParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -910,8 +922,8 @@ export interface StockFinancialDataParams {
 
 export interface StockHistoricalParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -949,8 +961,8 @@ export interface StockHistoricalParams {
 
 export interface StockIncomeStatementParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -1027,24 +1039,24 @@ export interface StockInsiderTransactionsParams {
 
 export interface StockProfileParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 }
 
 export interface StockQuoteParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 }
 
 export interface StockStatisticsParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
@@ -1071,8 +1083,8 @@ export interface StockStatisticsParams {
 
 export interface StockValueAddedParams {
   /**
-   * Tickers separados por vírgula. Ex.: PETR4,VALE3. Um ticker antigo é trocado pelo
-   * ticker atual.
+   * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
+   * ticker enviado e `symbol` identifica os dados retornados.
    */
   symbols: string;
 
