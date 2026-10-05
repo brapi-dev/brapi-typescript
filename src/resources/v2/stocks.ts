@@ -297,6 +297,82 @@ export class Stocks extends APIResource {
   }
 
   /**
+   * Filtra e ordena ações da B3 por preço e indicadores fundamentalistas, como P/L,
+   * P/VP, dividend yield e ROE. Uma chamada percorre todas as ações.
+   *
+   * Cada indicador aceita `{chave}Min` e `{chave}Max`. Os limites são inclusivos e
+   * usam a mesma unidade da resposta. Frações seguem `/api/v2/stocks/statistics` e
+   * `/api/v2/stocks/financial-data`: 6% é `0.06`. Um filtro remove os ativos sem o
+   * dado. Na ordenação, os nulos ficam no fim.
+   *
+   * Exemplos:
+   *
+   * - P/L entre 0 e 8 e dividend yield de pelo menos 6%:
+   *   `?trailingPEMin=0&trailingPEMax=8&dividendYieldMin=0.06&sortBy=dividendYield`
+   * - ROE de pelo menos 15%, do maior para o menor:
+   *   `?returnOnEquityMin=0.15&sortBy=returnOnEquity`
+   *
+   * Empresas com prejuízo têm P/L negativo. Para excluí-las, envie `trailingPEMin=0`
+   * junto com `trailingPEMax`.
+   *
+   * `quote` e `dividendYield` usam o último preço. P/L, P/VP e os outros indicadores
+   * usam o preço da atualização diária dos fundamentos. Em units, P/L e P/VP usam o
+   * último preço da unit. `dividendYield` soma os proventos em dinheiro dos últimos
+   * 12 meses.
+   *
+   * Planos Startup e Pro. Os indicadores do plano Pro não vêm em `metrics` no plano
+   * Startup. Um filtro ou uma ordenação com esses indicadores no plano Startup
+   * retorna 403.
+   *
+   * | Indicador                    | Chave                  | Unidade                    | Plano         |
+   * | ---------------------------- | ---------------------- | -------------------------- | ------------- |
+   * | Preço                        | `lastPrice`            | reais                      | Startup e Pro |
+   * | Variação no dia              | `changePercent`        | porcentagem (2.81 = 2,81%) | Startup e Pro |
+   * | Volume                       | `volume`               | ações                      | Startup e Pro |
+   * | Valor de mercado             | `marketCap`            | reais                      | Startup e Pro |
+   * | P/L                          | `trailingPE`           | múltiplo                   | Startup e Pro |
+   * | P/VP                         | `priceToBook`          | múltiplo                   | Startup e Pro |
+   * | EV/EBITDA                    | `enterpriseToEbitda`   | múltiplo                   | Startup e Pro |
+   * | EV/Receita                   | `enterpriseToRevenue`  | múltiplo                   | Startup e Pro |
+   * | PEG                          | `pegRatio`             | múltiplo                   | Startup e Pro |
+   * | LPA                          | `earningsPerShare`     | reais                      | Startup e Pro |
+   * | VPA                          | `bookValuePerShare`    | reais                      | Startup e Pro |
+   * | Margem líquida               | `netMargin`            | fração (0.06 = 6%)         | Startup e Pro |
+   * | Valor da firma               | `enterpriseValue`      | reais                      | Startup e Pro |
+   * | Variação 52 semanas          | `fiftyTwoWeekChange`   | fração (0.06 = 6%)         | Startup e Pro |
+   * | Dividend yield               | `dividendYield`        | fração (0.06 = 6%)         | Startup e Pro |
+   * | ROE                          | `returnOnEquity`       | fração (0.06 = 6%)         | Pro           |
+   * | ROA                          | `returnOnAssets`       | fração (0.06 = 6%)         | Pro           |
+   * | Margem bruta                 | `grossMargin`          | fração (0.06 = 6%)         | Pro           |
+   * | Margem EBITDA                | `ebitdaMargin`         | fração (0.06 = 6%)         | Pro           |
+   * | Margem operacional           | `operatingMargin`      | fração (0.06 = 6%)         | Pro           |
+   * | Dívida/PL                    | `debtToEquity`         | múltiplo                   | Pro           |
+   * | Dívida líquida/EBITDA        | `netDebtToEbitda`      | múltiplo                   | Pro           |
+   * | Liquidez corrente            | `currentRatio`         | múltiplo                   | Pro           |
+   * | Liquidez seca                | `quickRatio`           | múltiplo                   | Pro           |
+   * | Crescimento da receita       | `revenueGrowth`        | fração (0.06 = 6%)         | Pro           |
+   * | Crescimento do lucro         | `earningsGrowth`       | fração (0.06 = 6%)         | Pro           |
+   * | Crescimento anual da receita | `revenueGrowthAnnual`  | fração (0.06 = 6%)         | Pro           |
+   * | Crescimento anual do lucro   | `earningsGrowthAnnual` | fração (0.06 = 6%)         | Pro           |
+   * | Receita                      | `totalRevenue`         | reais                      | Pro           |
+   * | EBITDA                       | `ebitda`               | reais                      | Pro           |
+   * | Fluxo de caixa livre         | `freeCashflow`         | reais                      | Pro           |
+   * | Dívida bruta                 | `totalDebt`            | reais                      | Pro           |
+   * | Caixa                        | `totalCash`            | reais                      | Pro           |
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.stocks.screener();
+   * ```
+   */
+  screener(
+    query: StockScreenerParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<StockScreenerResponse> {
+    return this._client.get('/api/v2/stocks/screener', { query, ...options });
+  }
+
+  /**
    * Múltiplos e indicadores por ação: P/L, P/VP, beta, dividend yield, lucro por
    * ação, valor patrimonial por ação e market cap.
    *
@@ -782,6 +858,314 @@ export namespace StockQuoteResponse {
   }
 }
 
+export interface StockScreenerResponse {
+  pagination: StockScreenerResponse.Pagination;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<StockScreenerResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace StockScreenerResponse {
+  export interface Pagination {
+    hasNextPage: boolean;
+
+    limit: number;
+
+    page: number;
+
+    totalItems: number;
+
+    totalPages: number;
+  }
+
+  export interface Result {
+    /**
+     * Tipo do ativo.
+     */
+    assetType: 'stock' | 'fund' | 'bdr' | null;
+
+    /**
+     * Moeda.
+     */
+    currency: 'BRL';
+
+    /**
+     * Bolsa.
+     */
+    exchange: 'B3';
+
+    /**
+     * Data e hora da última atualização dos fundamentos usados. Nulo quando o ativo
+     * não tem fundamentos.
+     */
+    fundamentalsUpdatedAt: string | null;
+
+    /**
+     * `true` quando o ativo está em negociação.
+     */
+    isActive: boolean;
+
+    /**
+     * URL do logo.
+     */
+    logoUrl: string | null;
+
+    /**
+     * Nome longo. Pode ser nulo.
+     */
+    longName: string | null;
+
+    /**
+     * Indicadores do ativo. As chaves do plano Pro não vêm no plano Startup.
+     */
+    metrics: Result.Metrics;
+
+    /**
+     * Nome da empresa ou do fundo.
+     */
+    name: string;
+
+    quote: Result.Quote;
+
+    /**
+     * Setor. Pode ser nulo.
+     */
+    sector: string | null;
+
+    /**
+     * Subsetor. Pode ser nulo.
+     */
+    subsector: string | null;
+
+    /**
+     * Subtipo do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip, fidc ou bdr.
+     */
+    subType: 'stock' | 'unit' | 'fii' | 'etf' | 'fi-infra' | 'fi-agro' | 'fip' | 'fidc' | 'bdr' | null;
+
+    /**
+     * Ticker do ativo.
+     */
+    symbol: string;
+  }
+
+  export namespace Result {
+    /**
+     * Indicadores do ativo. As chaves do plano Pro não vêm no plano Startup.
+     */
+    export interface Metrics {
+      /**
+       * VPA. Valor patrimonial por ação, em reais. Unidade: reais. Nulo quando não há
+       * dado.
+       */
+      bookValuePerShare: number | null;
+
+      /**
+       * Dividend yield. Proventos em dinheiro dos últimos 12 meses sobre o último preço,
+       * em fração (0.06 = 6%). Nulo quando não houve proventos. Unidade: fração (0.06 =
+       * 6%). Nulo quando não há dado.
+       */
+      dividendYield: number | null;
+
+      /**
+       * LPA. Lucro por ação dos últimos 12 meses, em reais. Unidade: reais. Nulo quando
+       * não há dado.
+       */
+      earningsPerShare: number | null;
+
+      /**
+       * EV/EBITDA. Valor da firma sobre EBITDA. Unidade: múltiplo. Nulo quando não há
+       * dado.
+       */
+      enterpriseToEbitda: number | null;
+
+      /**
+       * EV/Receita. Valor da firma sobre receita. Unidade: múltiplo. Nulo quando não há
+       * dado.
+       */
+      enterpriseToRevenue: number | null;
+
+      /**
+       * Valor da firma. Valor de mercado mais dívida líquida, em reais. Unidade: reais.
+       * Nulo quando não há dado.
+       */
+      enterpriseValue: number | null;
+
+      /**
+       * Variação 52 semanas. Variação do preço em 52 semanas, em fração (0.65 = 65%).
+       * Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      fiftyTwoWeekChange: number | null;
+
+      /**
+       * Margem líquida. Lucro líquido sobre receita, em fração (0.24 = 24%). Unidade:
+       * fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      netMargin: number | null;
+
+      /**
+       * PEG. P/L dividido pelo crescimento do lucro. Unidade: múltiplo. Nulo quando não
+       * há dado.
+       */
+      pegRatio: number | null;
+
+      /**
+       * P/VP. Preço sobre valor patrimonial. Unidade: múltiplo. Nulo quando não há dado.
+       */
+      priceToBook: number | null;
+
+      /**
+       * P/L. Preço sobre lucro dos últimos 12 meses. É negativo quando a empresa tem
+       * prejuízo. Unidade: múltiplo. Nulo quando não há dado.
+       */
+      trailingPE: number | null;
+
+      /**
+       * Liquidez corrente. Ativo circulante sobre passivo circulante. Unidade: múltiplo.
+       * Nulo quando não há dado. Só vem no plano Pro.
+       */
+      currentRatio?: number | null;
+
+      /**
+       * Dívida/PL. Dívida bruta sobre patrimônio líquido. Unidade: múltiplo. Nulo quando
+       * não há dado. Só vem no plano Pro.
+       */
+      debtToEquity?: number | null;
+
+      /**
+       * Crescimento do lucro. Crescimento do lucro do último trimestre contra o mesmo
+       * trimestre do ano anterior, em fração. Unidade: fração (0.06 = 6%). Nulo quando
+       * não há dado. Só vem no plano Pro.
+       */
+      earningsGrowth?: number | null;
+
+      /**
+       * Crescimento anual do lucro. Crescimento do lucro no último ano fiscal, em
+       * fração. Unidade: fração (0.06 = 6%). Nulo quando não há dado. Só vem no plano
+       * Pro.
+       */
+      earningsGrowthAnnual?: number | null;
+
+      /**
+       * EBITDA. EBITDA dos últimos 12 meses, em reais. Unidade: reais. Nulo quando não
+       * há dado. Só vem no plano Pro.
+       */
+      ebitda?: number | null;
+
+      /**
+       * Margem EBITDA. EBITDA sobre receita, em fração. Unidade: fração (0.06 = 6%).
+       * Nulo quando não há dado. Só vem no plano Pro.
+       */
+      ebitdaMargin?: number | null;
+
+      /**
+       * Fluxo de caixa livre. Fluxo de caixa livre, em reais. Unidade: reais. Nulo
+       * quando não há dado. Só vem no plano Pro.
+       */
+      freeCashflow?: number | null;
+
+      /**
+       * Margem bruta. Lucro bruto sobre receita, em fração. Unidade: fração (0.06 = 6%).
+       * Nulo quando não há dado. Só vem no plano Pro.
+       */
+      grossMargin?: number | null;
+
+      /**
+       * Dívida líquida/EBITDA. Dívida bruta menos caixa, sobre EBITDA. Nulo quando o
+       * EBITDA é zero ou negativo. Unidade: múltiplo. Nulo quando não há dado. Só vem no
+       * plano Pro.
+       */
+      netDebtToEbitda?: number | null;
+
+      /**
+       * Margem operacional. Lucro operacional sobre receita, em fração. Unidade: fração
+       * (0.06 = 6%). Nulo quando não há dado. Só vem no plano Pro.
+       */
+      operatingMargin?: number | null;
+
+      /**
+       * Liquidez seca. Ativo circulante sem estoques, sobre passivo circulante. Unidade:
+       * múltiplo. Nulo quando não há dado. Só vem no plano Pro.
+       */
+      quickRatio?: number | null;
+
+      /**
+       * ROA. Retorno sobre os ativos, em fração. Unidade: fração (0.06 = 6%). Nulo
+       * quando não há dado. Só vem no plano Pro.
+       */
+      returnOnAssets?: number | null;
+
+      /**
+       * ROE. Retorno sobre o patrimônio, em fração (0.15 = 15%). Unidade: fração (0.06 =
+       * 6%). Nulo quando não há dado. Só vem no plano Pro.
+       */
+      returnOnEquity?: number | null;
+
+      /**
+       * Crescimento da receita. Crescimento da receita do último trimestre contra o
+       * mesmo trimestre do ano anterior, em fração. Unidade: fração (0.06 = 6%). Nulo
+       * quando não há dado. Só vem no plano Pro.
+       */
+      revenueGrowth?: number | null;
+
+      /**
+       * Crescimento anual da receita. Crescimento da receita no último ano fiscal, em
+       * fração. Unidade: fração (0.06 = 6%). Nulo quando não há dado. Só vem no plano
+       * Pro.
+       */
+      revenueGrowthAnnual?: number | null;
+
+      /**
+       * Caixa. Caixa e aplicações, em reais. Unidade: reais. Nulo quando não há dado. Só
+       * vem no plano Pro.
+       */
+      totalCash?: number | null;
+
+      /**
+       * Dívida bruta. Dívida bruta, em reais. Unidade: reais. Nulo quando não há dado.
+       * Só vem no plano Pro.
+       */
+      totalDebt?: number | null;
+
+      /**
+       * Receita. Receita dos últimos 12 meses, em reais. Unidade: reais. Nulo quando não
+       * há dado. Só vem no plano Pro.
+       */
+      totalRevenue?: number | null;
+    }
+
+    export interface Quote {
+      /**
+       * Variação no dia, em porcentagem.
+       */
+      changePercent: number | null;
+
+      /**
+       * Último preço.
+       */
+      lastPrice: number | null;
+
+      /**
+       * Valor de mercado, em reais. Pode ser nulo.
+       */
+      marketCap: number | null;
+
+      /**
+       * Volume negociado no dia.
+       */
+      volume: number | null;
+    }
+  }
+}
+
 export interface StockStatisticsResponse {
   /**
    * Data e hora da requisição em ISO 8601.
@@ -1053,6 +1437,437 @@ export interface StockQuoteParams {
   symbols: string;
 }
 
+export interface StockScreenerParams {
+  /**
+   * VPA: valor máximo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  bookValuePerShareMax?: number;
+
+  /**
+   * VPA: valor mínimo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  bookValuePerShareMin?: number;
+
+  /**
+   * Variação no dia: valor máximo, inclusive. Unidade: porcentagem (2.81 = 2,81%).
+   * Plano Startup e Pro.
+   */
+  changePercentMax?: number;
+
+  /**
+   * Variação no dia: valor mínimo, inclusive. Unidade: porcentagem (2.81 = 2,81%).
+   * Plano Startup e Pro.
+   */
+  changePercentMin?: number;
+
+  /**
+   * Liquidez corrente: valor máximo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  currentRatioMax?: number;
+
+  /**
+   * Liquidez corrente: valor mínimo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  currentRatioMin?: number;
+
+  /**
+   * Dívida/PL: valor máximo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  debtToEquityMax?: number;
+
+  /**
+   * Dívida/PL: valor mínimo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  debtToEquityMin?: number;
+
+  /**
+   * Dividend yield: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Startup e Pro.
+   */
+  dividendYieldMax?: number;
+
+  /**
+   * Dividend yield: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Startup e Pro.
+   */
+  dividendYieldMin?: number;
+
+  /**
+   * Crescimento anual do lucro: valor máximo, inclusive. Unidade: fração (0.06 =
+   * 6%). Plano Pro.
+   */
+  earningsGrowthAnnualMax?: number;
+
+  /**
+   * Crescimento anual do lucro: valor mínimo, inclusive. Unidade: fração (0.06 =
+   * 6%). Plano Pro.
+   */
+  earningsGrowthAnnualMin?: number;
+
+  /**
+   * Crescimento do lucro: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   * Plano Pro.
+   */
+  earningsGrowthMax?: number;
+
+  /**
+   * Crescimento do lucro: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   * Plano Pro.
+   */
+  earningsGrowthMin?: number;
+
+  /**
+   * LPA: valor máximo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  earningsPerShareMax?: number;
+
+  /**
+   * LPA: valor mínimo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  earningsPerShareMin?: number;
+
+  /**
+   * Margem EBITDA: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  ebitdaMarginMax?: number;
+
+  /**
+   * Margem EBITDA: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  ebitdaMarginMin?: number;
+
+  /**
+   * EBITDA: valor máximo, inclusive. Unidade: reais. Plano Pro.
+   */
+  ebitdaMax?: number;
+
+  /**
+   * EBITDA: valor mínimo, inclusive. Unidade: reais. Plano Pro.
+   */
+  ebitdaMin?: number;
+
+  /**
+   * EV/EBITDA: valor máximo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  enterpriseToEbitdaMax?: number;
+
+  /**
+   * EV/EBITDA: valor mínimo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  enterpriseToEbitdaMin?: number;
+
+  /**
+   * EV/Receita: valor máximo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  enterpriseToRevenueMax?: number;
+
+  /**
+   * EV/Receita: valor mínimo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  enterpriseToRevenueMin?: number;
+
+  /**
+   * Valor da firma: valor máximo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  enterpriseValueMax?: number;
+
+  /**
+   * Valor da firma: valor mínimo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  enterpriseValueMin?: number;
+
+  /**
+   * Variação 52 semanas: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Startup e Pro.
+   */
+  fiftyTwoWeekChangeMax?: number;
+
+  /**
+   * Variação 52 semanas: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Startup e Pro.
+   */
+  fiftyTwoWeekChangeMin?: number;
+
+  /**
+   * Fluxo de caixa livre: valor máximo, inclusive. Unidade: reais. Plano Pro.
+   */
+  freeCashflowMax?: number;
+
+  /**
+   * Fluxo de caixa livre: valor mínimo, inclusive. Unidade: reais. Plano Pro.
+   */
+  freeCashflowMin?: number;
+
+  /**
+   * Margem bruta: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  grossMarginMax?: number;
+
+  /**
+   * Margem bruta: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  grossMarginMin?: number;
+
+  /**
+   * Preço: valor máximo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  lastPriceMax?: number;
+
+  /**
+   * Preço: valor mínimo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  lastPriceMin?: number;
+
+  /**
+   * Itens por página. Máximo: 200.
+   */
+  limit?: number;
+
+  /**
+   * Valor de mercado: valor máximo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  marketCapMax?: number;
+
+  /**
+   * Valor de mercado: valor mínimo, inclusive. Unidade: reais. Plano Startup e Pro.
+   */
+  marketCapMin?: number;
+
+  /**
+   * Dívida líquida/EBITDA: valor máximo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  netDebtToEbitdaMax?: number;
+
+  /**
+   * Dívida líquida/EBITDA: valor mínimo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  netDebtToEbitdaMin?: number;
+
+  /**
+   * Margem líquida: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Startup e Pro.
+   */
+  netMarginMax?: number;
+
+  /**
+   * Margem líquida: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Startup e Pro.
+   */
+  netMarginMin?: number;
+
+  /**
+   * Margem operacional: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Pro.
+   */
+  operatingMarginMax?: number;
+
+  /**
+   * Margem operacional: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano
+   * Pro.
+   */
+  operatingMarginMin?: number;
+
+  /**
+   * Número da página. Começa em 1.
+   */
+  page?: number;
+
+  /**
+   * PEG: valor máximo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  pegRatioMax?: number;
+
+  /**
+   * PEG: valor mínimo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  pegRatioMin?: number;
+
+  /**
+   * P/VP: valor máximo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  priceToBookMax?: number;
+
+  /**
+   * P/VP: valor mínimo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  priceToBookMin?: number;
+
+  /**
+   * Liquidez seca: valor máximo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  quickRatioMax?: number;
+
+  /**
+   * Liquidez seca: valor mínimo, inclusive. Unidade: múltiplo. Plano Pro.
+   */
+  quickRatioMin?: number;
+
+  /**
+   * ROA: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  returnOnAssetsMax?: number;
+
+  /**
+   * ROA: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  returnOnAssetsMin?: number;
+
+  /**
+   * ROE: valor máximo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  returnOnEquityMax?: number;
+
+  /**
+   * ROE: valor mínimo, inclusive. Unidade: fração (0.06 = 6%). Plano Pro.
+   */
+  returnOnEquityMin?: number;
+
+  /**
+   * Crescimento anual da receita: valor máximo, inclusive. Unidade: fração (0.06 =
+   * 6%). Plano Pro.
+   */
+  revenueGrowthAnnualMax?: number;
+
+  /**
+   * Crescimento anual da receita: valor mínimo, inclusive. Unidade: fração (0.06 =
+   * 6%). Plano Pro.
+   */
+  revenueGrowthAnnualMin?: number;
+
+  /**
+   * Crescimento da receita: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   * Plano Pro.
+   */
+  revenueGrowthMax?: number;
+
+  /**
+   * Crescimento da receita: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   * Plano Pro.
+   */
+  revenueGrowthMin?: number;
+
+  /**
+   * Parte do ticker, do nome da empresa ou de um ticker antigo.
+   */
+  search?: string;
+
+  /**
+   * Setor. Aceita parte do nome.
+   */
+  sector?: string;
+
+  /**
+   * Campo de ordenação: uma chave de métrica, `symbol` ou `name`. Valores nulos
+   * ficam no fim.
+   */
+  sortBy?:
+    | 'symbol'
+    | 'name'
+    | 'lastPrice'
+    | 'changePercent'
+    | 'volume'
+    | 'marketCap'
+    | 'trailingPE'
+    | 'priceToBook'
+    | 'enterpriseToEbitda'
+    | 'enterpriseToRevenue'
+    | 'pegRatio'
+    | 'earningsPerShare'
+    | 'bookValuePerShare'
+    | 'netMargin'
+    | 'enterpriseValue'
+    | 'fiftyTwoWeekChange'
+    | 'dividendYield'
+    | 'returnOnEquity'
+    | 'returnOnAssets'
+    | 'grossMargin'
+    | 'ebitdaMargin'
+    | 'operatingMargin'
+    | 'debtToEquity'
+    | 'netDebtToEbitda'
+    | 'currentRatio'
+    | 'quickRatio'
+    | 'revenueGrowth'
+    | 'earningsGrowth'
+    | 'revenueGrowthAnnual'
+    | 'earningsGrowthAnnual'
+    | 'totalRevenue'
+    | 'ebitda'
+    | 'freeCashflow'
+    | 'totalDebt'
+    | 'totalCash';
+
+  /**
+   * Ordem. Padrão: `desc`.
+   */
+  sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Subsetor. Nome exato.
+   */
+  subsector?: string;
+
+  /**
+   * Subtipo do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip, fidc ou bdr.
+   */
+  subType?: 'stock' | 'unit' | 'fii' | 'etf' | 'fi-infra' | 'fi-agro' | 'fip' | 'fidc' | 'bdr';
+
+  /**
+   * Caixa: valor máximo, inclusive. Unidade: reais. Plano Pro.
+   */
+  totalCashMax?: number;
+
+  /**
+   * Caixa: valor mínimo, inclusive. Unidade: reais. Plano Pro.
+   */
+  totalCashMin?: number;
+
+  /**
+   * Dívida bruta: valor máximo, inclusive. Unidade: reais. Plano Pro.
+   */
+  totalDebtMax?: number;
+
+  /**
+   * Dívida bruta: valor mínimo, inclusive. Unidade: reais. Plano Pro.
+   */
+  totalDebtMin?: number;
+
+  /**
+   * Receita: valor máximo, inclusive. Unidade: reais. Plano Pro.
+   */
+  totalRevenueMax?: number;
+
+  /**
+   * Receita: valor mínimo, inclusive. Unidade: reais. Plano Pro.
+   */
+  totalRevenueMin?: number;
+
+  /**
+   * P/L: valor máximo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  trailingPEMax?: number;
+
+  /**
+   * P/L: valor mínimo, inclusive. Unidade: múltiplo. Plano Startup e Pro.
+   */
+  trailingPEMin?: number;
+
+  /**
+   * Tipo do ativo. Padrão: `stock`.
+   */
+  type?: 'stock' | 'fund' | 'bdr';
+
+  /**
+   * Volume: valor máximo, inclusive. Unidade: ações. Plano Startup e Pro.
+   */
+  volumeMax?: number;
+
+  /**
+   * Volume: valor mínimo, inclusive. Unidade: ações. Plano Startup e Pro.
+   */
+  volumeMin?: number;
+}
+
 export interface StockStatisticsParams {
   /**
    * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
@@ -1116,6 +1931,7 @@ export declare namespace Stocks {
     type StockInsiderTransactionsResponse as StockInsiderTransactionsResponse,
     type StockProfileResponse as StockProfileResponse,
     type StockQuoteResponse as StockQuoteResponse,
+    type StockScreenerResponse as StockScreenerResponse,
     type StockStatisticsResponse as StockStatisticsResponse,
     type StockValueAddedResponse as StockValueAddedResponse,
     type StockBalanceSheetParams as StockBalanceSheetParams,
@@ -1127,6 +1943,7 @@ export declare namespace Stocks {
     type StockInsiderTransactionsParams as StockInsiderTransactionsParams,
     type StockProfileParams as StockProfileParams,
     type StockQuoteParams as StockQuoteParams,
+    type StockScreenerParams as StockScreenerParams,
     type StockStatisticsParams as StockStatisticsParams,
     type StockValueAddedParams as StockValueAddedParams,
   };
