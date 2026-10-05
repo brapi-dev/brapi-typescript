@@ -16,6 +16,16 @@ export class Analytics extends APIResource {
    * Use para comparar a IV entre strikes, montar um smile de volatilidade e medir a
    * exposição de uma carteira de opções.
    *
+   * `timeToExpirationYears` usa dias corridos até o vencimento divididos por 365.
+   * Por exemplo, 17 dias correspondem a `17 / 365 = 0.04657534`.
+   *
+   * `impliedVolatility` é anual, em decimal. Para um dia corrido, use
+   * `impliedVolatility / sqrt(365)`. Para `d` dias corridos, use
+   * `impliedVolatility * sqrt(d / 365)`.
+   *
+   * A divisão por `sqrt(252)` pressupõe 252 pregões por ano. Ela expressa outra
+   * convenção diária e não altera o prazo usado no cálculo da opção.
+   *
    * O cálculo usa só o fechamento negociado. Série sem negócio no dia não tem
    * cálculo: os campos calculados vêm `null` e `nullReason` diz o motivo.
    *
@@ -132,7 +142,8 @@ export namespace AnalyticsRetrieveResponse {
     gamma: number | null;
 
     /**
-     * Volatilidade implícita anual, em decimal.
+     * Volatilidade implícita anual, em decimal. O cálculo usa tempo em dias corridos
+     * dividido por 365.
      */
     impliedVolatility: number | null;
 
@@ -225,7 +236,7 @@ export namespace AnalyticsRetrieveResponse {
     theta: number | null;
 
     /**
-     * Tempo até o vencimento, em anos.
+     * Dias corridos até o vencimento divididos por 365, inclusive em anos bissextos.
      */
     timeToExpirationYears: number | null;
 
@@ -299,7 +310,8 @@ export namespace AnalyticsHistoryResponse {
       gamma: number | null;
 
       /**
-       * Volatilidade implícita anual, em decimal.
+       * Volatilidade implícita anual, em decimal. O cálculo usa tempo em dias corridos
+       * dividido por 365.
        */
       impliedVolatility: number | null;
 
@@ -360,7 +372,7 @@ export namespace AnalyticsHistoryResponse {
       theta: number | null;
 
       /**
-       * Tempo até o vencimento, em anos.
+       * Dias corridos até o vencimento divididos por 365, inclusive em anos bissextos.
        */
       timeToExpirationYears: number | null;
 
