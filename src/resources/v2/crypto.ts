@@ -19,6 +19,16 @@ export class Crypto extends APIResource {
    * em `historicalDataPrice` e o período aplicado em `usedRange` e `usedInterval`.
    * Intervalos curtos limitam o período.
    *
+   * O histórico diário aceita `startDate` e `endDate` no formato YYYY-MM-DD, com
+   * `interval=1d` ou sem intervalo. Use datas sem `range`. Sem data inicial, o
+   * período é de 30 dias até a data final. As datas são inclusivas. `usedRange` vem
+   * como `custom` em consultas por data. `range=max&interval=1d` retorna todos os
+   * dias disponíveis, sem limite de 1.000 pontos. O histórico diário inclui somente
+   * dias completos em UTC. A primeira data depende da criptomoeda. Se a cotação
+   * atual estiver indisponível, os campos de cotação usam o último dia completo
+   * disponível. Nesse caso, a variação e o volume também correspondem a esse dia em
+   * UTC. Confira a data em `regularMarketTime`.
+   *
    * Cripto negocia 24 horas por dia. A variação é uma janela móvel de 24 horas. O
    * histórico usa o câmbio diário da data de fechamento em UTC. Em dias sem cotação
    * de câmbio, usa a última cotação disponível até essa data. Todos os preços de um
@@ -159,6 +169,11 @@ export interface CryptoRetrieveParams {
   currency?: string;
 
   /**
+   * Data final inclusiva do histórico diário no formato YYYY-MM-DD. Padrão: hoje.
+   */
+  endDate?: string;
+
+  /**
    * Intervalo entre os pontos do histórico, como 1h ou 1d. Padrão: 1d.
    */
   interval?: string;
@@ -167,6 +182,11 @@ export interface CryptoRetrieveParams {
    * Período do histórico, como 5d, 1mo ou 1y. Padrão: 1mo quando há histórico.
    */
   range?: string;
+
+  /**
+   * Data inicial do histórico diário no formato YYYY-MM-DD. Use sem range.
+   */
+  startDate?: string;
 }
 
 export interface CryptoListAvailableParams {
