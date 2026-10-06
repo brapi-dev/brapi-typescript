@@ -114,6 +114,7 @@ export {
   type StockInsiderTransactionsResponse,
   type StockProfileResponse,
   type StockQuoteResponse,
+  type StockScreenerResponse,
   type StockStatisticsResponse,
   type StockValueAddedResponse,
   type StockBalanceSheetParams,
@@ -125,6 +126,7 @@ export {
   type StockInsiderTransactionsParams,
   type StockProfileParams,
   type StockQuoteParams,
+  type StockScreenerParams,
   type StockStatisticsParams,
   type StockValueAddedParams,
 } from './stocks';
