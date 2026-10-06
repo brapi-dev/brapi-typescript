@@ -26,8 +26,10 @@ describe('resource crypto', () => {
         {
           coin: 'BTC,ETH',
           currency: 'BRL',
+          endDate: '2026-10-04',
           interval: 'interval',
           range: 'range',
+          startDate: '2020-01-01',
         },
         { path: '/_stainless_unknown_path' },
       ),
