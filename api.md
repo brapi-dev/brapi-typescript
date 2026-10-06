@@ -99,6 +99,7 @@ Types:
 - <code><a href="./src/resources/v2/stocks.ts">StockInsiderTransactionsResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockProfileResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockQuoteResponse</a></code>
+- <code><a href="./src/resources/v2/stocks.ts">StockScreenerResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockStatisticsResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockValueAddedResponse</a></code>
 
@@ -113,6 +114,7 @@ Methods:
 - <code title="get /api/v2/stocks/insider-transactions">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">insiderTransactions</a>({ ...params }) -> StockInsiderTransactionsResponse</code>
 - <code title="get /api/v2/stocks/profile">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">profile</a>({ ...params }) -> StockProfileResponse</code>
 - <code title="get /api/v2/stocks/quote">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">quote</a>({ ...params }) -> StockQuoteResponse</code>
+- <code title="get /api/v2/stocks/screener">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">screener</a>({ ...params }) -> StockScreenerResponse</code>
 - <code title="get /api/v2/stocks/statistics">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">statistics</a>({ ...params }) -> StockStatisticsResponse</code>
 - <code title="get /api/v2/stocks/value-added">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">valueAdded</a>({ ...params }) -> StockValueAddedResponse</code>
 
