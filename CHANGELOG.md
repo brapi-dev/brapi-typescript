@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.9.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.8.0...v1.9.0) (2026-10-07)
+
+
+### Features
+
+* **crypto:** persist daily history for available coins ([b2cf1bf](https://github.com/brapi-dev/brapi-typescript/commit/b2cf1bf96869ffd71b8bc377d62415e7c6e69097))
+* **web:** market analysis workspace for /quotes and /quote/[ticker], with AI actions ([faad45c](https://github.com/brapi-dev/brapi-typescript/commit/faad45c11a28a9546ebd3682e5c785c702fc4d37))
+
+
+### Bug Fixes
+
+* **api:** preserve original ticker histories ([b3c2e2a](https://github.com/brapi-dev/brapi-typescript/commit/b3c2e2a91075fac447e0d1bdfe5db5f1a3067642))
+
+
+### Documentation
+
+* **api:** use Portuguese words for series codes and cross pairs ([9b6939b](https://github.com/brapi-dev/brapi-typescript/commit/9b6939b5d7ddb0e4314dd703f0ecea45a3421ed1))
+
 ## [1.8.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.7.1...v1.8.0) (2026-10-02)
 
 
