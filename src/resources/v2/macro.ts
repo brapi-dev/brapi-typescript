@@ -12,7 +12,7 @@ export class Macro extends APIResource {
   /**
    * Histórico de indicadores macroeconômicos do Brasil, como Selic, CDI, IPCA,
    * IGP-M, agregados monetários, atividade, emprego e setor externo. Cada série tem
-   * um slug.
+   * um código, como `selic` ou `ipca`, que a resposta mostra no campo `slug`.
    *
    * Use para gráficos de juros e inflação, modelos de renda fixa e análise de
    * cenário.
@@ -25,12 +25,13 @@ export class Macro extends APIResource {
    * As séries têm frequências diferentes: a Selic e o CDI são diários, o IPCA e o
    * PIB mensal são mensais. Leia `series.frequency` antes de juntar duas séries.
    *
-   * Um alias no lugar do slug funciona e gera um aviso em `warnings`. Um slug
-   * desconhecido gera um item em `errors` e não derruba as outras séries. Pares de
-   * câmbio ficam no [histórico de câmbio](https://brapi.dev/docs/moedas/historico).
+   * Um nome alternativo no lugar do código, como `igp-m` para `igpm`, funciona e
+   * gera um aviso em `warnings`. Um código desconhecido gera um item em `errors` e
+   * não derruba as outras séries. Pares de câmbio ficam no
+   * [histórico de câmbio](https://brapi.dev/docs/moedas/historico).
    *
-   * Veja os slugs em [listar séries](https://brapi.dev/docs/macro/available). Planos
-   * Startup e Pro.
+   * Veja os códigos em [listar séries](https://brapi.dev/docs/macro/available).
+   * Planos Startup e Pro.
    *
    * @example
    * ```ts
@@ -68,10 +69,10 @@ export class Macro extends APIResource {
   }
 
   /**
-   * Lista as séries macroeconômicas com slug, nome, descrição, unidade, frequência,
-   * categoria e data de início do histórico.
+   * Lista as séries macroeconômicas com código (campo `slug`), nome, descrição,
+   * unidade, frequência, categoria e data de início do histórico.
    *
-   * Use para achar o slug antes de chamar as
+   * Use para achar o código antes de chamar as
    * [séries macroeconômicas](https://brapi.dev/docs/macro) ou o
    * [último valor](https://brapi.dev/docs/macro/latest).
    *
@@ -91,10 +92,16 @@ export class Macro extends APIResource {
 }
 
 export interface MacroSeriesAliasWarning {
+  /**
+   * Código oficial da série. Use este valor em integrações.
+   */
   canonicalSlug: string;
 
   message: string;
 
+  /**
+   * Nome alternativo enviado em `symbols`.
+   */
   provided: string;
 }
 
@@ -103,6 +110,9 @@ export interface MacroSeriesError {
 
   message: string;
 
+  /**
+   * Código enviado em `symbols`.
+   */
   slug: string;
 }
 
@@ -121,6 +131,9 @@ export interface MacroSeriesPublic {
 
   name: string;
 
+  /**
+   * Código da série. Use este valor em `symbols`.
+   */
   slug: string;
 
   startDate: string;
@@ -197,8 +210,8 @@ export interface MacroListAvailableResponse {
   requestedAt: string;
 
   /**
-   * Séries encontradas. Com `q`, a ordem é por relevância: slug, alias, nome e
-   * descrição.
+   * Séries encontradas. Com `q`, a ordem é por relevância: código, nome alternativo,
+   * nome e descrição.
    */
   results: Array<MacroSeriesPublic>;
 
@@ -210,10 +223,10 @@ export interface MacroListAvailableResponse {
 
 export interface MacroRetrieveParams {
   /**
-   * Slugs separados por vírgula, até 20. Slugs por categoria: interestRate: `selic`,
-   * `selicovernight`, `cdi`, `tr`; inflation: `ipca`, `ipca12m`, `inpc`, `igpm`,
-   * `igpdi`; activity: `ibcbr`, `pibmensal`; labor: `desemprego`; monetary: `m1`,
-   * `m4`; external: `reservas`.
+   * Códigos das séries separados por vírgula, até 20. Códigos por categoria:
+   * interestRate: `selic`, `selicovernight`, `cdi`, `tr`; inflation: `ipca`,
+   * `ipca12m`, `inpc`, `igpm`, `igpdi`; activity: `ibcbr`, `pibmensal`; labor:
+   * `desemprego`; monetary: `m1`, `m4`; external: `reservas`.
    */
   symbols: string;
 
@@ -240,9 +253,9 @@ export interface MacroRetrieveParams {
 
 export interface MacroLatestParams {
   /**
-   * Slugs separados por vírgula, até 20. Sem valor, devolve todas as séries. Slugs:
-   * selic, selicovernight, cdi, tr, ipca, ipca12m, inpc, igpm, igpdi, ibcbr,
-   * pibmensal, desemprego, m1, m4, reservas.
+   * Códigos das séries separados por vírgula, até 20. Sem valor, devolve todas as
+   * séries. Códigos: selic, selicovernight, cdi, tr, ipca, ipca12m, inpc, igpm,
+   * igpdi, ibcbr, pibmensal, desemprego, m1, m4, reservas.
    */
   symbols?: string;
 }
@@ -255,8 +268,8 @@ export interface MacroListAvailableParams {
   category?: string;
 
   /**
-   * Texto buscado em slug, alias, nome e descrição. Ignora maiúsculas e aceita parte
-   * da palavra.
+   * Texto buscado no código, nome alternativo, nome e descrição. Ignora maiúsculas e
+   * aceita parte da palavra.
    */
   q?: string;
 }
