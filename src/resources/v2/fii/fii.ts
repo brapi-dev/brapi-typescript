@@ -112,9 +112,10 @@ export class Fii extends APIResource {
    * data de referência do informe mensal, e `remarks` indica a origem. A data
    * inicial varia por fundo.
    *
-   * `startDate` e `endDate` filtram por `paymentDate`. Sem datas, retorna os últimos
-   * 12 meses. `sortBy` aceita `paymentDate` (padrão), `lastDatePrior`, `approvedOn`,
-   * `rate` e `symbol`.
+   * `startDate` e `endDate` filtram por `paymentDate`. Sem `startDate`, começa 12
+   * meses atrás. Sem `endDate`, não tem limite final e inclui pagamentos já
+   * anunciados com data futura. `sortBy` aceita `paymentDate` (padrão),
+   * `lastDatePrior`, `approvedOn`, `rate` e `symbol`.
    *
    * Plano Pro. Sem token, aceita só `symbols` com MXRF11 e HGLG11.
    *
