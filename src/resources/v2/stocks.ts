@@ -556,6 +556,9 @@ export namespace StockHistoricalResponse {
 
       usedInterval: string;
 
+      /**
+       * Janela usada. Vem como `custom` em consultas por data.
+       */
       usedRange: string;
     }
 

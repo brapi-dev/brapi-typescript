@@ -667,7 +667,7 @@ export namespace QuoteRetrieveResponse {
     usedInterval: string | null;
 
     /**
-     * Janela usada na série de preços.
+     * Janela usada na série de preços. Vem como `custom` em consultas por data.
      */
     usedRange: string | null;
 
