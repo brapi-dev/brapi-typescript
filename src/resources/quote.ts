@@ -667,7 +667,8 @@ export namespace QuoteRetrieveResponse {
     usedInterval: string | null;
 
     /**
-     * Janela usada na série de preços.
+     * Janela usada na série de preços. Vem como `custom` quando `startDate` é
+     * informado.
      */
     usedRange: string | null;
 
@@ -1035,7 +1036,8 @@ export interface QuoteRetrieveParams {
   dividends?: 'true' | 'false';
 
   /**
-   * Data final da série de preços no formato YYYY-MM-DD.
+   * Data final da série de preços no formato YYYY-MM-DD. Sem `startDate`, `range`
+   * conta para trás a partir desta data.
    */
   endDate?: string;
 
