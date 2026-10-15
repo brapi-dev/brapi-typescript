@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.9.0...v1.9.1) (2026-10-13)
+
+
+### Bug Fixes
+
+* **fii:** include announced future payments in /fii/dividends ([751266d](https://github.com/brapi-dev/brapi-typescript/commit/751266d415bd5781bfa610efc2e08c0d7f3c32b7))
+
 ## [1.9.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.8.0...v1.9.0) (2026-10-07)
 
 
