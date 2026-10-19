@@ -556,6 +556,9 @@ export namespace StockHistoricalResponse {
 
       usedInterval: string;
 
+      /**
+       * Janela usada. Vem como `custom` quando `startDate` é informado.
+       */
       usedRange: string;
     }
 
@@ -1312,7 +1315,8 @@ export interface StockHistoricalParams {
   symbols: string;
 
   /**
-   * Data final no formato YYYY-MM-DD.
+   * Data final no formato YYYY-MM-DD. Sem `startDate`, `range` conta para trás a
+   * partir desta data.
    */
   endDate?: string;
 
