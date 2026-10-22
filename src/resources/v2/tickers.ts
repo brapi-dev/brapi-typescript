@@ -100,13 +100,14 @@ export class Tickers extends APIResource {
    * planilhas antigas ou carteiras importadas.
    *
    * Envie até 20 tickers em `symbols`. A resposta segue a ordem enviada, sem
-   * repetidos. `status` é `renamed` quando o ticker mudou e `active` quando não há
-   * renome conhecido.
+   * repetidos. `status` é `renamed` quando o ticker mudou, `active` quando não há
+   * renome conhecido e `unknown` quando o ticker não está na lista de tickers da
+   * brapi.
    *
    * Conversões também retornam `renamed`. `conversionRatio` informa a quantidade de
    * ações novas por ação antiga. Use o ticker original para consultar seu histórico.
    *
-   * Este endpoint não confirma se o ticker existe. Para isso, use a
+   * Para saber quais dados existem para cada ticker, use a
    * [cobertura por ticker](https://brapi.dev/docs/tickers/cobertura).
    *
    * Não exige token.
@@ -435,10 +436,10 @@ export namespace TickerResolveResponse {
     requestedSymbol: string;
 
     /**
-     * `renamed` quando o ticker enviado mudou. `active` quando não há renome
-     * conhecido.
+     * `renamed` quando o ticker enviado mudou. `active` quando não há renome conhecido
+     * e o ticker está na lista da brapi. `unknown` quando o ticker não foi encontrado.
      */
-    status: 'active' | 'renamed';
+    status: 'active' | 'renamed' | 'unknown';
 
     /**
      * Ticker atual. Use este nas próximas consultas.
