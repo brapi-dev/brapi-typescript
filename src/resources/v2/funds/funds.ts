@@ -294,6 +294,12 @@ export namespace FundListResponse {
 
     equity: number | null;
 
+    /**
+     * Taxas do regulamento mais recente do fundo que as informa. Por enquanto, só para
+     * ETFs.
+     */
+    fees: Fund.Fees | null;
+
     formattedCnpj: string | null;
 
     isin: string | null;
@@ -321,6 +327,38 @@ export namespace FundListResponse {
     totalInvestors: number | null;
 
     updatedAt: string | null;
+  }
+
+  export namespace Fund {
+    /**
+     * Taxas do regulamento mais recente do fundo que as informa. Por enquanto, só para
+     * ETFs.
+     */
+    export interface Fees {
+      adminFeePercent: number | null;
+
+      /**
+       * Condições da taxa, como valor mínimo mensal ou faixas por patrimônio.
+       */
+      conditions: string | null;
+
+      custodyMaxFeePercent: number | null;
+
+      /**
+       * Data de entrega do regulamento com esta taxa.
+       */
+      effectiveDate: string;
+
+      managementFeePercent: number | null;
+
+      performanceFee: string | null;
+
+      /**
+       * Taxa total ao ano, em percentual (0.2 = 0,20% a.a.). Quando o regulamento
+       * informa só as taxas de administração e de gestão, é a soma delas.
+       */
+      totalFeePercent: number | null;
+    }
   }
 }
 
