@@ -118,6 +118,12 @@ export interface BalanceSheetEntry {
   cash: number | null;
 
   /**
+   * Base do período: `consolidated` (consolidado) ou `individual` (só a
+   * controladora).
+   */
+  consolidationType: 'consolidated' | 'individual';
+
+  /**
    * Data de referência
    */
   endDate: string;
