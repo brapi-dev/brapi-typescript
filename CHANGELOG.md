@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.9.1...v1.10.0) (2026-10-23)
+
+
+### Features
+
+* add ETF fees from fund regulations ([cb15e4d](https://github.com/brapi-dev/brapi-typescript/commit/cb15e4d9ca826b867f8b933dbb336153b6fdbc3b))
+
+
+### Bug Fixes
+
+* **api:** date no-trade snapshots by session and keep the endDate session ([fd3e9e3](https://github.com/brapi-dev/brapi-typescript/commit/fd3e9e39302a39f6012a0719e77fbd36ec069264))
+* support-reported data, billing and sign-in bugs ([cdead68](https://github.com/brapi-dev/brapi-typescript/commit/cdead68f43de0a922cbfaea23f2e9d33517d6575))
+
 ## [1.9.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.9.0...v1.9.1) (2026-10-13)
 
 

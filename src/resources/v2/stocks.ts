@@ -19,6 +19,11 @@ export class Stocks extends APIResource {
    * Bancos e seguradoras usam outro plano de contas. Campos que não se aplicam ao
    * setor vêm como `null`.
    *
+   * `consolidationType` informa a base de cada período: `consolidated` para o
+   * demonstrativo consolidado ou `individual` para o demonstrativo só da
+   * controladora. Empresas sem controladas entregam só o individual. Cada período
+   * usa o consolidado quando ele existe.
+   *
    * @example
    * ```ts
    * const response = await client.v2.stocks.balanceSheet({
@@ -46,6 +51,10 @@ export class Stocks extends APIResource {
    *
    * `freeCashFlow` soma o caixa operacional e o caixa de investimento. Ele é `null`
    * quando um dos dois falta.
+   *
+   * `consolidationType` informa a base de cada período: `consolidated` para o
+   * demonstrativo consolidado ou `individual` para o demonstrativo só da
+   * controladora. Empresas sem controladas entregam só o individual.
    *
    * Os trimestres usam a mesma base, consolidada ou individual, do relatório anual
    * do mesmo ano. Sem relatório anual, a base é a que tem o trimestre mais recente.
@@ -189,6 +198,10 @@ export class Stocks extends APIResource {
    *
    * Cada trimestre traz o valor do trimestre isolado, sem somar os trimestres
    * anteriores do ano.
+   *
+   * `consolidationType` informa a base de cada período: `consolidated` para o
+   * demonstrativo consolidado ou `individual` para o demonstrativo só da
+   * controladora. Empresas sem controladas entregam só o individual.
    *
    * Os trimestres usam a mesma base, consolidada ou individual, do relatório anual
    * do mesmo ano. Sem relatório anual, a base é a que tem o trimestre mais recente.
@@ -404,6 +417,10 @@ export class Stocks extends APIResource {
    *
    * O padrão é `period=annual`. Use `period=quarterly` para trimestres. `startDate`
    * e `endDate` filtram pela data de encerramento do período.
+   *
+   * `consolidationType` informa a base de cada período: `consolidated` para o
+   * demonstrativo consolidado ou `individual` para o demonstrativo só da
+   * controladora. Empresas sem controladas entregam só o individual.
    *
    * Os trimestres usam a mesma base, consolidada ou individual, do relatório anual
    * do mesmo ano. Sem relatório anual, a base é a que tem o trimestre mais recente.
