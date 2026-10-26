@@ -343,6 +343,16 @@ export namespace TickerCoverageResponse {
 
       financialStatements: boolean;
 
+      /**
+       * Carteira mensal do fundo nos endpoints de fundos. Hoje vale para FIAGRO.
+       */
+      fundPortfolio: boolean;
+
+      /**
+       * Relatórios mensais do fundo nos endpoints de fundos. Hoje vale para FIAGRO.
+       */
+      fundReports: boolean;
+
       historical: boolean;
 
       profile: boolean;

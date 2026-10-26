@@ -13,8 +13,8 @@ export class Fiagro extends APIResource {
    * Carteira de FIAGRO em um mês: resumo, alocações por classe de ativo, passivos e
    * investidores.
    *
-   * Use para ver quanto do fundo está em CRA, direitos creditórios, imóveis rurais
-   * ou participações.
+   * Use para ver quanto do fundo está em CRA, CRI, cotas de outros fundos, renda
+   * fixa, imóveis rurais ou valores a receber, e como se divide o passivo.
    *
    * Informe `symbols` ou `cnpjs`. Sem `referenceDate`, a resposta traz o mês mais
    * recente.
@@ -35,9 +35,15 @@ export class Fiagro extends APIResource {
 
   /**
    * Relatório mensal de FIAGRO na CVM: patrimônio, valor patrimonial por cota,
-   * cotistas, rentabilidade do mês, dividend yield mensal e valores a distribuir.
+   * cotistas, rentabilidade do mês, dividend yield mensal, valores a distribuir e
+   * despesas com taxas.
    *
-   * Use para acompanhar a evolução de um FIAGRO mês a mês.
+   * Use para acompanhar a evolução de um FIAGRO mês a mês. Use `startDate` e
+   * `endDate` para escolher o período.
+   *
+   * Os campos `adminFeeExpensePercent`, `managementFeeExpensePercent` e
+   * `distributionFeeExpensePercent` trazem a despesa do mês com cada taxa, em % do
+   * patrimônio líquido. Some 12 meses para ter a despesa do ano.
    *
    * Informe `symbols` ou `cnpjs`. Por padrão, a resposta traz só a versão mais
    * recente de cada mês. Use `allVersions=true` para ver as reapresentações.
@@ -110,11 +116,21 @@ export interface FiagroReportsResponse {
 
 export namespace FiagroReportsResponse {
   export interface Report {
+    /**
+     * Despesa com taxa de administração no mês, em % do patrimônio líquido.
+     */
+    adminFeeExpensePercent: number | null;
+
     administratorName: string | null;
 
     amortizationRateMonthly: number | null;
 
     cnpj: string;
+
+    /**
+     * Despesa com taxa de distribuição no mês, em % do patrimônio líquido.
+     */
+    distributionFeeExpensePercent: number | null;
 
     dividendYieldMonthly: number | null;
 
@@ -123,6 +139,11 @@ export namespace FiagroReportsResponse {
     isin: string | null;
 
     liquidityNeeds: number | null;
+
+    /**
+     * Despesa com taxa de gestão no mês, em % do patrimônio líquido.
+     */
+    managementFeeExpensePercent: number | null;
 
     managerName: string | null;
 
