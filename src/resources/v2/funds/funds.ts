@@ -43,9 +43,9 @@ export class Funds extends APIResource {
    * endpoints de ações. A presença no catálogo de tickers não garante indicadores de
    * fundos.
    *
-   * `updatedAt` informa a atualização do cadastro. Consulte `asOfDate` em
-   * `/api/v2/funds/indicators` para a data dos indicadores. Os indicadores não têm a
-   * mesma frequência das cotações.
+   * `updatedAt` informa a atualização do cadastro. `priceDate` informa a data do
+   * preço. Consulte `asOfDate` em `/api/v2/funds/indicators` para a data da cota e
+   * do patrimônio. Os indicadores não têm a mesma frequência das cotações.
    *
    * Use para descobrir o tipo de um fundo, achar um CNPJ ou filtrar fundos por tipo.
    *
@@ -114,6 +114,9 @@ export class Funds extends APIResource {
    *
    * Use para comparar preço e valor patrimonial, medir ágio ou deságio e ver o
    * tamanho do fundo.
+   *
+   * `priceDate` é a data do último fechamento. `asOfDate` é a data do informe com a
+   * cota e o patrimônio, que costuma chegar dias depois do pregão.
    *
    * Informe `symbols` ou `cnpjs`. Se você não tem o identificador, use a
    * [lista de fundos](https://brapi.dev/docs/fundos/listagem).
@@ -316,6 +319,11 @@ export namespace FundListResponse {
 
     price: number | null;
 
+    /**
+     * Data do preço de fechamento usado em `price` e `priceToNav`.
+     */
+    priceDate: string | null;
+
     priceToNav: number | null;
 
     status: string | null;
@@ -418,6 +426,9 @@ export interface FundIndicatorsResponse {
 
 export namespace FundIndicatorsResponse {
   export interface Fund {
+    /**
+     * Data do informe com a cota e o patrimônio. Pode ser anterior a `priceDate`.
+     */
     asOfDate: string | null;
 
     assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other';
@@ -441,6 +452,11 @@ export namespace FundIndicatorsResponse {
     patrimonialMonthlyReturn: number | null;
 
     price: number | null;
+
+    /**
+     * Data do preço de fechamento usado em `price` e `priceToNav`.
+     */
+    priceDate: string | null;
 
     priceToNav: number | null;
 
