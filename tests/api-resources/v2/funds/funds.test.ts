@@ -26,6 +26,7 @@ describe('resource funds', () => {
         {
           assetType: 'fii',
           cnpjs: '42730834000100',
+          etfCategory: 'fixed-income',
           limit: 20,
           page: 1,
           search: 'search',
