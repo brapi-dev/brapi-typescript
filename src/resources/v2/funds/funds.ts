@@ -39,9 +39,9 @@ export class Funds extends APIResource {
    * FIDC, FIP e outros. Cada item traz ticker, CNPJ, tipo, classificações,
    * administrador, gestor e os últimos indicadores disponíveis.
    *
-   * A lista ainda não inclui ETFs. Consulte suas cotações e preços históricos nos
-   * endpoints de ações. A presença no catálogo de tickers não garante indicadores de
-   * fundos.
+   * Para ETFs, `etfCategory` separa renda fixa, renda variável, criptoativos e
+   * imobiliário. Consulte cotações e preços históricos nos endpoints de ações. A
+   * presença no catálogo de tickers não garante indicadores de fundos.
    *
    * `updatedAt` informa a atualização do cadastro. `priceDate` informa a data do
    * preço. Consulte `asOfDate` em `/api/v2/funds/indicators` para a data da cota e
@@ -296,6 +296,14 @@ export namespace FundListResponse {
     cvmClassType: string | null;
 
     equity: number | null;
+
+    /**
+     * Categoria do ETF pela lista de ETFs da bolsa: `fixed-income` (renda fixa),
+     * `equity` (renda variável), `crypto` (criptoativos) ou `real-estate`
+     * (imobiliário). É `null` para fundos que não são ETF e para ETFs que nenhuma
+     * lista da bolsa traz.
+     */
+    etfCategory: 'fixed-income' | 'equity' | 'crypto' | 'real-estate' | null;
 
     /**
      * Taxas do regulamento mais recente do fundo que as informa. Por enquanto, só para
@@ -556,6 +564,11 @@ export interface FundListParams {
    * CNPJs separados por vírgula, até 20, com ou sem pontuação.
    */
   cnpjs?: string;
+
+  /**
+   * Categoria do ETF. Só traz ETFs.
+   */
+  etfCategory?: 'fixed-income' | 'equity' | 'crypto' | 'real-estate';
 
   /**
    * Itens por página.
