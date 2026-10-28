@@ -189,6 +189,124 @@ export class Funds extends APIResource {
   ): APIPromise<FundProfileResponse> {
     return this._client.get('/api/v2/funds/profile', { query, ...options });
   }
+
+  /**
+   * Filtra e ordena os fundos negociados na B3 (FIIs, Fiagros, FI-Infra, ETFs, FIDCs
+   * e FIPs) por preço, rendimentos, P/VP, liquidez, patrimônio e cotistas. Uma
+   * chamada percorre todos os fundos.
+   *
+   * `assetType` escolhe o tipo de fundo. Para FIIs, `segmentType` separa tijolo,
+   * papel, fundos de fundos e híbridos, e `segment` usa o segmento do cadastro da
+   * CVM. Para ETFs, `etfCategory` separa renda fixa, renda variável, cripto e
+   * imobiliário.
+   *
+   * Cada indicador aceita `{chave}Min` e `{chave}Max`. Os limites são inclusivos e
+   * usam a mesma unidade da resposta: 10% é `0.1`. Um filtro remove os fundos sem o
+   * dado. Na ordenação, os nulos ficam no fim.
+   *
+   * Exemplos:
+   *
+   * - FIIs de papel com dividend yield de pelo menos 12% e P/VP até 0,95:
+   *   `?assetType=fii&segmentType=papel&dividendYieldMin=0.12&priceToNavMax=0.95&sortBy=dividendYield`
+   * - ETFs de renda fixa pela menor taxa:
+   *   `?assetType=etf&etfCategory=fixed-income&sortBy=totalFeePercent&sortOrder=asc`
+   *
+   * `dividendYield` soma só os rendimentos dos últimos 12 meses pela data-com, sem
+   * amortizações, e divide pelo último preço. `priceToNav` usa o último preço e o
+   * valor patrimonial por cota do último informe. `averageDailyTradedValue` divide o
+   * valor negociado nos últimos 30 dias pelos pregões do período.
+   *
+   * Plano Pro.
+   *
+   * | Indicador                  | Chave                     | Unidade                    |
+   * | -------------------------- | ------------------------- | -------------------------- |
+   * | Preço                      | `lastPrice`               | reais                      |
+   * | Variação no dia            | `changePercent`           | porcentagem (2.81 = 2,81%) |
+   * | Volume                     | `volume`                  | quantidade                 |
+   * | Liquidez diária            | `averageDailyTradedValue` | reais                      |
+   * | Valor de mercado           | `marketCap`               | reais                      |
+   * | Dividend yield 12m         | `dividendYield`           | fração (0.06 = 6%)         |
+   * | Último rendimento          | `lastDividend`            | reais                      |
+   * | Yield do último rendimento | `lastDividendYield`       | fração (0.06 = 6%)         |
+   * | Meses com rendimento       | `incomeMonths12m`         | quantidade                 |
+   * | Valor patrimonial/cota     | `navPerShare`             | reais                      |
+   * | P/VP                       | `priceToNav`              | múltiplo                   |
+   * | Patrimônio líquido         | `equity`                  | reais                      |
+   * | Cotistas                   | `totalInvestors`          | quantidade                 |
+   * | Variação em 12 meses       | `priceChange12m`          | fração (0.06 = 6%)         |
+   * | Taxa total                 | `totalFeePercent`         | porcentagem (2.81 = 2,81%) |
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.funds.screener();
+   * ```
+   */
+  screener(
+    query: FundScreenerParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<FundScreenerResponse> {
+    return this._client.get('/api/v2/funds/screener', { query, ...options });
+  }
+
+  /**
+   * Filtra e ordena os fundos de investimento sem ticker na B3, identificados pelo
+   * CNPJ, por rentabilidade, patrimônio, cotistas e captação. Uma chamada percorre
+   * todos os fundos.
+   *
+   * Entram só os fundos sem ticker na B3, com situação "Em Funcionamento Normal" na
+   * CVM, que enviaram o informe diário nos últimos 20 dias. Para os fundos
+   * negociados na bolsa, use `/api/v2/funds/screener`.
+   *
+   * Os dados vêm do informe diário que os fundos enviam à CVM. Ele costuma chegar
+   * com 1 a 3 dias úteis de atraso: `navDate` mostra a data do último informe de
+   * cada fundo.
+   *
+   * As rentabilidades são a variação da cota: brutas de imposto de renda e líquidas
+   * de taxas. Uma rentabilidade é nula quando falta a cota inicial ou quando a cota
+   * muda mais de 10 vezes no período, o que indica desdobramento ou grupamento de
+   * cotas.
+   *
+   * `search` busca no nome e na razão social. Números, com ou sem pontuação, buscam
+   * o início do CNPJ. `classification` usa a classe da CVM, `anbimaClassification`
+   * busca parte da classificação ANBIMA e `manager` busca parte do nome do gestor.
+   *
+   * Cada indicador aceita `{chave}Min` e `{chave}Max`. Os limites são inclusivos e
+   * usam a mesma unidade da resposta: 10% é `0.1`. Um filtro remove os fundos sem o
+   * dado. Na ordenação, os nulos ficam no fim.
+   *
+   * Exemplos:
+   *
+   * - Fundos de previdência de renda fixa pela maior rentabilidade em 12 meses:
+   *   `?classification=renda-fixa&anbimaClassification=Previdência&sortBy=return12m`
+   * - Multimercados com pelo menos R$ 100 milhões e 1.000 cotistas:
+   *   `?classification=multimercado&equityMin=100000000&totalInvestorsMin=1000`
+   * - Fundos cujo CNPJ começa com 12.345.678: `?search=12.345.678`
+   *
+   * Plano Pro.
+   *
+   * | Indicador                 | Chave            | Unidade            |
+   * | ------------------------- | ---------------- | ------------------ |
+   * | Valor da cota             | `navPerShare`    | reais              |
+   * | Variação no dia           | `returnDay`      | fração (0.06 = 6%) |
+   * | Rentabilidade em 1 mês    | `return1m`       | fração (0.06 = 6%) |
+   * | Rentabilidade no ano      | `returnYtd`      | fração (0.06 = 6%) |
+   * | Rentabilidade em 12 meses | `return12m`      | fração (0.06 = 6%) |
+   * | Rentabilidade em 36 meses | `return36m`      | fração (0.06 = 6%) |
+   * | Patrimônio líquido        | `equity`         | reais              |
+   * | Cotistas                  | `totalInvestors` | quantidade         |
+   * | Captação líquida em 1 mês | `netFlow1m`      | reais              |
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.funds.screenerCnpj();
+   * ```
+   */
+  screenerCnpj(
+    query: FundScreenerCnpjParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<FundScreenerCnpjResponse> {
+    return this._client.get('/api/v2/funds/screener/cnpj', { query, ...options });
+  }
 }
 
 export interface FundHolding {
@@ -554,6 +672,399 @@ export namespace FundProfileResponse {
   }
 }
 
+export interface FundScreenerResponse {
+  pagination: FundScreenerResponse.Pagination;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<FundScreenerResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace FundScreenerResponse {
+  export interface Pagination {
+    hasNextPage: boolean;
+
+    limit: number;
+
+    page: number;
+
+    totalItems: number;
+
+    totalPages: number;
+  }
+
+  export interface Result {
+    /**
+     * Tipo do ativo.
+     */
+    assetType: 'stock' | 'fund' | 'bdr' | null;
+
+    /**
+     * Moeda.
+     */
+    currency: 'BRL';
+
+    /**
+     * Bolsa.
+     */
+    exchange: 'B3';
+
+    fund: Result.Fund;
+
+    /**
+     * `true` quando o ativo está em negociação.
+     */
+    isActive: boolean;
+
+    /**
+     * URL do logo.
+     */
+    logoUrl: string | null;
+
+    /**
+     * Nome longo. Pode ser nulo.
+     */
+    longName: string | null;
+
+    /**
+     * Indicadores do fundo.
+     */
+    metrics: Result.Metrics;
+
+    /**
+     * Nome da empresa ou do fundo.
+     */
+    name: string;
+
+    quote: Result.Quote;
+
+    /**
+     * Setor. Pode ser nulo.
+     */
+    sector: string | null;
+
+    /**
+     * Subsetor. Pode ser nulo.
+     */
+    subsector: string | null;
+
+    /**
+     * Subtipo do ativo: stock, unit, fii, etf, fi-infra, fi-agro, fip, fidc ou bdr.
+     */
+    subType: 'stock' | 'unit' | 'fii' | 'etf' | 'fi-infra' | 'fi-agro' | 'fip' | 'fidc' | 'bdr' | null;
+
+    /**
+     * Ticker do ativo.
+     */
+    symbol: string;
+  }
+
+  export namespace Result {
+    export interface Fund {
+      administratorName: string | null;
+
+      cnpj: string;
+
+      /**
+       * Categoria do ETF. Nulo para os outros fundos.
+       */
+      etfCategory: 'fixed-income' | 'equity' | 'crypto' | 'real-estate' | null;
+
+      /**
+       * Data-com do último rendimento dos últimos 12 meses (AAAA-MM-DD).
+       */
+      lastDividendDate: string | null;
+
+      /**
+       * Tipo de gestão do FII: Ativa ou Passiva.
+       */
+      managementType: string | null;
+
+      managerName: string | null;
+
+      /**
+       * Mandato do FII no cadastro da CVM.
+       */
+      mandate: string | null;
+
+      /**
+       * Data do informe de onde vêm patrimônio, valor patrimonial por cota e cotistas
+       * (AAAA-MM-DD).
+       */
+      reportDate: string | null;
+
+      /**
+       * Segmento do FII no cadastro da CVM.
+       */
+      segment: string | null;
+
+      /**
+       * Tipo do FII: tijolo, papel, fof ou hibrido.
+       */
+      segmentType: string | null;
+
+      /**
+       * Tipo do fundo: fii, fiagro, fiinfra, etf, fidc, fip ou fif.
+       */
+      type: string;
+    }
+
+    /**
+     * Indicadores do fundo.
+     */
+    export interface Metrics {
+      /**
+       * Liquidez diária. Média do valor negociado por pregão nos últimos 30 dias, em
+       * reais. Dias sem negócio contam como zero. Unidade: reais. Nulo quando não há
+       * dado.
+       */
+      averageDailyTradedValue: number | null;
+
+      /**
+       * Dividend yield 12m. Rendimentos dos últimos 12 meses, pela data-com, sobre o
+       * último preço, em fração (0.1 = 10%). Não soma amortizações. Nulo quando o fundo
+       * não pagou rendimentos. Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      dividendYield: number | null;
+
+      /**
+       * Patrimônio líquido. Patrimônio líquido do último informe, em reais. Unidade:
+       * reais. Nulo quando não há dado.
+       */
+      equity: number | null;
+
+      /**
+       * Meses com rendimento. Quantos dos últimos 12 meses tiveram rendimento, pela
+       * data-com. Mede a regularidade dos pagamentos. Unidade: quantidade. Nulo quando
+       * não há dado.
+       */
+      incomeMonths12m: number | null;
+
+      /**
+       * Último rendimento. Valor por cota do último rendimento, pela data-com, em reais.
+       * Unidade: reais. Nulo quando não há dado.
+       */
+      lastDividend: number | null;
+
+      /**
+       * Yield do último rendimento. Último rendimento sobre o último preço, em fração
+       * (0.008 = 0,8%). Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      lastDividendYield: number | null;
+
+      /**
+       * Valor de mercado. Último preço vezes as cotas emitidas do último informe, em
+       * reais. Unidade: reais. Nulo quando não há dado.
+       */
+      marketCap: number | null;
+
+      /**
+       * Valor patrimonial/cota. Valor patrimonial por cota do último informe, em reais.
+       * Nulo quando o informe não fecha com o patrimônio e o número de cotas. Unidade:
+       * reais. Nulo quando não há dado.
+       */
+      navPerShare: number | null;
+
+      /**
+       * Variação em 12 meses. Último preço sobre o fechamento de 12 meses atrás, em
+       * fração (0.05 = 5%). Não soma os rendimentos. Unidade: fração (0.06 = 6%). Nulo
+       * quando não há dado.
+       */
+      priceChange12m: number | null;
+
+      /**
+       * P/VP. Último preço sobre o valor patrimonial por cota do último informe.
+       * Unidade: múltiplo. Nulo quando não há dado.
+       */
+      priceToNav: number | null;
+
+      /**
+       * Taxa total. Taxa total ao ano do regulamento mais recente, em percentual (0.2 =
+       * 0,20% a.a.). Por enquanto, só ETFs. Unidade: porcentagem (2.81 = 2,81%). Nulo
+       * quando não há dado.
+       */
+      totalFeePercent: number | null;
+
+      /**
+       * Cotistas. Número de cotistas do último informe. Unidade: quantidade. Nulo quando
+       * não há dado.
+       */
+      totalInvestors: number | null;
+    }
+
+    export interface Quote {
+      /**
+       * Variação no dia, em porcentagem.
+       */
+      changePercent: number | null;
+
+      /**
+       * Último preço.
+       */
+      lastPrice: number | null;
+
+      /**
+       * Valor de mercado, em reais. Pode ser nulo.
+       */
+      marketCap: number | null;
+
+      /**
+       * Volume negociado no dia.
+       */
+      volume: number | null;
+    }
+  }
+}
+
+export interface FundScreenerCnpjResponse {
+  pagination: FundScreenerCnpjResponse.Pagination;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<FundScreenerCnpjResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace FundScreenerCnpjResponse {
+  export interface Pagination {
+    hasNextPage: boolean;
+
+    limit: number;
+
+    page: number;
+
+    totalItems: number;
+
+    totalPages: number;
+  }
+
+  export interface Result {
+    administratorName: string | null;
+
+    /**
+     * Classificação ANBIMA do fundo.
+     */
+    anbimaClassification: string | null;
+
+    /**
+     * Tipo do fundo no cadastro, como fif (fundo de investimento financeiro) ou fidc.
+     */
+    assetType: string;
+
+    /**
+     * Classe do fundo na CVM: Renda Fixa, Multimercado, Ações, Cambial ou FMP-FGTS.
+     */
+    classification: string | null;
+
+    /**
+     * CNPJ do fundo, só os 14 dígitos.
+     */
+    cnpj: string;
+
+    formattedCnpj: string;
+
+    /**
+     * Razão social do fundo no cadastro da CVM.
+     */
+    legalName: string | null;
+
+    managerName: string | null;
+
+    /**
+     * Indicadores do fundo pelo último informe diário.
+     */
+    metrics: Result.Metrics;
+
+    /**
+     * Nome do fundo.
+     */
+    name: string | null;
+
+    /**
+     * Data do último informe diário, de onde vêm os indicadores (AAAA-MM-DD).
+     */
+    navDate: string;
+  }
+
+  export namespace Result {
+    /**
+     * Indicadores do fundo pelo último informe diário.
+     */
+    export interface Metrics {
+      /**
+       * Patrimônio líquido. Patrimônio líquido no último informe diário, em reais.
+       * Unidade: reais. Nulo quando não há dado.
+       */
+      equity: number | null;
+
+      /**
+       * Valor da cota. Valor da cota no último informe diário, em reais. Unidade: reais.
+       * Nulo quando não há dado.
+       */
+      navPerShare: number | null;
+
+      /**
+       * Captação líquida em 1 mês. Aplicações menos resgates em 1 mês, em reais.
+       * Negativa quando saiu mais dinheiro do que entrou. Unidade: reais. Nulo quando
+       * não há dado.
+       */
+      netFlow1m: number | null;
+
+      /**
+       * Rentabilidade em 12 meses. Variação da cota em 12 meses, em fração. Unidade:
+       * fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      return12m: number | null;
+
+      /**
+       * Rentabilidade em 1 mês. Variação da cota em 1 mês, em fração. Nula quando a cota
+       * muda mais de 10 vezes no período (desdobramento ou grupamento). Unidade: fração
+       * (0.06 = 6%). Nulo quando não há dado.
+       */
+      return1m: number | null;
+
+      /**
+       * Rentabilidade em 36 meses. Variação da cota em 36 meses, em fração. Unidade:
+       * fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      return36m: number | null;
+
+      /**
+       * Variação no dia. Variação da cota desde o informe anterior, em fração (0.0074 =
+       * 0,74%). Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      returnDay: number | null;
+
+      /**
+       * Rentabilidade no ano. Variação da cota desde o último informe do ano anterior,
+       * em fração. Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      returnYtd: number | null;
+
+      /**
+       * Cotistas. Número de cotistas no último informe diário. Unidade: quantidade. Nulo
+       * quando não há dado.
+       */
+      totalInvestors: number | null;
+    }
+  }
+}
+
 export interface FundListParams {
   /**
    * Tipo do fundo.
@@ -731,6 +1242,373 @@ export interface FundProfileParams {
   symbols?: string;
 }
 
+export interface FundScreenerParams {
+  /**
+   * Tipo do fundo: fii, fiagro, fiinfra, etf, fidc, fip ou fif. Sem ele, todos os
+   * fundos listados.
+   */
+  assetType?: 'fii' | 'fiagro' | 'fiinfra' | 'etf' | 'fidc' | 'fip' | 'fif';
+
+  /**
+   * Liquidez diária: valor máximo, inclusive. Unidade: reais.
+   */
+  averageDailyTradedValueMax?: number;
+
+  /**
+   * Liquidez diária: valor mínimo, inclusive. Unidade: reais.
+   */
+  averageDailyTradedValueMin?: number;
+
+  /**
+   * Variação no dia: valor máximo, inclusive. Unidade: porcentagem (2.81 = 2,81%).
+   */
+  changePercentMax?: number;
+
+  /**
+   * Variação no dia: valor mínimo, inclusive. Unidade: porcentagem (2.81 = 2,81%).
+   */
+  changePercentMin?: number;
+
+  /**
+   * Dividend yield 12m: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  dividendYieldMax?: number;
+
+  /**
+   * Dividend yield 12m: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  dividendYieldMin?: number;
+
+  /**
+   * Patrimônio líquido: valor máximo, inclusive. Unidade: reais.
+   */
+  equityMax?: number;
+
+  /**
+   * Patrimônio líquido: valor mínimo, inclusive. Unidade: reais.
+   */
+  equityMin?: number;
+
+  /**
+   * Categoria do ETF pela lista da bolsa: fixed-income, equity, crypto ou
+   * real-estate.
+   */
+  etfCategory?: 'fixed-income' | 'equity' | 'crypto' | 'real-estate';
+
+  /**
+   * Meses com rendimento: valor máximo, inclusive. Unidade: quantidade.
+   */
+  incomeMonths12mMax?: number;
+
+  /**
+   * Meses com rendimento: valor mínimo, inclusive. Unidade: quantidade.
+   */
+  incomeMonths12mMin?: number;
+
+  /**
+   * Último rendimento: valor máximo, inclusive. Unidade: reais.
+   */
+  lastDividendMax?: number;
+
+  /**
+   * Último rendimento: valor mínimo, inclusive. Unidade: reais.
+   */
+  lastDividendMin?: number;
+
+  /**
+   * Yield do último rendimento: valor máximo, inclusive. Unidade: fração (0.06 =
+   * 6%).
+   */
+  lastDividendYieldMax?: number;
+
+  /**
+   * Yield do último rendimento: valor mínimo, inclusive. Unidade: fração (0.06 =
+   * 6%).
+   */
+  lastDividendYieldMin?: number;
+
+  /**
+   * Preço: valor máximo, inclusive. Unidade: reais.
+   */
+  lastPriceMax?: number;
+
+  /**
+   * Preço: valor mínimo, inclusive. Unidade: reais.
+   */
+  lastPriceMin?: number;
+
+  /**
+   * Itens por página. Máximo: 200.
+   */
+  limit?: number;
+
+  /**
+   * Valor de mercado: valor máximo, inclusive. Unidade: reais.
+   */
+  marketCapMax?: number;
+
+  /**
+   * Valor de mercado: valor mínimo, inclusive. Unidade: reais.
+   */
+  marketCapMin?: number;
+
+  /**
+   * Valor patrimonial/cota: valor máximo, inclusive. Unidade: reais.
+   */
+  navPerShareMax?: number;
+
+  /**
+   * Valor patrimonial/cota: valor mínimo, inclusive. Unidade: reais.
+   */
+  navPerShareMin?: number;
+
+  /**
+   * Número da página. Começa em 1.
+   */
+  page?: number;
+
+  /**
+   * Variação em 12 meses: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  priceChange12mMax?: number;
+
+  /**
+   * Variação em 12 meses: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  priceChange12mMin?: number;
+
+  /**
+   * P/VP: valor máximo, inclusive. Unidade: múltiplo.
+   */
+  priceToNavMax?: number;
+
+  /**
+   * P/VP: valor mínimo, inclusive. Unidade: múltiplo.
+   */
+  priceToNavMin?: number;
+
+  /**
+   * Parte do ticker ou do nome do fundo.
+   */
+  search?: string;
+
+  /**
+   * Segmento do FII no cadastro da CVM, como Logística, Shoppings, Escritórios ou
+   * Títulos e Val. Mob. Nome exato, sem diferença de maiúsculas.
+   */
+  segment?: string;
+
+  /**
+   * Tipo do FII pelo último informe: tijolo (imóveis), papel (CRI, LCI e títulos),
+   * fof (cotas de outros FIIs) ou hibrido.
+   */
+  segmentType?: 'tijolo' | 'papel' | 'hibrido' | 'fof';
+
+  /**
+   * Campo de ordenação: uma chave de métrica, `symbol` ou `name`. Padrão:
+   * `averageDailyTradedValue`. Valores nulos ficam no fim.
+   */
+  sortBy?:
+    | 'symbol'
+    | 'name'
+    | 'lastPrice'
+    | 'changePercent'
+    | 'volume'
+    | 'averageDailyTradedValue'
+    | 'marketCap'
+    | 'dividendYield'
+    | 'lastDividend'
+    | 'lastDividendYield'
+    | 'incomeMonths12m'
+    | 'navPerShare'
+    | 'priceToNav'
+    | 'equity'
+    | 'totalInvestors'
+    | 'priceChange12m'
+    | 'totalFeePercent';
+
+  /**
+   * Ordem. Padrão: `desc`.
+   */
+  sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Taxa total: valor máximo, inclusive. Unidade: porcentagem (2.81 = 2,81%).
+   */
+  totalFeePercentMax?: number;
+
+  /**
+   * Taxa total: valor mínimo, inclusive. Unidade: porcentagem (2.81 = 2,81%).
+   */
+  totalFeePercentMin?: number;
+
+  /**
+   * Cotistas: valor máximo, inclusive. Unidade: quantidade.
+   */
+  totalInvestorsMax?: number;
+
+  /**
+   * Cotistas: valor mínimo, inclusive. Unidade: quantidade.
+   */
+  totalInvestorsMin?: number;
+
+  /**
+   * Volume: valor máximo, inclusive. Unidade: quantidade.
+   */
+  volumeMax?: number;
+
+  /**
+   * Volume: valor mínimo, inclusive. Unidade: quantidade.
+   */
+  volumeMin?: number;
+}
+
+export interface FundScreenerCnpjParams {
+  /**
+   * Parte da classificação ANBIMA, sem diferença de maiúsculas e acentos. Exemplos:
+   * Previdência, Exterior, Crédito Livre.
+   */
+  anbimaClassification?: string;
+
+  /**
+   * Classe do fundo na CVM: renda-fixa, multimercado, acoes, cambial ou fmp-fgts.
+   */
+  classification?: 'renda-fixa' | 'multimercado' | 'acoes' | 'cambial' | 'fmp-fgts';
+
+  /**
+   * Patrimônio líquido: valor máximo, inclusive. Unidade: reais.
+   */
+  equityMax?: number;
+
+  /**
+   * Patrimônio líquido: valor mínimo, inclusive. Unidade: reais.
+   */
+  equityMin?: number;
+
+  /**
+   * Itens por página. Máximo: 200.
+   */
+  limit?: number;
+
+  /**
+   * Parte do nome do gestor, sem diferença de maiúsculas e acentos.
+   */
+  manager?: string;
+
+  /**
+   * Valor da cota: valor máximo, inclusive. Unidade: reais.
+   */
+  navPerShareMax?: number;
+
+  /**
+   * Valor da cota: valor mínimo, inclusive. Unidade: reais.
+   */
+  navPerShareMin?: number;
+
+  /**
+   * Captação líquida em 1 mês: valor máximo, inclusive. Unidade: reais.
+   */
+  netFlow1mMax?: number;
+
+  /**
+   * Captação líquida em 1 mês: valor mínimo, inclusive. Unidade: reais.
+   */
+  netFlow1mMin?: number;
+
+  /**
+   * Número da página. Começa em 1.
+   */
+  page?: number;
+
+  /**
+   * Rentabilidade em 12 meses: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return12mMax?: number;
+
+  /**
+   * Rentabilidade em 12 meses: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return12mMin?: number;
+
+  /**
+   * Rentabilidade em 1 mês: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return1mMax?: number;
+
+  /**
+   * Rentabilidade em 1 mês: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return1mMin?: number;
+
+  /**
+   * Rentabilidade em 36 meses: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return36mMax?: number;
+
+  /**
+   * Rentabilidade em 36 meses: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return36mMin?: number;
+
+  /**
+   * Variação no dia: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnDayMax?: number;
+
+  /**
+   * Variação no dia: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnDayMin?: number;
+
+  /**
+   * Rentabilidade no ano: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnYtdMax?: number;
+
+  /**
+   * Rentabilidade no ano: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnYtdMin?: number;
+
+  /**
+   * Parte do nome ou da razão social do fundo, sem diferença de maiúsculas e
+   * acentos. Números, com ou sem pontuação, buscam o início do CNPJ.
+   */
+  search?: string;
+
+  /**
+   * Campo de ordenação: uma chave de indicador, `name` ou `cnpj`. Padrão: `equity`.
+   * Valores nulos ficam no fim.
+   */
+  sortBy?:
+    | 'name'
+    | 'cnpj'
+    | 'navPerShare'
+    | 'returnDay'
+    | 'return1m'
+    | 'returnYtd'
+    | 'return12m'
+    | 'return36m'
+    | 'equity'
+    | 'totalInvestors'
+    | 'netFlow1m';
+
+  /**
+   * Ordem. Padrão: `desc`.
+   */
+  sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Cotistas: valor máximo, inclusive. Unidade: quantidade.
+   */
+  totalInvestorsMax?: number;
+
+  /**
+   * Cotistas: valor mínimo, inclusive. Unidade: quantidade.
+   */
+  totalInvestorsMin?: number;
+}
+
 Funds.Nav = Nav;
 Funds.Fiagro = Fiagro;
 Funds.Fidc = Fidc;
@@ -745,11 +1623,15 @@ export declare namespace Funds {
     type FundIndicatorsResponse as FundIndicatorsResponse,
     type FundPortfolioResponse as FundPortfolioResponse,
     type FundProfileResponse as FundProfileResponse,
+    type FundScreenerResponse as FundScreenerResponse,
+    type FundScreenerCnpjResponse as FundScreenerCnpjResponse,
     type FundListParams as FundListParams,
     type FundDividendsParams as FundDividendsParams,
     type FundIndicatorsParams as FundIndicatorsParams,
     type FundPortfolioParams as FundPortfolioParams,
     type FundProfileParams as FundProfileParams,
+    type FundScreenerParams as FundScreenerParams,
+    type FundScreenerCnpjParams as FundScreenerCnpjParams,
   };
 
   export {
