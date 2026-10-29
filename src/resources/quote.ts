@@ -280,7 +280,8 @@ export namespace DividendsData {
     paymentDateIsDeadline: boolean;
 
     /**
-     * Valor por ação, em reais.
+     * Valor por ação, em reais. Em BDRs, o valor líquido por BDR, já sem o imposto no
+     * exterior, o IOF e a taxa da instituição depositária.
      */
     rate: number;
 
@@ -302,9 +303,78 @@ export namespace DividendsData {
     verified: boolean;
 
     /**
+     * Só em BDRs: o provento no exterior e os descontos até chegar em `rate`. Campos
+     * não informados no aviso vêm nulos.
+     */
+    bdr?: CashDividend.Bdr;
+
+    /**
      * Valor por ação na escala dos preços sem ajuste. Vem com `includeRaw=true`.
      */
     rawRate?: number | null;
+  }
+
+  export namespace CashDividend {
+    /**
+     * Só em BDRs: o provento no exterior e os descontos até chegar em `rate`. Campos
+     * não informados no aviso vêm nulos.
+     */
+    export interface Bdr {
+      /**
+       * Moeda do provento no exterior. Ex.: USD.
+       */
+      currency: string | null;
+
+      /**
+       * Taxa da instituição depositária, em % do provento.
+       */
+      depositaryFeePercent: number | null;
+
+      /**
+       * `false` enquanto o valor é uma estimativa. `true` quando é o valor definitivo.
+       */
+      final: boolean | null;
+
+      /**
+       * Data do câmbio (AAAA-MM-DD).
+       */
+      fxDate: string | null;
+
+      /**
+       * Câmbio usado na conversão para reais.
+       */
+      fxRate: number | null;
+
+      /**
+       * Valor por BDR em reais, antes dos descontos no Brasil.
+       */
+      grossBrlPerBdr: number | null;
+
+      /**
+       * Valor bruto por BDR, na moeda do provento.
+       */
+      grossPerBdr: number | null;
+
+      /**
+       * Valor bruto por ação no exterior, na moeda do provento.
+       */
+      grossPerShare: number | null;
+
+      /**
+       * IOF sobre o câmbio, em %.
+       */
+      iofPercent: number | null;
+
+      /**
+       * Ações no exterior para BDRs. Ex.: "1:4" quando 1 ação equivale a 4 BDRs.
+       */
+      ratio: string | null;
+
+      /**
+       * Imposto retido no exterior, em %.
+       */
+      withholdingTaxPercent: number | null;
+    }
   }
 
   export interface StockDividend {
