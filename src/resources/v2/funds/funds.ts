@@ -412,7 +412,16 @@ export namespace FundDividendsResponse {
 
     paymentDate: string;
 
+    /**
+     * Valor por cota, em reais, na escala das cotações ajustadas por desdobramentos e
+     * grupamentos.
+     */
     rate: number;
+
+    /**
+     * Valor pago por cota na data do provento, sem ajuste.
+     */
+    rawRate: number;
 
     symbol: string;
   }
