@@ -153,11 +153,21 @@ export namespace FiagroReportsResponse {
 
     name: string | null;
 
+    /**
+     * Valor patrimonial por cota na base de cotas dos preços: desdobramentos e
+     * grupamentos depois da data do informe já estão aplicados, como em `close`.
+     */
     navPerShare: number | null;
 
     netEquity: number | null;
 
     patrimonialMonthlyReturn: number | null;
+
+    /**
+     * Valor patrimonial por cota como o informe declara, sem desdobramentos e
+     * grupamentos posteriores.
+     */
+    rawNavPerShare: number | null;
 
     referenceDate: string;
 
