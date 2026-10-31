@@ -151,4 +151,113 @@ describe('resource funds', () => {
       ),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
+
+  test('screener', async () => {
+    const responsePromise = client.v2.funds.screener();
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('screener: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.v2.funds.screener(
+        {
+          assetType: 'fii',
+          averageDailyTradedValueMax: 0,
+          averageDailyTradedValueMin: 0,
+          changePercentMax: 0,
+          changePercentMin: 0,
+          dividendYieldMax: 0,
+          dividendYieldMin: 0,
+          equityMax: 0,
+          equityMin: 0,
+          etfCategory: 'fixed-income',
+          incomeMonths12mMax: 0,
+          incomeMonths12mMin: 0,
+          lastDividendMax: 0,
+          lastDividendMin: 0,
+          lastDividendYieldMax: 0,
+          lastDividendYieldMin: 0,
+          lastPriceMax: 0,
+          lastPriceMin: 0,
+          limit: 20,
+          marketCapMax: 0,
+          marketCapMin: 0,
+          navPerShareMax: 0,
+          navPerShareMin: 0,
+          page: 1,
+          priceChange12mMax: 0,
+          priceChange12mMin: 0,
+          priceToNavMax: 0,
+          priceToNavMin: 0,
+          search: 'KINEA',
+          segment: 'Logística',
+          segmentType: 'papel',
+          sortBy: 'dividendYield',
+          sortOrder: 'desc',
+          totalFeePercentMax: 0,
+          totalFeePercentMin: 0,
+          totalInvestorsMax: 0,
+          totalInvestorsMin: 0,
+          volumeMax: 0,
+          volumeMin: 0,
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
+  });
+
+  test('screenerCnpj', async () => {
+    const responsePromise = client.v2.funds.screenerCnpj();
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('screenerCnpj: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.v2.funds.screenerCnpj(
+        {
+          anbimaClassification: 'Previdência',
+          classification: 'renda-fixa',
+          equityMax: 0,
+          equityMin: 0,
+          limit: 20,
+          manager: 'Itaú',
+          navPerShareMax: 0,
+          navPerShareMin: 0,
+          netFlow1mMax: 0,
+          netFlow1mMin: 0,
+          page: 1,
+          return12mMax: 0,
+          return12mMin: 0,
+          return1mMax: 0,
+          return1mMin: 0,
+          return36mMax: 0,
+          return36mMin: 0,
+          returnDayMax: 0,
+          returnDayMin: 0,
+          returnYtdMax: 0,
+          returnYtdMin: 0,
+          search: 'Itaú Previdência',
+          sortBy: 'return12m',
+          sortOrder: 'desc',
+          totalInvestorsMax: 0,
+          totalInvestorsMin: 0,
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
+  });
 });
