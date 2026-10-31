@@ -19,6 +19,9 @@ export class Stocks extends APIResource {
    * Bancos e seguradoras usam outro plano de contas. Campos que não se aplicam ao
    * setor vêm como `null`.
    *
+   * ETFs também têm balanço, a partir do balancete mensal do fundo: um por trimestre
+   * e um por fim de exercício do fundo.
+   *
    * `consolidationType` informa a base de cada período: `consolidated` para o
    * demonstrativo consolidado ou `individual` para o demonstrativo só da
    * controladora. Empresas sem controladas entregam só o individual. Cada período
@@ -198,6 +201,11 @@ export class Stocks extends APIResource {
    *
    * Cada trimestre traz o valor do trimestre isolado, sem somar os trimestres
    * anteriores do ano.
+   *
+   * Em ETFs, `netIncome` é o resultado do fundo, `sellingGeneralAdministrative` são
+   * as taxas e despesas do fundo e `totalRevenue` é o resultado da carteira antes
+   * delas. Um período só aparece quando o resultado de cada mês confere com a
+   * variação da cota.
    *
    * `consolidationType` informa a base de cada período: `consolidated` para o
    * demonstrativo consolidado ou `individual` para o demonstrativo só da
