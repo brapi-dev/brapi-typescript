@@ -125,6 +125,8 @@ import {
   FundPortfolioResponse,
   FundProfileParams,
   FundProfileResponse,
+  FundScreenerParams,
+  FundScreenerResponse,
   Funds,
 } from './funds/funds';
 import * as FuturesAPI from './futures/futures';
@@ -299,11 +301,13 @@ export declare namespace V2 {
     type FundIndicatorsResponse as FundIndicatorsResponse,
     type FundPortfolioResponse as FundPortfolioResponse,
     type FundProfileResponse as FundProfileResponse,
+    type FundScreenerResponse as FundScreenerResponse,
     type FundListParams as FundListParams,
     type FundDividendsParams as FundDividendsParams,
     type FundIndicatorsParams as FundIndicatorsParams,
     type FundPortfolioParams as FundPortfolioParams,
     type FundProfileParams as FundProfileParams,
+    type FundScreenerParams as FundScreenerParams,
   };
 
   export {
