@@ -323,6 +323,10 @@ export namespace FundListResponse {
 
     name: string | null;
 
+    /**
+     * Valor patrimonial por cota na base de cotas dos preços: desdobramentos e
+     * grupamentos depois da data do informe já estão aplicados, como em `close`.
+     */
     navPerShare: number | null;
 
     price: number | null;
@@ -333,6 +337,12 @@ export namespace FundListResponse {
     priceDate: string | null;
 
     priceToNav: number | null;
+
+    /**
+     * Valor patrimonial por cota como o informe declara, sem desdobramentos e
+     * grupamentos posteriores.
+     */
+    rawNavPerShare: number | null;
 
     status: string | null;
 
@@ -412,7 +422,16 @@ export namespace FundDividendsResponse {
 
     paymentDate: string;
 
+    /**
+     * Valor por cota, em reais, na escala das cotações ajustadas por desdobramentos e
+     * grupamentos.
+     */
     rate: number;
+
+    /**
+     * Valor pago por cota na data do provento, sem ajuste.
+     */
+    rawRate: number;
 
     symbol: string;
   }
@@ -455,6 +474,10 @@ export namespace FundIndicatorsResponse {
 
     name: string | null;
 
+    /**
+     * Valor patrimonial por cota na base de cotas dos preços: desdobramentos e
+     * grupamentos depois da data do informe já estão aplicados, como em `close`.
+     */
     navPerShare: number | null;
 
     patrimonialMonthlyReturn: number | null;
@@ -467,6 +490,12 @@ export namespace FundIndicatorsResponse {
     priceDate: string | null;
 
     priceToNav: number | null;
+
+    /**
+     * Valor patrimonial por cota como o informe declara, sem desdobramentos e
+     * grupamentos posteriores.
+     */
+    rawNavPerShare: number | null;
 
     sharesOutstanding: number | null;
 

@@ -280,8 +280,10 @@ export namespace DividendsData {
     paymentDateIsDeadline: boolean;
 
     /**
-     * Valor por ação, em reais. Em BDRs, o valor líquido por BDR, já sem o imposto no
-     * exterior, o IOF e a taxa da instituição depositária.
+     * Valor por ação, em reais, na escala das cotações ajustadas por desdobramentos,
+     * grupamentos e bonificações (`close` do histórico). Um provento anterior a um
+     * desdobramento de 1 para 5 aparece dividido por 5. Em BDRs, o valor líquido por
+     * BDR, já sem o imposto no exterior, o IOF e a taxa da instituição depositária.
      */
     rate: number;
 
@@ -309,7 +311,8 @@ export namespace DividendsData {
     bdr?: CashDividend.Bdr;
 
     /**
-     * Valor por ação na escala dos preços sem ajuste. Vem com `includeRaw=true`.
+     * Valor pago por ação na data do provento, na escala dos preços sem ajuste. Vem
+     * com `includeRaw=true`.
      */
     rawRate?: number | null;
   }
