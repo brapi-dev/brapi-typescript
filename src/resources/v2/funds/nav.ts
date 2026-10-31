@@ -70,7 +70,18 @@ export namespace NavHistoryResponse {
 
     monthlyReturn: number | null;
 
+    /**
+     * Valor da cota na base de cotas dos preços: desdobramentos e grupamentos depois
+     * de `date` já estão aplicados, como em `close`. As linhas por classe de FIDC
+     * (`classOrSeries`) trazem o valor do informe.
+     */
     navPerShare: number | null;
+
+    /**
+     * Valor patrimonial por cota como o informe declara, sem desdobramentos e
+     * grupamentos posteriores.
+     */
+    rawNavPerShare: number | null;
 
     symbol: string | null;
 
