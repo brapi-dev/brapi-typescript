@@ -98,11 +98,15 @@ export class Fii extends APIResource {
 
   /**
    * Rendimentos e amortizações pagos por FIIs. Cada evento traz tipo (`label`),
-   * valor por cota em reais (`rate`), data-com (`lastDatePrior`), data de pagamento,
-   * data de aprovação e ISIN.
+   * valor por cota em reais (`rate` e `rawRate`), data-com (`lastDatePrior`), data
+   * de pagamento, data de aprovação e ISIN.
    *
    * Use para calcular dividend yield, montar calendários de rendimentos e somar a
    * renda de uma carteira.
+   *
+   * `rate` está na escala das cotações ajustadas por desdobramentos e grupamentos.
+   * Divida por `close` do histórico para ter o yield. `rawRate` é o valor pago na
+   * data. Some `rawRate` para calcular a renda recebida.
    *
    * `label` é RENDIMENTO ou AMORTIZAÇÃO. Amortização devolve capital e reduz o valor
    * patrimonial da cota. Não some as duas para calcular yield.
@@ -356,7 +360,18 @@ export namespace FiiDividendsResponse {
 
     paymentDate: string;
 
+    /**
+     * Valor por cota, em reais, na escala das cotações ajustadas por desdobramentos e
+     * grupamentos (`close` do histórico). Um rendimento anterior a um desdobramento de
+     * 1 para 10 aparece dividido por 10.
+     */
     rate: number;
+
+    /**
+     * Valor pago por cota na data do rendimento, sem ajuste. Use para somar a renda
+     * recebida.
+     */
+    rawRate: number;
 
     relatedTo: string | null;
 
