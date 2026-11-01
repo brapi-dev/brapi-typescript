@@ -51,6 +51,16 @@ import {
   PrimeRateRetrieveParams,
   PrimeRateRetrieveResponse,
 } from './prime-rate';
+import * as RevenueSourcesAPI from './revenue-sources';
+import {
+  RevenueSourceActivitiesParams,
+  RevenueSourceActivitiesResponse,
+  RevenueSourceCompareParams,
+  RevenueSourceCompareResponse,
+  RevenueSourceRetrieveParams,
+  RevenueSourceRetrieveResponse,
+  RevenueSources,
+} from './revenue-sources';
 import * as StocksAPI from './stocks';
 import {
   StockBalanceSheetParams,
@@ -172,6 +182,7 @@ export class V2 extends APIResource {
   primeRate: PrimeRateAPI.PrimeRate = new PrimeRateAPI.PrimeRate(this._client);
   dictionary: DictionaryAPI.Dictionary = new DictionaryAPI.Dictionary(this._client);
   stocks: StocksAPI.Stocks = new StocksAPI.Stocks(this._client);
+  revenueSources: RevenueSourcesAPI.RevenueSources = new RevenueSourcesAPI.RevenueSources(this._client);
   tickers: TickersAPI.Tickers = new TickersAPI.Tickers(this._client);
   fii: FiiAPI.Fii = new FiiAPI.Fii(this._client);
   funds: FundsAPI.Funds = new FundsAPI.Funds(this._client);
@@ -188,6 +199,7 @@ V2.Inflation = Inflation;
 V2.PrimeRate = PrimeRate;
 V2.Dictionary = Dictionary;
 V2.Stocks = Stocks;
+V2.RevenueSources = RevenueSources;
 V2.Tickers = Tickers;
 V2.Fii = Fii;
 V2.Funds = Funds;
@@ -267,6 +279,16 @@ export declare namespace V2 {
     type StockScreenerParams as StockScreenerParams,
     type StockStatisticsParams as StockStatisticsParams,
     type StockValueAddedParams as StockValueAddedParams,
+  };
+
+  export {
+    RevenueSources as RevenueSources,
+    type RevenueSourceRetrieveResponse as RevenueSourceRetrieveResponse,
+    type RevenueSourceActivitiesResponse as RevenueSourceActivitiesResponse,
+    type RevenueSourceCompareResponse as RevenueSourceCompareResponse,
+    type RevenueSourceRetrieveParams as RevenueSourceRetrieveParams,
+    type RevenueSourceActivitiesParams as RevenueSourceActivitiesParams,
+    type RevenueSourceCompareParams as RevenueSourceCompareParams,
   };
 
   export {
