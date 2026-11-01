@@ -212,4 +212,52 @@ describe('resource funds', () => {
       ),
     ).rejects.toThrow(Brapi.NotFoundError);
   });
+
+  test('screenerCnpj', async () => {
+    const responsePromise = client.v2.funds.screenerCnpj();
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('screenerCnpj: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.v2.funds.screenerCnpj(
+        {
+          anbimaClassification: 'Previdência',
+          classification: 'renda-fixa',
+          equityMax: 0,
+          equityMin: 0,
+          limit: 20,
+          manager: 'Itaú',
+          navPerShareMax: 0,
+          navPerShareMin: 0,
+          netFlow1mMax: 0,
+          netFlow1mMin: 0,
+          page: 1,
+          return12mMax: 0,
+          return12mMin: 0,
+          return1mMax: 0,
+          return1mMin: 0,
+          return36mMax: 0,
+          return36mMin: 0,
+          returnDayMax: 0,
+          returnDayMin: 0,
+          returnYtdMax: 0,
+          returnYtdMin: 0,
+          search: 'Itaú Previdência',
+          sortBy: 'return12m',
+          sortOrder: 'desc',
+          totalInvestorsMax: 0,
+          totalInvestorsMin: 0,
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
+  });
 });
