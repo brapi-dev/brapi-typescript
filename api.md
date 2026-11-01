@@ -93,6 +93,7 @@ Types:
 - <code><a href="./src/resources/v2/stocks.ts">StockBalanceSheetResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockCashFlowResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockDividendsResponse</a></code>
+- <code><a href="./src/resources/v2/stocks.ts">StockEarningsCalendarResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockFinancialDataResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockHistoricalResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockIncomeStatementResponse</a></code>
@@ -108,6 +109,7 @@ Methods:
 - <code title="get /api/v2/stocks/balance-sheet">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">balanceSheet</a>({ ...params }) -> StockBalanceSheetResponse</code>
 - <code title="get /api/v2/stocks/cash-flow">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">cashFlow</a>({ ...params }) -> StockCashFlowResponse</code>
 - <code title="get /api/v2/stocks/dividends">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">dividends</a>({ ...params }) -> StockDividendsResponse</code>
+- <code title="get /api/v2/stocks/earnings-calendar">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">earningsCalendar</a>({ ...params }) -> StockEarningsCalendarResponse</code>
 - <code title="get /api/v2/stocks/financial-data">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">financialData</a>({ ...params }) -> StockFinancialDataResponse</code>
 - <code title="get /api/v2/stocks/historical">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">historical</a>({ ...params }) -> StockHistoricalResponse</code>
 - <code title="get /api/v2/stocks/income-statement">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">incomeStatement</a>({ ...params }) -> StockIncomeStatementResponse</code>
