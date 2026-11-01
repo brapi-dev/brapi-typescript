@@ -120,6 +120,41 @@ export class Stocks extends APIResource {
   }
 
   /**
+   * Datas de divulgação dos resultados trimestrais (ITR) e anuais (DFP) das empresas
+   * listadas na B3 e das empresas estrangeiras com BDRs. A atualização ocorre duas
+   * vezes por dia.
+   *
+   * Cada item é uma divulgação de uma empresa, com todos os seus tickers. `date`
+   * traz a data real quando os resultados já foram entregues e a data prevista nos
+   * demais casos. `dateChanges` mostra quando a empresa mudou a data.
+   *
+   * Para BDRs, a data real é a do comunicado de resultados da empresa. `releaseTime`
+   * mostra o horário em relação ao pregão de Nova York. As próximas datas de BDRs
+   * são estimadas (`dateStatus` = `estimated`) com a data do mesmo período no ano
+   * anterior.
+   *
+   * `fiscalYear` e `fiscalPeriod` indicam o período dos resultados. Empresas com
+   * exercício fora do ano civil usam o ano em que o exercício termina.
+   *
+   * Sem `symbols`, o intervalo máximo é de 366 dias. Com `symbols`, ele é de 10
+   * anos. Use `updatedSince` para receber só as divulgações alteradas.
+   *
+   * Todos os planos. PETR4, MGLU3, VALE3 e ITUB4 permitem testes gratuitos, sem
+   * token.
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.stocks.earningsCalendar();
+   * ```
+   */
+  earningsCalendar(
+    query: StockEarningsCalendarParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<StockEarningsCalendarResponse> {
+    return this._client.get('/api/v2/stocks/earnings-calendar', { query, ...options });
+  }
+
+  /**
    * Receita, lucro, EBITDA, margens, dívida, caixa e fluxo de caixa livre de uma
    * empresa, em um único objeto.
    *
@@ -527,6 +562,160 @@ export namespace StockDividendsResponse {
      * Ticker usado para os dados retornados.
      */
     symbol: string;
+  }
+}
+
+export interface StockEarningsCalendarResponse {
+  from: string;
+
+  pagination: StockEarningsCalendarResponse.Pagination;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<StockEarningsCalendarResponse.Result>;
+
+  to: string;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace StockEarningsCalendarResponse {
+  export interface Pagination {
+    hasMore: boolean;
+
+    limit: number;
+
+    page: number;
+
+    total: number;
+  }
+
+  export interface Result {
+    /**
+     * Identificador estável da divulgação.
+     */
+    id: string;
+
+    /**
+     * Data da apresentação pública dos resultados.
+     */
+    callDate: string | null;
+
+    companyName: string;
+
+    /**
+     * Data de divulgação: a data real quando houver, senão a data prevista.
+     */
+    date: string;
+
+    /**
+     * Mudanças de data, da mais antiga para a mais recente.
+     */
+    dateChanges: Array<Result.DateChange>;
+
+    /**
+     * `confirmed` quando a empresa informou ou já divulgou a data. `estimated` quando
+     * a data é uma estimativa, feita com a data do mesmo período no ano anterior.
+     */
+    dateStatus: 'confirmed' | 'estimated';
+
+    /**
+     * Data de entrega das demonstrações financeiras.
+     */
+    filingDate: string | null;
+
+    /**
+     * Período do exercício. `FY` é o exercício completo, que inclui o 4º trimestre.
+     * `H1` é o 1º semestre, para empresas que divulgam resultados semestrais.
+     */
+    fiscalPeriod: 'Q1' | 'Q2' | 'Q3' | 'H1' | 'FY';
+
+    /**
+     * Exercício social. Empresas com exercício fora do ano civil usam o ano em que o
+     * exercício termina.
+     */
+    fiscalYear: number;
+
+    /**
+     * Código da empresa na B3.
+     */
+    issuerCode: string;
+
+    links: Result.Links;
+
+    /**
+     * Último dia do período.
+     */
+    periodEnd: string;
+
+    /**
+     * Última data prevista no calendário da empresa.
+     */
+    plannedDate: string | null;
+
+    /**
+     * Horário da divulgação em relação ao pregão de Nova York (09h30 às 16h00, horário
+     * local): `beforeMarket`, `duringMarket` ou `afterMarket`. Só para BDRs. null
+     * quando não informado.
+     */
+    releaseTime: 'beforeMarket' | 'duringMarket' | 'afterMarket' | null;
+
+    /**
+     * Data em que os resultados foram entregues.
+     */
+    reportedDate: string | null;
+
+    /**
+     * `published` quando os resultados foram entregues. `overdue` quando a data passou
+     * há mais de 2 dias úteis sem entrega. `scheduled` nos demais casos.
+     */
+    status: 'scheduled' | 'published' | 'overdue';
+
+    /**
+     * Tickers negociados da empresa.
+     */
+    tickers: Array<string>;
+
+    /**
+     * Momento da última mudança nesta divulgação.
+     */
+    updatedAt: string;
+  }
+
+  export namespace Result {
+    export interface DateChange {
+      /**
+       * Data em que a empresa informou a mudança.
+       */
+      announcedAt: string;
+
+      /**
+       * `date` para a data de divulgação, `callDate` para a apresentação de resultados.
+       */
+      field: 'date' | 'callDate';
+
+      from: string;
+
+      to: string;
+    }
+
+    export interface Links {
+      /**
+       * Calendário de eventos de onde vem a data prevista.
+       */
+      calendar: string | null;
+
+      /**
+       * Documento com os resultados entregues.
+       */
+      document: string | null;
+    }
   }
 }
 
@@ -1307,6 +1496,60 @@ export interface StockDividendsParams {
   startDate?: string;
 }
 
+export interface StockEarningsCalendarParams {
+  /**
+   * `confirmed` traz datas informadas pela empresa. `estimated` traz datas
+   * estimadas.
+   */
+  dateStatus?: 'confirmed' | 'estimated';
+
+  /**
+   * Data inicial de divulgação. Padrão: 7 dias antes de hoje, ou 97 dias antes de
+   * `to`. O intervalo máximo é de 366 dias, ou de 10 anos com `symbols`.
+   */
+  from?: string;
+
+  /**
+   * Máximo de divulgações por página.
+   */
+  limit?: number;
+
+  /**
+   * Página.
+   */
+  page?: number;
+
+  /**
+   * `scheduled` (prevista), `published` (divulgada) ou `overdue` (atrasada). Para
+   * mais de uma, separe por vírgula.
+   */
+  status?: 'scheduled' | 'published' | 'overdue';
+
+  /**
+   * Tickers separados por vírgula, de ações ou BDRs. Máximo de 20. PETR3 e PETR4
+   * retornam a mesma empresa.
+   */
+  symbols?: string;
+
+  /**
+   * Data final de divulgação. Padrão: 97 dias depois de `from` (90 dias depois de
+   * hoje).
+   */
+  to?: string;
+
+  /**
+   * `quarterly` (trimestral) ou `annual` (anual). Para mais de um, separe por
+   * vírgula.
+   */
+  types?: 'quarterly' | 'annual';
+
+  /**
+   * Retorna só divulgações alteradas a partir deste momento, em ISO 8601. Use para
+   * sincronizar sua base.
+   */
+  updatedSince?: string;
+}
+
 export interface StockFinancialDataParams {
   /**
    * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
@@ -1957,6 +2200,7 @@ export declare namespace Stocks {
     type StockBalanceSheetResponse as StockBalanceSheetResponse,
     type StockCashFlowResponse as StockCashFlowResponse,
     type StockDividendsResponse as StockDividendsResponse,
+    type StockEarningsCalendarResponse as StockEarningsCalendarResponse,
     type StockFinancialDataResponse as StockFinancialDataResponse,
     type StockHistoricalResponse as StockHistoricalResponse,
     type StockIncomeStatementResponse as StockIncomeStatementResponse,
@@ -1969,6 +2213,7 @@ export declare namespace Stocks {
     type StockBalanceSheetParams as StockBalanceSheetParams,
     type StockCashFlowParams as StockCashFlowParams,
     type StockDividendsParams as StockDividendsParams,
+    type StockEarningsCalendarParams as StockEarningsCalendarParams,
     type StockFinancialDataParams as StockFinancialDataParams,
     type StockHistoricalParams as StockHistoricalParams,
     type StockIncomeStatementParams as StockIncomeStatementParams,
