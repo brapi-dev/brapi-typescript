@@ -42,11 +42,13 @@ export {
   type FundIndicatorsResponse,
   type FundPortfolioResponse,
   type FundProfileResponse,
+  type FundScreenerResponse,
   type FundListParams,
   type FundDividendsParams,
   type FundIndicatorsParams,
   type FundPortfolioParams,
   type FundProfileParams,
+  type FundScreenerParams,
 } from './funds/index';
 export {
   Futures,
