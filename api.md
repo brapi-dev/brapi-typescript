@@ -208,6 +208,7 @@ Types:
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPortfolioResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundProfileResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundScreenerResponse</a></code>
+- <code><a href="./src/resources/v2/funds/funds.ts">FundScreenerCnpjResponse</a></code>
 
 Methods:
 
@@ -217,6 +218,7 @@ Methods:
 - <code title="get /api/v2/funds/portfolio">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">portfolio</a>({ ...params }) -> FundPortfolioResponse</code>
 - <code title="get /api/v2/funds/profile">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">profile</a>({ ...params }) -> FundProfileResponse</code>
 - <code title="get /api/v2/funds/screener">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">screener</a>({ ...params }) -> FundScreenerResponse</code>
+- <code title="get /api/v2/funds/screener/cnpj">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">screenerCnpj</a>({ ...params }) -> FundScreenerCnpjResponse</code>
 
 ### Nav
 
