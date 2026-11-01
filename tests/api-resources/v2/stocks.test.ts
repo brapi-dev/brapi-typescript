@@ -70,6 +70,37 @@ describe('resource stocks', () => {
     });
   });
 
+  test('earningsCalendar', async () => {
+    const responsePromise = client.v2.stocks.earningsCalendar();
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('earningsCalendar: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.v2.stocks.earningsCalendar(
+        {
+          dateStatus: 'confirmed',
+          from: '2026-11-01',
+          limit: 50,
+          page: 1,
+          status: 'scheduled',
+          symbols: 'TIMS3',
+          to: '2026-11-15',
+          types: 'quarterly',
+          updatedSince: '2026-10-31T00:00:00Z',
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
+  });
+
   test('financialData: only required params', async () => {
     const responsePromise = client.v2.stocks.financialData({ symbols: 'PETR4,VALE3' });
     const rawResponse = await responsePromise.asResponse();
