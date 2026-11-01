@@ -247,6 +247,66 @@ export class Funds extends APIResource {
   ): APIPromise<FundScreenerResponse> {
     return this._client.get('/api/v2/funds/screener', { query, ...options });
   }
+
+  /**
+   * Filtra e ordena os fundos de investimento sem ticker na B3, identificados pelo
+   * CNPJ, por rentabilidade, patrimônio, cotistas e captação. Uma chamada percorre
+   * todos os fundos.
+   *
+   * Entram só os fundos sem ticker na B3, com situação "Em Funcionamento Normal" na
+   * CVM, que enviaram o informe diário nos últimos 20 dias. Para os fundos
+   * negociados na bolsa, use `/api/v2/funds/screener`.
+   *
+   * Os dados vêm do informe diário que os fundos enviam à CVM. Ele costuma chegar
+   * com 1 a 3 dias úteis de atraso: `navDate` mostra a data do último informe de
+   * cada fundo.
+   *
+   * As rentabilidades são a variação da cota: brutas de imposto de renda e líquidas
+   * de taxas. Uma rentabilidade é nula quando falta a cota inicial ou quando a cota
+   * muda mais de 10 vezes no período, o que indica desdobramento ou grupamento de
+   * cotas.
+   *
+   * `search` busca no nome e na razão social. Números, com ou sem pontuação, buscam
+   * o início do CNPJ. `classification` usa a classe da CVM, `anbimaClassification`
+   * busca parte da classificação ANBIMA e `manager` busca parte do nome do gestor.
+   *
+   * Cada indicador aceita `{chave}Min` e `{chave}Max`. Os limites são inclusivos e
+   * usam a mesma unidade da resposta: 10% é `0.1`. Um filtro remove os fundos sem o
+   * dado. Na ordenação, os nulos ficam no fim.
+   *
+   * Exemplos:
+   *
+   * - Fundos de previdência de renda fixa pela maior rentabilidade em 12 meses:
+   *   `?classification=renda-fixa&anbimaClassification=Previdência&sortBy=return12m`
+   * - Multimercados com pelo menos R$ 100 milhões e 1.000 cotistas:
+   *   `?classification=multimercado&equityMin=100000000&totalInvestorsMin=1000`
+   * - Fundos cujo CNPJ começa com 12.345.678: `?search=12.345.678`
+   *
+   * Plano Pro.
+   *
+   * | Indicador                 | Chave            | Unidade            |
+   * | ------------------------- | ---------------- | ------------------ |
+   * | Valor da cota             | `navPerShare`    | reais              |
+   * | Variação no dia           | `returnDay`      | fração (0.06 = 6%) |
+   * | Rentabilidade em 1 mês    | `return1m`       | fração (0.06 = 6%) |
+   * | Rentabilidade no ano      | `returnYtd`      | fração (0.06 = 6%) |
+   * | Rentabilidade em 12 meses | `return12m`      | fração (0.06 = 6%) |
+   * | Rentabilidade em 36 meses | `return36m`      | fração (0.06 = 6%) |
+   * | Patrimônio líquido        | `equity`         | reais              |
+   * | Cotistas                  | `totalInvestors` | quantidade         |
+   * | Captação líquida em 1 mês | `netFlow1m`      | reais              |
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.funds.screenerCnpj();
+   * ```
+   */
+  screenerCnpj(
+    query: FundScreenerCnpjParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<FundScreenerCnpjResponse> {
+    return this._client.get('/api/v2/funds/screener/cnpj', { query, ...options });
+  }
 }
 
 export interface FundHolding {
@@ -893,6 +953,147 @@ export namespace FundScreenerResponse {
   }
 }
 
+export interface FundScreenerCnpjResponse {
+  pagination: FundScreenerCnpjResponse.Pagination;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<FundScreenerCnpjResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace FundScreenerCnpjResponse {
+  export interface Pagination {
+    hasNextPage: boolean;
+
+    limit: number;
+
+    page: number;
+
+    totalItems: number;
+
+    totalPages: number;
+  }
+
+  export interface Result {
+    administratorName: string | null;
+
+    /**
+     * Classificação ANBIMA do fundo.
+     */
+    anbimaClassification: string | null;
+
+    /**
+     * Tipo do fundo no cadastro, como fif (fundo de investimento financeiro) ou fidc.
+     */
+    assetType: string;
+
+    /**
+     * Classe do fundo na CVM: Renda Fixa, Multimercado, Ações, Cambial ou FMP-FGTS.
+     */
+    classification: string | null;
+
+    /**
+     * CNPJ do fundo, só os 14 dígitos.
+     */
+    cnpj: string;
+
+    formattedCnpj: string;
+
+    /**
+     * Razão social do fundo no cadastro da CVM.
+     */
+    legalName: string | null;
+
+    managerName: string | null;
+
+    /**
+     * Indicadores do fundo pelo último informe diário.
+     */
+    metrics: Result.Metrics;
+
+    /**
+     * Nome do fundo.
+     */
+    name: string | null;
+
+    /**
+     * Data do último informe diário, de onde vêm os indicadores (AAAA-MM-DD).
+     */
+    navDate: string;
+  }
+
+  export namespace Result {
+    /**
+     * Indicadores do fundo pelo último informe diário.
+     */
+    export interface Metrics {
+      /**
+       * Patrimônio líquido. Patrimônio líquido no último informe diário, em reais.
+       * Unidade: reais. Nulo quando não há dado.
+       */
+      equity: number | null;
+
+      /**
+       * Valor da cota. Valor da cota no último informe diário, em reais. Unidade: reais.
+       * Nulo quando não há dado.
+       */
+      navPerShare: number | null;
+
+      /**
+       * Captação líquida em 1 mês. Aplicações menos resgates em 1 mês, em reais.
+       * Negativa quando saiu mais dinheiro do que entrou. Unidade: reais. Nulo quando
+       * não há dado.
+       */
+      netFlow1m: number | null;
+
+      /**
+       * Rentabilidade em 12 meses. Variação da cota em 12 meses, em fração. Unidade:
+       * fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      return12m: number | null;
+
+      /**
+       * Rentabilidade em 1 mês. Variação da cota em 1 mês, em fração. Nula quando a cota
+       * muda mais de 10 vezes no período (desdobramento ou grupamento). Unidade: fração
+       * (0.06 = 6%). Nulo quando não há dado.
+       */
+      return1m: number | null;
+
+      /**
+       * Rentabilidade em 36 meses. Variação da cota em 36 meses, em fração. Unidade:
+       * fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      return36m: number | null;
+
+      /**
+       * Variação no dia. Variação da cota desde o informe anterior, em fração (0.0074 =
+       * 0,74%). Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      returnDay: number | null;
+
+      /**
+       * Rentabilidade no ano. Variação da cota desde o último informe do ano anterior,
+       * em fração. Unidade: fração (0.06 = 6%). Nulo quando não há dado.
+       */
+      returnYtd: number | null;
+
+      /**
+       * Cotistas. Número de cotistas no último informe diário. Unidade: quantidade. Nulo
+       * quando não há dado.
+       */
+      totalInvestors: number | null;
+    }
+  }
+}
+
 export interface FundListParams {
   /**
    * Tipo do fundo.
@@ -1291,6 +1492,152 @@ export interface FundScreenerParams {
   volumeMin?: number;
 }
 
+export interface FundScreenerCnpjParams {
+  /**
+   * Parte da classificação ANBIMA, sem diferença de maiúsculas e acentos. Exemplos:
+   * Previdência, Exterior, Crédito Livre.
+   */
+  anbimaClassification?: string;
+
+  /**
+   * Classe do fundo na CVM: renda-fixa, multimercado, acoes, cambial ou fmp-fgts.
+   */
+  classification?: 'renda-fixa' | 'multimercado' | 'acoes' | 'cambial' | 'fmp-fgts';
+
+  /**
+   * Patrimônio líquido: valor máximo, inclusive. Unidade: reais.
+   */
+  equityMax?: number;
+
+  /**
+   * Patrimônio líquido: valor mínimo, inclusive. Unidade: reais.
+   */
+  equityMin?: number;
+
+  /**
+   * Itens por página. Máximo: 200.
+   */
+  limit?: number;
+
+  /**
+   * Parte do nome do gestor, sem diferença de maiúsculas e acentos.
+   */
+  manager?: string;
+
+  /**
+   * Valor da cota: valor máximo, inclusive. Unidade: reais.
+   */
+  navPerShareMax?: number;
+
+  /**
+   * Valor da cota: valor mínimo, inclusive. Unidade: reais.
+   */
+  navPerShareMin?: number;
+
+  /**
+   * Captação líquida em 1 mês: valor máximo, inclusive. Unidade: reais.
+   */
+  netFlow1mMax?: number;
+
+  /**
+   * Captação líquida em 1 mês: valor mínimo, inclusive. Unidade: reais.
+   */
+  netFlow1mMin?: number;
+
+  /**
+   * Número da página. Começa em 1.
+   */
+  page?: number;
+
+  /**
+   * Rentabilidade em 12 meses: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return12mMax?: number;
+
+  /**
+   * Rentabilidade em 12 meses: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return12mMin?: number;
+
+  /**
+   * Rentabilidade em 1 mês: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return1mMax?: number;
+
+  /**
+   * Rentabilidade em 1 mês: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return1mMin?: number;
+
+  /**
+   * Rentabilidade em 36 meses: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return36mMax?: number;
+
+  /**
+   * Rentabilidade em 36 meses: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  return36mMin?: number;
+
+  /**
+   * Variação no dia: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnDayMax?: number;
+
+  /**
+   * Variação no dia: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnDayMin?: number;
+
+  /**
+   * Rentabilidade no ano: valor máximo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnYtdMax?: number;
+
+  /**
+   * Rentabilidade no ano: valor mínimo, inclusive. Unidade: fração (0.06 = 6%).
+   */
+  returnYtdMin?: number;
+
+  /**
+   * Parte do nome ou da razão social do fundo, sem diferença de maiúsculas e
+   * acentos. Números, com ou sem pontuação, buscam o início do CNPJ.
+   */
+  search?: string;
+
+  /**
+   * Campo de ordenação: uma chave de indicador, `name` ou `cnpj`. Padrão:
+   * `totalInvestors`. Valores nulos ficam no fim.
+   */
+  sortBy?:
+    | 'name'
+    | 'cnpj'
+    | 'navPerShare'
+    | 'returnDay'
+    | 'return1m'
+    | 'returnYtd'
+    | 'return12m'
+    | 'return36m'
+    | 'equity'
+    | 'totalInvestors'
+    | 'netFlow1m';
+
+  /**
+   * Ordem. Padrão: `desc`.
+   */
+  sortOrder?: 'asc' | 'desc';
+
+  /**
+   * Cotistas: valor máximo, inclusive. Unidade: quantidade.
+   */
+  totalInvestorsMax?: number;
+
+  /**
+   * Cotistas: valor mínimo, inclusive. Unidade: quantidade.
+   */
+  totalInvestorsMin?: number;
+}
+
 Funds.Nav = Nav;
 Funds.Fiagro = Fiagro;
 Funds.Fidc = Fidc;
@@ -1306,12 +1653,14 @@ export declare namespace Funds {
     type FundPortfolioResponse as FundPortfolioResponse,
     type FundProfileResponse as FundProfileResponse,
     type FundScreenerResponse as FundScreenerResponse,
+    type FundScreenerCnpjResponse as FundScreenerCnpjResponse,
     type FundListParams as FundListParams,
     type FundDividendsParams as FundDividendsParams,
     type FundIndicatorsParams as FundIndicatorsParams,
     type FundPortfolioParams as FundPortfolioParams,
     type FundProfileParams as FundProfileParams,
     type FundScreenerParams as FundScreenerParams,
+    type FundScreenerCnpjParams as FundScreenerCnpjParams,
   };
 
   export {
