@@ -245,7 +245,7 @@ export namespace RevenueSourceRetrieveResponse {
 
       /**
        * Soma dos segmentos. Pode passar da receita total quando os segmentos vendem
-       * entre si.
+       * entre si ou são de receita bruta.
        */
       segmentsTotal: number;
 
@@ -312,7 +312,7 @@ export namespace RevenueSourceRetrieveResponse {
          * `reviewed`: uma pessoa conferiu o segmento. `label-disputed`: duas leituras
          * deram nomes diferentes ao segmento. `duplicate`: a mesma receita aparece em uma
          * controlada listada. `includes-construction`: o valor inclui receita de
-         * construção.
+         * construção. `gross`: o valor é receita bruta, antes de impostos e devoluções.
          */
         flags: Array<string>;
 
@@ -403,7 +403,7 @@ export namespace RevenueSourceRetrieveResponse {
        */
       export interface TotalCheck {
         /**
-         * Diferença entre `sum` e `total`.
+         * Diferença entre `sum` e `total`, ou `grossTotal` quando existe.
          */
         diff: number | null;
 
@@ -418,9 +418,14 @@ export namespace RevenueSourceRetrieveResponse {
         total: number | null;
 
         /**
-         * true quando a soma confere com a receita total.
+         * true quando a soma confere com a receita total, ou com `grossTotal`.
          */
         verified: boolean;
+
+        /**
+         * Receita bruta publicada, quando os segmentos são de receita bruta.
+         */
+        grossTotal?: number;
       }
     }
   }
@@ -556,7 +561,7 @@ export namespace RevenueSourceCompareResponse {
        * `reviewed`: uma pessoa conferiu o segmento. `label-disputed`: duas leituras
        * deram nomes diferentes ao segmento. `duplicate`: a mesma receita aparece em uma
        * controlada listada. `includes-construction`: o valor inclui receita de
-       * construção.
+       * construção. `gross`: o valor é receita bruta, antes de impostos e devoluções.
        */
       flags: Array<string>;
 
