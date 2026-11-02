@@ -107,6 +107,15 @@ export {
   type PrimeRateListAvailableParams,
 } from './prime-rate';
 export {
+  RevenueSources,
+  type RevenueSourceRetrieveResponse,
+  type RevenueSourceActivitiesResponse,
+  type RevenueSourceCompareResponse,
+  type RevenueSourceRetrieveParams,
+  type RevenueSourceActivitiesParams,
+  type RevenueSourceCompareParams,
+} from './revenue-sources';
+export {
   Stocks,
   type StockFundamentalsSeries,
   type StockBalanceSheetResponse,
