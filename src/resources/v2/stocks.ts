@@ -121,11 +121,17 @@ export class Stocks extends APIResource {
 
   /**
    * Datas de divulgação dos resultados trimestrais (ITR) e anuais (DFP) das empresas
-   * listadas na B3. A atualização ocorre duas vezes por dia.
+   * listadas na B3 e das empresas estrangeiras com BDRs. A atualização ocorre duas
+   * vezes por dia.
    *
    * Cada item é uma divulgação de uma empresa, com todos os seus tickers. `date`
    * traz a data real quando os resultados já foram entregues e a data prevista nos
    * demais casos. `dateChanges` mostra quando a empresa mudou a data.
+   *
+   * Para BDRs, a data real é a do comunicado de resultados da empresa. `releaseTime`
+   * mostra o horário em relação ao pregão de Nova York. As próximas datas de BDRs
+   * são estimadas (`dateStatus` = `estimated`) com a data do mesmo período no ano
+   * anterior.
    *
    * `fiscalYear` e `fiscalPeriod` indicam o período dos resultados. Empresas com
    * exercício fora do ano civil usam o ano em que o exercício termina.
@@ -615,7 +621,7 @@ export namespace StockEarningsCalendarResponse {
 
     /**
      * `confirmed` quando a empresa informou ou já divulgou a data. `estimated` quando
-     * a data é uma estimativa.
+     * a data é uma estimativa, feita com a data do mesmo período no ano anterior.
      */
     dateStatus: 'confirmed' | 'estimated';
 
@@ -626,6 +632,7 @@ export namespace StockEarningsCalendarResponse {
 
     /**
      * Período do exercício. `FY` é o exercício completo, que inclui o 4º trimestre.
+     * `H1` é o 1º semestre, para empresas que divulgam resultados semestrais.
      */
     fiscalPeriod: 'Q1' | 'Q2' | 'Q3' | 'H1' | 'FY';
 
@@ -653,7 +660,9 @@ export namespace StockEarningsCalendarResponse {
     plannedDate: string | null;
 
     /**
-     * Horário da divulgação em relação ao pregão. null quando não informado.
+     * Horário da divulgação em relação ao pregão de Nova York (09h30 às 16h00, horário
+     * local): `beforeMarket`, `duringMarket` ou `afterMarket`. Só para BDRs. null
+     * quando não informado.
      */
     releaseTime: 'beforeMarket' | 'duringMarket' | 'afterMarket' | null;
 
@@ -1517,8 +1526,8 @@ export interface StockEarningsCalendarParams {
   status?: 'scheduled' | 'published' | 'overdue';
 
   /**
-   * Tickers separados por vírgula. Máximo de 20. PETR3 e PETR4 retornam a mesma
-   * empresa.
+   * Tickers separados por vírgula, de ações ou BDRs. Máximo de 20. PETR3 e PETR4
+   * retornam a mesma empresa.
    */
   symbols?: string;
 
