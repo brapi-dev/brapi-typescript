@@ -120,6 +120,20 @@ Methods:
 - <code title="get /api/v2/stocks/statistics">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">statistics</a>({ ...params }) -> StockStatisticsResponse</code>
 - <code title="get /api/v2/stocks/value-added">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">valueAdded</a>({ ...params }) -> StockValueAddedResponse</code>
 
+## RevenueSources
+
+Types:
+
+- <code><a href="./src/resources/v2/revenue-sources.ts">RevenueSourceRetrieveResponse</a></code>
+- <code><a href="./src/resources/v2/revenue-sources.ts">RevenueSourceActivitiesResponse</a></code>
+- <code><a href="./src/resources/v2/revenue-sources.ts">RevenueSourceCompareResponse</a></code>
+
+Methods:
+
+- <code title="get /api/v2/revenue-sources">client.v2.revenueSources.<a href="./src/resources/v2/revenue-sources.ts">retrieve</a>({ ...params }) -> RevenueSourceRetrieveResponse</code>
+- <code title="get /api/v2/revenue-sources/activities">client.v2.revenueSources.<a href="./src/resources/v2/revenue-sources.ts">activities</a>({ ...params }) -> RevenueSourceActivitiesResponse</code>
+- <code title="get /api/v2/revenue-sources/compare">client.v2.revenueSources.<a href="./src/resources/v2/revenue-sources.ts">compare</a>({ ...params }) -> RevenueSourceCompareResponse</code>
+
 ## Tickers
 
 Types:
