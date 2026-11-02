@@ -672,8 +672,9 @@ export namespace StockEarningsCalendarResponse {
     reportedDate: string | null;
 
     /**
-     * `published` quando os resultados foram entregues. `overdue` quando a data passou
-     * há mais de 2 dias úteis sem entrega. `scheduled` nos demais casos.
+     * `published` quando os resultados foram entregues. `overdue` quando a data
+     * informada pela empresa passou há mais de 2 dias úteis sem entrega. Uma data
+     * estimada que passou continua `scheduled`. `scheduled` nos demais casos.
      */
     status: 'scheduled' | 'published' | 'overdue';
 
