@@ -95,6 +95,11 @@ export interface Debenture {
   issuerName: string;
 
   /**
+   * Ticker principal da emissora na bolsa, quando ela tem ações listadas.
+   */
+  issuerTicker: string | null;
+
+  /**
    * Data de vencimento, já com prorrogações.
    */
   maturityDate: string | null;
@@ -348,6 +353,12 @@ export interface DebentureListParams {
    * Página.
    */
   page?: number;
+
+  /**
+   * Busca pelo código da debênture ou pelo nome da emissora. Cada palavra deve estar
+   * no início do código ou de uma palavra do nome.
+   */
+  search?: string;
 
   /**
    * Campo de ordenação.

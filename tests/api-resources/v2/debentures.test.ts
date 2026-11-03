@@ -31,6 +31,7 @@ describe('resource debentures', () => {
           maturityFrom: '2027-01-01',
           maturityTo: '2030-12-31',
           page: 1,
+          search: 'tim',
           sortBy: 'symbol',
           sortOrder: 'asc',
           status: 'active',
