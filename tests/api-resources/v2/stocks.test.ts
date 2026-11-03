@@ -86,6 +86,7 @@ describe('resource stocks', () => {
     await expect(
       client.v2.stocks.earningsCalendar(
         {
+          cnpjs: '33541368000116',
           dateStatus: 'confirmed',
           from: '2026-11-01',
           limit: 50,
