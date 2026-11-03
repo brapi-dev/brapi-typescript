@@ -141,8 +141,8 @@ export class Stocks extends APIResource {
    * Sem `symbols`, o intervalo máximo é de 366 dias. Com `symbols`, ele é de 10
    * anos. Use `updatedSince` para receber só as divulgações alteradas.
    *
-   * Todos os planos. PETR4, MGLU3, VALE3 e ITUB4 permitem testes gratuitos, sem
-   * token.
+   * Todos os planos. A lista `debentures` vem preenchida só no plano Pro. PETR4,
+   * MGLU3, VALE3 e ITUB4 permitem testes gratuitos, sem token.
    *
    * @example
    * ```ts
@@ -633,7 +633,8 @@ export namespace StockEarningsCalendarResponse {
     dateStatus: 'confirmed' | 'estimated';
 
     /**
-     * Códigos das debêntures da empresa que ainda não venceram.
+     * Códigos das debêntures da empresa que ainda não venceram. Plano Pro; vazio nos
+     * demais planos.
      */
     debentures: Array<string>;
 
