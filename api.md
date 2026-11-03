@@ -423,6 +423,20 @@ Methods:
 - <code title="get /api/v2/treasury/indicators">client.v2.treasury.indicators.<a href="./src/resources/v2/treasury/indicators.ts">retrieve</a>({ ...params }) -> IndicatorRetrieveResponse</code>
 - <code title="get /api/v2/treasury/indicators/history">client.v2.treasury.indicators.<a href="./src/resources/v2/treasury/indicators.ts">history</a>({ ...params }) -> IndicatorHistoryResponse</code>
 
+## Debentures
+
+Types:
+
+- <code><a href="./src/resources/v2/debentures.ts">Debenture</a></code>
+- <code><a href="./src/resources/v2/debentures.ts">DebentureProfile</a></code>
+- <code><a href="./src/resources/v2/debentures.ts">DebentureListResponse</a></code>
+- <code><a href="./src/resources/v2/debentures.ts">DebentureProfileResponse</a></code>
+
+Methods:
+
+- <code title="get /api/v2/debentures/list">client.v2.debentures.<a href="./src/resources/v2/debentures.ts">list</a>({ ...params }) -> DebentureListResponse</code>
+- <code title="get /api/v2/debentures/profile">client.v2.debentures.<a href="./src/resources/v2/debentures.ts">profile</a>({ ...params }) -> DebentureProfileResponse</code>
+
 ## User
 
 Types:
