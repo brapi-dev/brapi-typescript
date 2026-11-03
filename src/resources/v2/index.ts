@@ -16,6 +16,15 @@ export {
   type CurrencyHistoricalParams,
   type CurrencyListAvailableParams,
 } from './currency';
+export {
+  Debentures,
+  type Debenture,
+  type DebentureProfile,
+  type DebentureListResponse,
+  type DebentureProfileResponse,
+  type DebentureListParams,
+  type DebentureProfileParams,
+} from './debentures';
 export { Dictionary, type DictionaryRetrieveResponse, type DictionaryRetrieveParams } from './dictionary';
 export {
   Fii,
