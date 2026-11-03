@@ -19,6 +19,16 @@ import {
   CurrencyRetrieveParams,
   CurrencyRetrieveResponse,
 } from './currency';
+import * as DebenturesAPI from './debentures';
+import {
+  Debenture,
+  DebentureListParams,
+  DebentureListResponse,
+  DebentureProfile,
+  DebentureProfileParams,
+  DebentureProfileResponse,
+  Debentures,
+} from './debentures';
 import * as DictionaryAPI from './dictionary';
 import { Dictionary, DictionaryRetrieveParams, DictionaryRetrieveResponse } from './dictionary';
 import * as InflationAPI from './inflation';
@@ -190,6 +200,7 @@ export class V2 extends APIResource {
   futures: FuturesAPI.Futures = new FuturesAPI.Futures(this._client);
   macro: MacroAPI.Macro = new MacroAPI.Macro(this._client);
   treasury: TreasuryAPI.Treasury = new TreasuryAPI.Treasury(this._client);
+  debentures: DebenturesAPI.Debentures = new DebenturesAPI.Debentures(this._client);
   user: UserAPI.User = new UserAPI.User(this._client);
 }
 
@@ -207,6 +218,7 @@ V2.Options = Options;
 V2.Futures = Futures;
 V2.Macro = Macro;
 V2.Treasury = Treasury;
+V2.Debentures = Debentures;
 V2.User = User;
 
 export declare namespace V2 {
@@ -388,6 +400,16 @@ export declare namespace V2 {
     type TreasuryListItem as TreasuryListItem,
     type TreasuryListResponse as TreasuryListResponse,
     type TreasuryListParams as TreasuryListParams,
+  };
+
+  export {
+    Debentures as Debentures,
+    type Debenture as Debenture,
+    type DebentureProfile as DebentureProfile,
+    type DebentureListResponse as DebentureListResponse,
+    type DebentureProfileResponse as DebentureProfileResponse,
+    type DebentureListParams as DebentureListParams,
+    type DebentureProfileParams as DebentureProfileParams,
   };
 
   export {
