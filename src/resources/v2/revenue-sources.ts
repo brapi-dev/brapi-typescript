@@ -310,9 +310,11 @@ export namespace RevenueSourceRetrieveResponse {
          * Alertas sobre o valor. `unchecked`: a soma dos segmentos não confere com a
          * receita total. `relabeled`: uma conferência moveu o valor para outro segmento.
          * `reviewed`: uma pessoa conferiu o segmento. `label-disputed`: duas leituras
-         * deram nomes diferentes ao segmento. `duplicate`: a mesma receita aparece em uma
-         * controlada listada. `includes-construction`: o valor inclui receita de
-         * construção. `gross`: o valor é receita bruta, antes de impostos e devoluções.
+         * deram nomes diferentes ao segmento. `reviewed-by-model`: duas leituras
+         * discordaram e uma terceira leitura automática confirmou o segmento. `duplicate`:
+         * a mesma receita aparece em uma controlada listada. `includes-construction`: o
+         * valor inclui receita de construção. `gross`: o valor é receita bruta, antes de
+         * impostos e devoluções.
          */
         flags: Array<string>;
 
@@ -559,9 +561,11 @@ export namespace RevenueSourceCompareResponse {
        * Alertas sobre o valor. `unchecked`: a soma dos segmentos não confere com a
        * receita total. `relabeled`: uma conferência moveu o valor para outro segmento.
        * `reviewed`: uma pessoa conferiu o segmento. `label-disputed`: duas leituras
-       * deram nomes diferentes ao segmento. `duplicate`: a mesma receita aparece em uma
-       * controlada listada. `includes-construction`: o valor inclui receita de
-       * construção. `gross`: o valor é receita bruta, antes de impostos e devoluções.
+       * deram nomes diferentes ao segmento. `reviewed-by-model`: duas leituras
+       * discordaram e uma terceira leitura automática confirmou o segmento. `duplicate`:
+       * a mesma receita aparece em uma controlada listada. `includes-construction`: o
+       * valor inclui receita de construção. `gross`: o valor é receita bruta, antes de
+       * impostos e devoluções.
        */
       flags: Array<string>;
 
