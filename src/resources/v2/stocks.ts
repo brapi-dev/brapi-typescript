@@ -124,9 +124,11 @@ export class Stocks extends APIResource {
    * listadas na B3 e das empresas estrangeiras com BDRs. A atualização ocorre duas
    * vezes por dia.
    *
-   * Cada item é uma divulgação de uma empresa, com todos os seus tickers. `date`
-   * traz a data real quando os resultados já foram entregues e a data prevista nos
-   * demais casos. `dateChanges` mostra quando a empresa mudou a data.
+   * Cada item é uma divulgação de uma empresa, com todos os seus tickers e
+   * debêntures. Empresas sem ações listadas têm `tickers` vazio. Para consultar
+   * essas empresas, use `cnpjs`. `date` traz a data real quando os resultados já
+   * foram entregues e a data prevista nos demais casos. `dateChanges` mostra quando
+   * a empresa mudou a data.
    *
    * Para BDRs, a data real é a do comunicado de resultados da empresa. `releaseTime`
    * mostra o horário em relação ao pregão de Nova York. As próximas datas de BDRs
@@ -607,6 +609,11 @@ export namespace StockEarningsCalendarResponse {
      */
     callDate: string | null;
 
+    /**
+     * CNPJ da empresa. null para empresas estrangeiras com BDRs.
+     */
+    cnpj: string | null;
+
     companyName: string;
 
     /**
@@ -624,6 +631,11 @@ export namespace StockEarningsCalendarResponse {
      * a data é uma estimativa, feita com a data do mesmo período no ano anterior.
      */
     dateStatus: 'confirmed' | 'estimated';
+
+    /**
+     * Códigos das debêntures da empresa que ainda não venceram.
+     */
+    debentures: Array<string>;
 
     /**
      * Data de entrega das demonstrações financeiras.
@@ -679,7 +691,8 @@ export namespace StockEarningsCalendarResponse {
     status: 'scheduled' | 'published' | 'overdue';
 
     /**
-     * Tickers negociados da empresa.
+     * Tickers das ações ou BDRs da empresa. Vazio quando a empresa não tem ações
+     * listadas.
      */
     tickers: Array<string>;
 
@@ -1499,6 +1512,12 @@ export interface StockDividendsParams {
 
 export interface StockEarningsCalendarParams {
   /**
+   * CNPJs das empresas separados por vírgula, com ou sem pontuação. Máximo de 20.
+   * Use para empresas sem ações listadas, como emissoras de debêntures.
+   */
+  cnpjs?: string;
+
+  /**
    * `confirmed` traz datas informadas pela empresa. `estimated` traz datas
    * estimadas.
    */
@@ -1506,7 +1525,7 @@ export interface StockEarningsCalendarParams {
 
   /**
    * Data inicial de divulgação. Padrão: 7 dias antes de hoje, ou 97 dias antes de
-   * `to`. O intervalo máximo é de 366 dias, ou de 10 anos com `symbols`.
+   * `to`. O intervalo máximo é de 366 dias, ou de 10 anos com `symbols` ou `cnpjs`.
    */
   from?: string;
 
