@@ -76,8 +76,8 @@ export class Funds extends APIResource {
   }
 
   /**
-   * Dividendos e rendimentos de FIAGRO, FI-Infra, FIF, FIDC e FIP listados. Cada
-   * evento traz data de declaração, data-com (`lastDatePrior`), data ex quando
+   * Dividendos e rendimentos de ETFs, FIAGRO, FI-Infra, FIF, FIDC e FIP listados.
+   * Cada evento traz data de declaração, data-com (`lastDatePrior`), data ex quando
    * existe, data de pagamento, valor por cota e rótulo.
    *
    * Use para calcular renda, montar calendários de pagamento e comparar rendimentos.
@@ -524,7 +524,7 @@ export interface FundDividendsResponse {
 
 export namespace FundDividendsResponse {
   export interface Dividend {
-    assetType: 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'other';
+    assetType: 'etf' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'other';
 
     cnpj: string;
 
@@ -1150,7 +1150,7 @@ export interface FundDividendsParams {
   /**
    * Tipo do fundo.
    */
-  assetType?: 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'other';
+  assetType?: 'etf' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'other';
 
   /**
    * CNPJs separados por vírgula, até 20, com ou sem pontuação.
