@@ -56,7 +56,7 @@ describe('resource funds', () => {
     await expect(
       client.v2.funds.dividends(
         {
-          assetType: 'fiagro',
+          assetType: 'etf',
           cnpjs: '42730834000100',
           endDate: '2026-06-30',
           limit: 20,
