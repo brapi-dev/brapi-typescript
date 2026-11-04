@@ -946,6 +946,12 @@ export namespace QuoteRetrieveResponse {
       industryKey: string | null;
 
       /**
+       * Código do segmento de listagem na B3, por exemplo NM (Novo Mercado), N1
+       * (Nível 1) ou N2 (Nível 2). Nulo quando a B3 não informa um segmento.
+       */
+      listingSegment: string | null;
+
+      /**
        * Descrição da empresa
        */
       longBusinessSummary: string | null;
