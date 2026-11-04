@@ -26,6 +26,7 @@ describe('resource revenueSources', () => {
         {
           cnpjs: 'x',
           endYear: 2025,
+          period: 'annual',
           startYear: 2024,
           symbols: 'PETR4',
         },
