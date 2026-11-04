@@ -305,8 +305,8 @@ export class Stocks extends APIResource {
 
   /**
    * Dados cadastrais da empresa por trás do ticker: razão social, CNPJ, setor,
-   * indústria, endereço, site, telefone, número de funcionários e descrição da
-   * atividade.
+   * indústria, segmento de listagem na B3 (por exemplo, Novo Mercado), endereço,
+   * site, telefone, número de funcionários e descrição da atividade.
    *
    * Use para páginas de empresa, filtros por setor e cadastro de ativos em
    * carteiras.
