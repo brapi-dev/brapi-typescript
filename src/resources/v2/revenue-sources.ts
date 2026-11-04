@@ -18,6 +18,10 @@ export class RevenueSources extends APIResource {
    * carteira mais recente: o peso de cada ação, BDR ou FII na carteira vezes a parte
    * de cada atividade na receita da empresa.
    *
+   * Com `period=quarterly`, `quarters` traz cada trimestre das empresas da B3: a
+   * receita acumulada no ano por segmento e, em `quarterValue`, a receita dos 3
+   * meses. O 4º trimestre vem das demonstrações anuais.
+   *
    * Concessões de energia, saneamento, gás e rodovias registram o investimento na
    * rede como receita de construção. Use `growthExConstruction` para comparar o
    * crescimento sem ela.
@@ -143,9 +147,15 @@ export namespace RevenueSourceRetrieveResponse {
     type: 'company' | 'bdr' | 'fii' | 'fiagro' | 'fund' | null;
 
     /**
-     * Exercícios do mais recente para o mais antigo. Vazio para fundos.
+     * Exercícios do mais recente para o mais antigo. Vazio para fundos e com
+     * `period=quarterly`.
      */
     years: Array<Result.Year>;
+
+    /**
+     * Só com `period=quarterly`: trimestres do mais recente para o mais antigo.
+     */
+    quarters?: Array<Result.Quarter>;
   }
 
   export namespace Result {
@@ -377,9 +387,9 @@ export namespace RevenueSourceRetrieveResponse {
           documentId: string;
 
           /**
-           * Documento de origem: `dfp` (demonstrações anuais na CVM), `10-K`, `20-F` ou
-           * `40-F` (relatório anual na SEC) ou `fii-quarterly` (informes trimestrais de FIIs
-           * na CVM).
+           * Documento de origem: `dfp` (demonstrações anuais na CVM), `itr` (demonstrações
+           * trimestrais na CVM), `10-K`, `20-F` ou `40-F` (relatório anual na SEC) ou
+           * `fii-quarterly` (informes trimestrais de FIIs na CVM).
            */
           form: string;
 
@@ -402,6 +412,194 @@ export namespace RevenueSourceRetrieveResponse {
 
       /**
        * Conferência dos segmentos com a receita total.
+       */
+      export interface TotalCheck {
+        /**
+         * Diferença entre `sum` e `total`, ou `grossTotal` quando existe.
+         */
+        diff: number | null;
+
+        /**
+         * Soma dos segmentos lidos, com as eliminações entre segmentos.
+         */
+        sum: number;
+
+        /**
+         * Receita total publicada.
+         */
+        total: number | null;
+
+        /**
+         * true quando a soma confere com a receita total, ou com `grossTotal`.
+         */
+        verified: boolean;
+
+        /**
+         * Receita bruta publicada, quando os segmentos são de receita bruta.
+         */
+        grossTotal?: number;
+      }
+    }
+
+    export interface Quarter {
+      currency: string;
+
+      fiscalYear: number;
+
+      /**
+       * Meses acumulados de 1º de janeiro até `periodEnd`: 3, 6, 9 ou 12. O 4º trimestre
+       * vem das demonstrações anuais.
+       */
+      months: number;
+
+      periodEnd: string;
+
+      quarter: number;
+
+      /**
+       * Segmentos do maior para o menor.
+       */
+      segments: Array<Quarter.Segment>;
+
+      /**
+       * Soma dos segmentos, acumulada no ano.
+       */
+      segmentsTotal: number;
+
+      /**
+       * `ok`: segmentos lidos. `no-segments`: a empresa não divulga segmentos, e a lista
+       * traz a receita total. `review`: há segmentos com alerta de leitura.
+       */
+      status: 'ok' | 'no-segments' | 'review';
+
+      /**
+       * Conferência dos segmentos com a receita total acumulada no ano.
+       */
+      totalCheck: Quarter.TotalCheck | null;
+    }
+
+    export namespace Quarter {
+      export interface Segment {
+        /**
+         * Código da atividade do segmento.
+         */
+        activity: string;
+
+        activityLabel: string;
+
+        /**
+         * Tipo de divisão: `business` (segmento de negócio), `product` (linha de produto
+         * ou serviço), `whole` (empresa sem segmentos: receita líquida total) ou
+         * `fii-income` (receitas de FIIs e Fiagros).
+         */
+        axis: string;
+
+        currency: string;
+
+        /**
+         * Alertas sobre o valor. `unchecked`: a soma dos segmentos não confere com a
+         * receita total. `relabeled`: uma conferência moveu o valor para outro segmento.
+         * `reviewed`: uma pessoa conferiu o segmento. `label-disputed`: duas leituras
+         * deram nomes diferentes ao segmento. `reviewed-by-model`: duas leituras
+         * discordaram e uma terceira leitura automática confirmou o segmento. `duplicate`:
+         * a mesma receita aparece em uma controlada listada. `includes-construction`: o
+         * valor inclui receita de construção. `gross`: o valor é receita bruta, antes de
+         * impostos e devoluções.
+         */
+        flags: Array<string>;
+
+        /**
+         * Crescimento do acumulado sobre o mesmo período do ano anterior, em fração (0.06
+         * = 6%).
+         */
+        growth: number | null;
+
+        /**
+         * Crescimento sem a receita de construção, em fração (0.06 = 6%).
+         */
+        growthExConstruction: number | null;
+
+        /**
+         * Nome do segmento como a empresa publica.
+         */
+        member: string;
+
+        /**
+         * Receita do ano anterior sem a receita de construção.
+         */
+        priorExConstruction: number | null;
+
+        /**
+         * `same-filing` quando o valor anterior vem do mesmo documento. `previous-filing`
+         * quando vem do documento do ano anterior.
+         */
+        priorFrom: 'same-filing' | 'previous-filing' | null;
+
+        /**
+         * Receita acumulada no mesmo período do ano anterior.
+         */
+        priorValue: number | null;
+
+        /**
+         * Receita dos 3 meses do trimestre: o acumulado menos o acumulado do trimestre
+         * anterior. null quando os segmentos mudam entre os dois trimestres ou falta o
+         * trimestre anterior.
+         */
+        quarterValue: number | null;
+
+        /**
+         * `exact` quando o segmento tem só esta atividade. `mixed` quando ele junta
+         * atividades e esta é a principal.
+         */
+        scope: 'exact' | 'mixed';
+
+        source: Segment.Source;
+
+        /**
+         * Receita acumulada no ano até `periodEnd`, na moeda `currency`.
+         */
+        value: number;
+
+        /**
+         * Receita sem a receita de construção de concessões, quando a atividade tem essa
+         * receita.
+         */
+        valueExConstruction: number | null;
+      }
+
+      export namespace Segment {
+        export interface Source {
+          /**
+           * Protocolo ou número do documento na origem.
+           */
+          documentId: string;
+
+          /**
+           * Documento de origem: `dfp` (demonstrações anuais na CVM), `itr` (demonstrações
+           * trimestrais na CVM), `10-K`, `20-F` ou `40-F` (relatório anual na SEC) ou
+           * `fii-quarterly` (informes trimestrais de FIIs na CVM).
+           */
+          form: string;
+
+          /**
+           * Página do valor no documento, quando conhecida.
+           */
+          page: number | null;
+
+          /**
+           * Página do valor do ano anterior, quando conhecida.
+           */
+          priorPage: number | null;
+
+          /**
+           * Link do documento.
+           */
+          url: string | null;
+        }
+      }
+
+      /**
+       * Conferência dos segmentos com a receita total acumulada no ano.
        */
       export interface TotalCheck {
         /**
@@ -606,9 +804,9 @@ export namespace RevenueSourceCompareResponse {
         documentId: string;
 
         /**
-         * Documento de origem: `dfp` (demonstrações anuais na CVM), `10-K`, `20-F` ou
-         * `40-F` (relatório anual na SEC) ou `fii-quarterly` (informes trimestrais de FIIs
-         * na CVM).
+         * Documento de origem: `dfp` (demonstrações anuais na CVM), `itr` (demonstrações
+         * trimestrais na CVM), `10-K`, `20-F` ou `40-F` (relatório anual na SEC) ou
+         * `fii-quarterly` (informes trimestrais de FIIs na CVM).
          */
         form: string;
 
@@ -637,6 +835,13 @@ export interface RevenueSourceRetrieveParams {
    * Último exercício social. Padrão: o mais recente disponível.
    */
   endYear?: number;
+
+  /**
+   * `annual` (padrão): exercícios em `years`. `quarterly`: trimestres em `quarters`,
+   * com a receita acumulada no ano e a receita dos 3 meses. Só para empresas da B3
+   * com exercício de janeiro a dezembro.
+   */
+  period?: 'annual' | 'quarterly';
 
   /**
    * Primeiro exercício social. Padrão: o mais antigo disponível.
