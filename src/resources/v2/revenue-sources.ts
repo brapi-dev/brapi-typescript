@@ -14,9 +14,10 @@ export class RevenueSources extends APIResource {
    * ano anterior e o link do documento. `activities` soma os segmentos por
    * atividade, com a parte de cada uma na soma dos segmentos.
    *
-   * Para ETFs e outros fundos, `lookThrough` mostra a exposição às atividades pela
-   * carteira mais recente: o peso de cada ação, BDR ou FII na carteira vezes a parte
-   * de cada atividade na receita da empresa.
+   * Para fundos com carteira mensal na CVM, `lookThrough` mostra a exposição às
+   * atividades pela carteira mais recente: o peso de cada ação, BDR ou FII na
+   * carteira vezes a parte de cada atividade na receita da empresa. ETFs não
+   * entregam essa carteira à CVM, então `lookThrough` vem `null` para eles.
    *
    * Com `period=quarterly`, `quarters` traz cada trimestre das empresas da B3: a
    * receita acumulada no ano por segmento e, em `quarterValue`, a receita dos 3
@@ -126,8 +127,8 @@ export namespace RevenueSourceRetrieveResponse {
     issuerCode: string | null;
 
     /**
-     * Só para fundos: exposição da carteira às atividades das empresas, FIIs e BDRs
-     * que o fundo tem.
+     * Só para fundos com carteira mensal na CVM: exposição da carteira às atividades
+     * das empresas, FIIs e BDRs que o fundo tem. `null` para ETFs.
      */
     lookThrough: Result.LookThrough | null;
 
@@ -160,8 +161,8 @@ export namespace RevenueSourceRetrieveResponse {
 
   export namespace Result {
     /**
-     * Só para fundos: exposição da carteira às atividades das empresas, FIIs e BDRs
-     * que o fundo tem.
+     * Só para fundos com carteira mensal na CVM: exposição da carteira às atividades
+     * das empresas, FIIs e BDRs que o fundo tem. `null` para ETFs.
      */
     export interface LookThrough {
       /**
