@@ -847,9 +847,10 @@ export namespace QuoteRetrieveResponse {
       low: number;
 
       /**
-       * Preço de abertura no intervalo.
+       * Preço de abertura no intervalo. Nulo quando a bolsa não publica a abertura, como
+       * nos ETFs de renda fixa.
        */
-      open: number;
+      open: number | null;
 
       /**
        * Volume negociado no intervalo.
