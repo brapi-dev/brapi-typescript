@@ -427,10 +427,14 @@ export namespace FundListResponse {
     price: number | null;
 
     /**
-     * Data do preço de fechamento usado em `price` e `priceToNav`.
+     * Data do preço de fechamento usado em `price`.
      */
     priceDate: string | null;
 
+    /**
+     * Fechamento na data da cota dividido por `navPerShare`. Usa o último pregão até 7
+     * dias antes dessa data. Sem fechamento nesse intervalo, é `null`.
+     */
     priceToNav: number | null;
 
     /**
@@ -580,10 +584,14 @@ export namespace FundIndicatorsResponse {
     price: number | null;
 
     /**
-     * Data do preço de fechamento usado em `price` e `priceToNav`.
+     * Data do preço de fechamento usado em `price`.
      */
     priceDate: string | null;
 
+    /**
+     * Fechamento na data da cota dividido por `navPerShare`. Usa o último pregão até 7
+     * dias antes dessa data. Sem fechamento nesse intervalo, é `null`.
+     */
     priceToNav: number | null;
 
     /**
