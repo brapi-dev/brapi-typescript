@@ -565,10 +565,16 @@ export namespace FundIndicatorsResponse {
 
     dailyRedemptions: number | null;
 
+    /**
+     * Rendimento distribuído no mês sobre o valor patrimonial da cota, em %.
+     */
     dividendYieldMonthly: number | null;
 
     equity: number | null;
 
+    /**
+     * Rentabilidade da cota no mês do informe, em %.
+     */
     monthlyReturn: number | null;
 
     name: string | null;
@@ -579,6 +585,9 @@ export namespace FundIndicatorsResponse {
      */
     navPerShare: number | null;
 
+    /**
+     * Rentabilidade patrimonial no mês do informe, em %.
+     */
     patrimonialMonthlyReturn: number | null;
 
     price: number | null;
