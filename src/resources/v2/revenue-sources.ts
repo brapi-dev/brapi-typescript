@@ -544,7 +544,7 @@ export namespace RevenueSourceRetrieveResponse {
         /**
          * Receita dos 3 meses do trimestre: o acumulado menos o acumulado do trimestre
          * anterior. null quando os segmentos mudam entre os dois trimestres ou falta o
-         * trimestre anterior.
+         * trimestre anterior. Um segmento que só mudou de nome mantém o valor.
          */
         quarterValue: number | null;
 
