@@ -1,5 +1,49 @@
 # Changelog
 
+## [1.11.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.10.0...v1.11.0) (2026-11-07)
+
+
+### Features
+
+* add a Fundos tab to /quotes for funds without a ticker, by CNPJ ([c1d75a0](https://github.com/brapi-dev/brapi-typescript/commit/c1d75a0281fd3c839029d4b20831c87b03c1876f))
+* **api:** add a fund screener endpoint ([a7362bc](https://github.com/brapi-dev/brapi-typescript/commit/a7362bc0d754bff20f0995ed92db92ca9022e468))
+* **api:** debenture codes, CNPJ and cnpjs filter in the earnings calendar ([81eeb4f](https://github.com/brapi-dev/brapi-typescript/commit/81eeb4fcfc542e5fef65357541358c80f29fe4dc))
+* **api:** debentures list and profile endpoints ([607345e](https://github.com/brapi-dev/brapi-typescript/commit/607345e78fc68c8eb3b7dd8bacafb9e5c6f31725))
+* **api:** earnings calendar for B3 companies ([8fba359](https://github.com/brapi-dev/brapi-typescript/commit/8fba359a467afff249babab6b77ebd9eb250ffbe))
+* **api:** merge the CNPJ fund screener into /funds/screener?assetType=unlisted ([dc984bb](https://github.com/brapi-dev/brapi-typescript/commit/dc984bb59ca08ebbf11bfdabc150156fef29aa5c))
+* **api:** show the consolidation basis of each statement period ([5c3b73a](https://github.com/brapi-dev/brapi-typescript/commit/5c3b73ae651298f795d5629bda68a38160c31102))
+* **etl:** ETF balance sheets and income statements from FNET balancetes ([b1b72ef](https://github.com/brapi-dev/brapi-typescript/commit/b1b72ef20579889f3e198a1937ccc8a74bc274b4))
+* **etl:** read BDR payouts from CVM RAD ([ea1b135](https://github.com/brapi-dev/brapi-typescript/commit/ea1b135e077a8e47815bc4f20413a64662be8390))
+* **etl:** read the segment table again with the net revenue total ([fad2810](https://github.com/brapi-dev/brapi-typescript/commit/fad28104cc92e40f2d06cca86cf4a9cdf48c21ca))
+* **etl:** valuation indicators for BDRs with SEC statements ([c5f6545](https://github.com/brapi-dev/brapi-typescript/commit/c5f6545cae25ad24dac70f7ef555800b47f50ffc))
+* **funds:** FIAGRO coverage endpoints and more monthly report fields ([4200b17](https://github.com/brapi-dev/brapi-typescript/commit/4200b1734c1f9f928dfa20e4eba197db73aac355))
+* **news:** market and company news with AI summaries and articles ([8935103](https://github.com/brapi-dev/brapi-typescript/commit/89351031ff98b3f8b77495e156ad2662cd3ff4a4))
+* revenue sources by activity for companies, BDRs, FIIs, funds, and ETFs ([b5206e5](https://github.com/brapi-dev/brapi-typescript/commit/b5206e581251c4a0320d614d4adc988f369389ad))
+* **revenue-sources:** a review model ends label disputes when it keeps the first-pass labels ([5e1f202](https://github.com/brapi-dev/brapi-typescript/commit/5e1f202048a49223fcac03fd60c4f0c8aafeaaf4))
+* **revenue-sources:** quarterly revenue by segment from CVM ITR filings ([26fbdad](https://github.com/brapi-dev/brapi-typescript/commit/26fbdadbd570acfaac06e6d41cfcc9cf35dc9b9d))
+* **web:** debenture pages, the Debêntures tab and debentures in search ([0374d40](https://github.com/brapi-dev/brapi-typescript/commit/0374d408bc9001892c01789024063808412b78e0))
+
+
+### Bug Fixes
+
+* **api:** accept the etf asset type in fund dividends ([c46bec8](https://github.com/brapi-dev/brapi-typescript/commit/c46bec8dbb04d6dbf1f46d5c2b606668b63c3cc3))
+* **api:** compute fund priceToNav with the close of the NAV day ([196461a](https://github.com/brapi-dev/brapi-typescript/commit/196461ac2b5dd8302f295badd652ce64b5c8be54))
+* **api:** date the fund price by its own close ([64d16ac](https://github.com/brapi-dev/brapi-typescript/commit/64d16acb52fde65d0eab00daf0ef5852176ae50b))
+* **api:** keep the 3-month revenue of a renamed segment ([5e2acda](https://github.com/brapi-dev/brapi-typescript/commit/5e2acdae1ef45cb0eb644b4921f91e0430056e48))
+* **api:** point ETF and fund coverage to the fund endpoints ([e98bd85](https://github.com/brapi-dev/brapi-typescript/commit/e98bd85e537653a376279e9d17c22d762b8ed66a))
+* **api:** read FII monthly reports in fund indicators and list ([b63421b](https://github.com/brapi-dev/brapi-typescript/commit/b63421b953b9782df47ae58ba9fe93e44cbe2604))
+* **chat:** tell the AI chat that listingSegment NM is Novo Mercado ([01ef134](https://github.com/brapi-dev/brapi-typescript/commit/01ef13428d15736034ec22a9b6be80e81ef27f0c))
+* **earnings-calendar:** keep past estimates scheduled, keep last tickers ([ad47538](https://github.com/brapi-dev/brapi-typescript/commit/ad475380701380d11aa3e2d57c187aecb576c191))
+* **etl:** put payouts on the split-adjusted price basis ([88108df](https://github.com/brapi-dev/brapi-typescript/commit/88108df04a9dc98e63b9c9a7807404e4078c4ada))
+* **funds:** tell fixed-income ETFs from equity ETFs ([6b343a4](https://github.com/brapi-dev/brapi-typescript/commit/6b343a4fdd19ff61de09c4f0603ca1cc11530e0b))
+* **revenue-sources:** read each quarter with the segments of the period before ([ca4b025](https://github.com/brapi-dev/brapi-typescript/commit/ca4b025b2a2b33a953fbc2e0d499f7d304b9304f))
+
+
+### Documentation
+
+* **api:** mark the history open as nullable ([d7fa202](https://github.com/brapi-dev/brapi-typescript/commit/d7fa2022d1ea0bb0649ff2b1df562e9b0a8042dd))
+* **api:** state the real referenceDate of the FII indicator history ([4cb1a14](https://github.com/brapi-dev/brapi-typescript/commit/4cb1a14952bf93116b90dc6bf438ca9a2eb23e0a))
+
 ## [1.10.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.9.1...v1.10.0) (2026-10-23)
 
 
