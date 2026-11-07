@@ -53,6 +53,16 @@ import {
   MacroSeriesObservation,
   MacroSeriesPublic,
 } from './macro';
+import * as NewsAPI from './news';
+import {
+  News,
+  NewsListParams,
+  NewsListResponse,
+  NewsMarketParams,
+  NewsMarketResponse,
+  NewsRetrieveResponse,
+  NewsStory,
+} from './news';
 import * as PrimeRateAPI from './prime-rate';
 import {
   PrimeRate,
@@ -199,6 +209,7 @@ export class V2 extends APIResource {
   macro: MacroAPI.Macro = new MacroAPI.Macro(this._client);
   treasury: TreasuryAPI.Treasury = new TreasuryAPI.Treasury(this._client);
   debentures: DebenturesAPI.Debentures = new DebenturesAPI.Debentures(this._client);
+  news: NewsAPI.News = new NewsAPI.News(this._client);
   user: UserAPI.User = new UserAPI.User(this._client);
 }
 
@@ -217,6 +228,7 @@ V2.Futures = Futures;
 V2.Macro = Macro;
 V2.Treasury = Treasury;
 V2.Debentures = Debentures;
+V2.News = News;
 V2.User = User;
 
 export declare namespace V2 {
@@ -406,6 +418,16 @@ export declare namespace V2 {
     type DebentureProfileResponse as DebentureProfileResponse,
     type DebentureListParams as DebentureListParams,
     type DebentureProfileParams as DebentureProfileParams,
+  };
+
+  export {
+    News as News,
+    type NewsStory as NewsStory,
+    type NewsRetrieveResponse as NewsRetrieveResponse,
+    type NewsListResponse as NewsListResponse,
+    type NewsMarketResponse as NewsMarketResponse,
+    type NewsListParams as NewsListParams,
+    type NewsMarketParams as NewsMarketParams,
   };
 
   export {

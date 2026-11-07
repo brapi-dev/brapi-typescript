@@ -95,6 +95,15 @@ export {
   type MacroListAvailableParams,
 } from './macro';
 export {
+  News,
+  type NewsStory,
+  type NewsRetrieveResponse,
+  type NewsListResponse,
+  type NewsMarketResponse,
+  type NewsListParams,
+  type NewsMarketParams,
+} from './news';
+export {
   Options,
   type OptionSeries,
   type OptionChainResponse,
