@@ -435,6 +435,21 @@ Methods:
 - <code title="get /api/v2/debentures/list">client.v2.debentures.<a href="./src/resources/v2/debentures.ts">list</a>({ ...params }) -> DebentureListResponse</code>
 - <code title="get /api/v2/debentures/profile">client.v2.debentures.<a href="./src/resources/v2/debentures.ts">profile</a>({ ...params }) -> DebentureProfileResponse</code>
 
+## News
+
+Types:
+
+- <code><a href="./src/resources/v2/news.ts">NewsStory</a></code>
+- <code><a href="./src/resources/v2/news.ts">NewsRetrieveResponse</a></code>
+- <code><a href="./src/resources/v2/news.ts">NewsListResponse</a></code>
+- <code><a href="./src/resources/v2/news.ts">NewsMarketResponse</a></code>
+
+Methods:
+
+- <code title="get /api/v2/news/{id}">client.v2.news.<a href="./src/resources/v2/news.ts">retrieve</a>(id) -> NewsRetrieveResponse</code>
+- <code title="get /api/v2/news">client.v2.news.<a href="./src/resources/v2/news.ts">list</a>({ ...params }) -> NewsListResponse</code>
+- <code title="get /api/v2/news/market">client.v2.news.<a href="./src/resources/v2/news.ts">market</a>({ ...params }) -> NewsMarketResponse</code>
+
 ## User
 
 Types:
