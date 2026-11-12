@@ -220,6 +220,8 @@ Types:
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPaginationMeta</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundListResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundDividendsResponse</a></code>
+- <code><a href="./src/resources/v2/funds/funds.ts">FundHoldersResponse</a></code>
+- <code><a href="./src/resources/v2/funds/funds.ts">FundHoldingsResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundIndicatorsResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPortfolioResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundProfileResponse</a></code>
@@ -229,6 +231,8 @@ Methods:
 
 - <code title="get /api/v2/funds/list">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">list</a>({ ...params }) -> FundListResponse</code>
 - <code title="get /api/v2/funds/dividends">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">dividends</a>({ ...params }) -> FundDividendsResponse</code>
+- <code title="get /api/v2/funds/holders">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">holders</a>({ ...params }) -> FundHoldersResponse</code>
+- <code title="get /api/v2/funds/holdings">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">holdings</a>({ ...params }) -> FundHoldingsResponse</code>
 - <code title="get /api/v2/funds/indicators">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">indicators</a>({ ...params }) -> FundIndicatorsResponse</code>
 - <code title="get /api/v2/funds/portfolio">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">portfolio</a>({ ...params }) -> FundPortfolioResponse</code>
 - <code title="get /api/v2/funds/profile">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">profile</a>({ ...params }) -> FundProfileResponse</code>
@@ -277,6 +281,18 @@ Types:
 Methods:
 
 - <code title="get /api/v2/funds/fip/reports">client.v2.funds.fip.<a href="./src/resources/v2/funds/fip.ts">reports</a>({ ...params }) -> FipReportsResponse</code>
+
+## Indexes
+
+Types:
+
+- <code><a href="./src/resources/v2/indexes.ts">IndexListResponse</a></code>
+- <code><a href="./src/resources/v2/indexes.ts">IndexCompositionResponse</a></code>
+
+Methods:
+
+- <code title="get /api/v2/indexes/list">client.v2.indexes.<a href="./src/resources/v2/indexes.ts">list</a>({ ...params }) -> IndexListResponse</code>
+- <code title="get /api/v2/indexes/composition">client.v2.indexes.<a href="./src/resources/v2/indexes.ts">composition</a>({ ...params }) -> IndexCompositionResponse</code>
 
 ## Options
 
