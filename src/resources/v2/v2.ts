@@ -31,6 +31,14 @@ import {
 } from './debentures';
 import * as DictionaryAPI from './dictionary';
 import { Dictionary, DictionaryRetrieveParams, DictionaryRetrieveResponse } from './dictionary';
+import * as IndexesAPI from './indexes';
+import {
+  IndexCompositionParams,
+  IndexCompositionResponse,
+  IndexListParams,
+  IndexListResponse,
+  Indexes,
+} from './indexes';
 import * as InflationAPI from './inflation';
 import {
   Inflation,
@@ -147,7 +155,11 @@ import * as FundsAPI from './funds/funds';
 import {
   FundDividendsParams,
   FundDividendsResponse,
+  FundHoldersParams,
+  FundHoldersResponse,
   FundHolding,
+  FundHoldingsParams,
+  FundHoldingsResponse,
   FundIndicatorsParams,
   FundIndicatorsResponse,
   FundListParams,
@@ -204,6 +216,7 @@ export class V2 extends APIResource {
   tickers: TickersAPI.Tickers = new TickersAPI.Tickers(this._client);
   fii: FiiAPI.Fii = new FiiAPI.Fii(this._client);
   funds: FundsAPI.Funds = new FundsAPI.Funds(this._client);
+  indexes: IndexesAPI.Indexes = new IndexesAPI.Indexes(this._client);
   options: OptionsAPI.Options = new OptionsAPI.Options(this._client);
   futures: FuturesAPI.Futures = new FuturesAPI.Futures(this._client);
   macro: MacroAPI.Macro = new MacroAPI.Macro(this._client);
@@ -223,6 +236,7 @@ V2.RevenueSources = RevenueSources;
 V2.Tickers = Tickers;
 V2.Fii = Fii;
 V2.Funds = Funds;
+V2.Indexes = Indexes;
 V2.Options = Options;
 V2.Futures = Futures;
 V2.Macro = Macro;
@@ -348,16 +362,28 @@ export declare namespace V2 {
     type FundPaginationMeta as FundPaginationMeta,
     type FundListResponse as FundListResponse,
     type FundDividendsResponse as FundDividendsResponse,
+    type FundHoldersResponse as FundHoldersResponse,
+    type FundHoldingsResponse as FundHoldingsResponse,
     type FundIndicatorsResponse as FundIndicatorsResponse,
     type FundPortfolioResponse as FundPortfolioResponse,
     type FundProfileResponse as FundProfileResponse,
     type FundScreenerResponse as FundScreenerResponse,
     type FundListParams as FundListParams,
     type FundDividendsParams as FundDividendsParams,
+    type FundHoldersParams as FundHoldersParams,
+    type FundHoldingsParams as FundHoldingsParams,
     type FundIndicatorsParams as FundIndicatorsParams,
     type FundPortfolioParams as FundPortfolioParams,
     type FundProfileParams as FundProfileParams,
     type FundScreenerParams as FundScreenerParams,
+  };
+
+  export {
+    Indexes as Indexes,
+    type IndexListResponse as IndexListResponse,
+    type IndexCompositionResponse as IndexCompositionResponse,
+    type IndexListParams as IndexListParams,
+    type IndexCompositionParams as IndexCompositionParams,
   };
 
   export {
