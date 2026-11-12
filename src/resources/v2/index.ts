@@ -48,12 +48,16 @@ export {
   type FundPaginationMeta,
   type FundListResponse,
   type FundDividendsResponse,
+  type FundHoldersResponse,
+  type FundHoldingsResponse,
   type FundIndicatorsResponse,
   type FundPortfolioResponse,
   type FundProfileResponse,
   type FundScreenerResponse,
   type FundListParams,
   type FundDividendsParams,
+  type FundHoldersParams,
+  type FundHoldingsParams,
   type FundIndicatorsParams,
   type FundPortfolioParams,
   type FundProfileParams,
@@ -74,6 +78,13 @@ export {
   type FutureSpecsParams,
   type FutureTermStructureParams,
 } from './futures/index';
+export {
+  Indexes,
+  type IndexListResponse,
+  type IndexCompositionResponse,
+  type IndexListParams,
+  type IndexCompositionParams,
+} from './indexes';
 export {
   Inflation,
   type InflationRetrieveResponse,
