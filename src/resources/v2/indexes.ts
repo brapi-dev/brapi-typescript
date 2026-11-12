@@ -41,8 +41,9 @@ export class Indexes extends APIResource {
    * exterior, a resposta mostra os ativos desse ETF, pelos relatórios públicos do
    * fundo no exterior (SEC).
    *
-   * Mostre `referenceDate` junto do dado: a CVM publica a carteira com meses de
-   * atraso.
+   * Sem `referenceDate`, a resposta traz o mês mais recente. Com ela, traz o mês
+   * mais recente até essa data. Mostre `referenceDate` junto do dado: a CVM publica
+   * a carteira com meses de atraso.
    *
    * Plano Pro.
    *
@@ -260,6 +261,12 @@ export interface IndexCompositionParams {
    * Página, a partir de 1.
    */
   page?: number;
+
+  /**
+   * Data no formato YYYY-MM-DD. Traz o mês mais recente até esta data. Sem ela, traz
+   * o mês mais recente.
+   */
+  referenceDate?: string;
 }
 
 export declare namespace Indexes {
