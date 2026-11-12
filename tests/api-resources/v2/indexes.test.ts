@@ -42,6 +42,7 @@ describe('resource indexes', () => {
       symbols: 'IBOV',
       limit: 2,
       page: 1,
+      referenceDate: 'referenceDate',
     });
   });
 });
