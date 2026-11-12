@@ -87,43 +87,16 @@ describe('resource funds', () => {
     await expect(
       client.v2.funds.holders(
         {
+          assetClass: 'assetClass',
           assetType: 'fii',
           cnpj: 'x',
+          issuer: 'true',
           limit: 2,
           page: 1,
           referenceDate: 'referenceDate',
           sortBy: 'marketValue',
           sortOrder: 'asc',
           symbol: 'PETR4',
-        },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Brapi.NotFoundError);
-  });
-
-  test('holdings', async () => {
-    const responsePromise = client.v2.funds.holdings();
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  test('holdings: request options and params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.v2.funds.holdings(
-        {
-          assetClass: 'equity',
-          cnpjs: 'x',
-          limit: 2,
-          lookThrough: 'true',
-          page: 1,
-          referenceDate: '2026-09-30',
-          symbols: 'BOVA11',
         },
         { path: '/_stainless_unknown_path' },
       ),
