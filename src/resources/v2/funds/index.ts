@@ -22,7 +22,6 @@ export {
   type FundListResponse,
   type FundDividendsResponse,
   type FundHoldersResponse,
-  type FundHoldingsResponse,
   type FundIndicatorsResponse,
   type FundPortfolioResponse,
   type FundProfileResponse,
@@ -30,10 +29,10 @@ export {
   type FundListParams,
   type FundDividendsParams,
   type FundHoldersParams,
-  type FundHoldingsParams,
   type FundIndicatorsParams,
   type FundPortfolioParams,
   type FundProfileParams,
   type FundScreenerParams,
 } from './funds';
+export { Holdings, type HoldingHistoryResponse, type HoldingHistoryParams } from './holdings';
 export { Nav, type NavHistoryResponse, type NavHistoryParams } from './nav';

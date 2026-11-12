@@ -20,6 +20,8 @@ import {
 } from './fidc';
 import * as FipAPI from './fip';
 import { Fip, FipReportsParams, FipReportsResponse } from './fip';
+import * as HoldingsAPI from './holdings';
+import { HoldingHistoryParams, HoldingHistoryResponse, Holdings } from './holdings';
 import * as NavAPI from './nav';
 import { Nav, NavHistoryParams, NavHistoryResponse } from './nav';
 import { APIPromise } from '../../../core/api-promise';
@@ -30,6 +32,7 @@ import { RequestOptions } from '../../../internal/request-options';
  */
 export class Funds extends APIResource {
   nav: NavAPI.Nav = new NavAPI.Nav(this._client);
+  holdings: HoldingsAPI.Holdings = new HoldingsAPI.Holdings(this._client);
   fiagro: FiagroAPI.Fiagro = new FiagroAPI.Fiagro(this._client);
   fidc: FidcAPI.Fidc = new FidcAPI.Fidc(this._client);
   fip: FipAPI.Fip = new FipAPI.Fip(this._client);
@@ -111,15 +114,22 @@ export class Funds extends APIResource {
    * Fundos que têm um ativo em carteira, com o valor e o peso da posição em cada
    * fundo. Os dados vêm da carteira mensal que os fundos entregam à CVM.
    *
-   * Use para ver quais fundos e ETFs compram uma ação, ou quais fundos têm cotas de
-   * outro fundo.
+   * Use para ver quais fundos e ETFs compram uma ação, quais têm ações ou dívida de
+   * uma empresa, ou quais fundos têm cotas de outro fundo.
    *
-   * Informe `symbol` (ticker na bolsa, como `PETR4`) ou `cnpj` (um fundo cujas cotas
-   * outros fundos têm).
+   * Informe `symbol` (ticker na bolsa, como `PETR4`) ou `cnpj`. O CNPJ de um fundo
+   * traz quem tem cotas dele. O CNPJ de uma empresa traz quem tem as ações dela
+   * (todos os tickers, como `PETR3` e `PETR4`), as debêntures e os outros títulos de
+   * dívida que ela emitiu. Com `issuer=true`, um ticker de ação faz o mesmo que o
+   * CNPJ da empresa. `asset.type` diz como o ativo foi lido e `asset.symbols` lista
+   * os tickers buscados.
+   *
+   * Cada fundo aparece uma vez, com os valores somados. `positions` mostra cada
+   * ativo da posição. Use `assetClass=equity` para ver só as ações.
    *
    * Só posições diretas: um fundo que tem o ativo por meio de outro fundo não
-   * aparece. Ações próprias e emprestadas somam uma posição. Posições confidenciais
-   * não aparecem.
+   * aparece. Ações próprias e emprestadas somam uma posição. Derivativos, valores a
+   * pagar e posições confidenciais não aparecem.
    *
    * Sem `referenceDate`, a resposta traz o mês mais recente que a maioria dos fundos
    * já entregou: os fundos entregam a carteira ao longo de semanas.
@@ -136,47 +146,6 @@ export class Funds extends APIResource {
     options?: RequestOptions,
   ): APIPromise<FundHoldersResponse> {
     return this._client.get('/api/v2/funds/holders', { query, ...options });
-  }
-
-  /**
-   * Composição de um fundo ou ETF em um mês, como na lâmina: cada ativo com o peso
-   * no patrimônio, e o resumo por classe de ativo, país e setor. Os dados vêm da
-   * carteira mensal que os fundos entregam à CVM.
-   *
-   * Use para ver os maiores ativos de um ETF, quanto ele tem no exterior ou em cada
-   * setor.
-   *
-   * Informe `symbols` ou `cnpjs`. Sem `referenceDate`, a resposta traz o mês mais
-   * recente. `availableDates` lista os meses com carteira.
-   *
-   * Posições repetidas viram uma só: ações próprias e emprestadas, o mesmo título
-   * público em várias linhas e as cotas de um mesmo fundo.
-   *
-   * Com `lookThrough=true` (padrão), uma cota de outro fundo vira os ativos desse
-   * fundo, proporcionais ao peso da cota: um ETF do exterior, pelos relatórios
-   * públicos do fundo no exterior (SEC), e um fundo brasileiro com pelo menos 1% do
-   * patrimônio, pela carteira dele no mesmo mês. Até três níveis.
-   * `lookThrough.funds` lista os fundos abertos, cada um com a data da própria
-   * carteira. `via` mostra por qual fundo vem cada ativo.
-   *
-   * Posições confidenciais não aparecem em `holdings`. Elas entram em
-   * `confidentialWeightPercent` e no resumo por classe.
-   *
-   * Um fundo sem carteira no período não aparece na resposta. A CVM publica a
-   * carteira com meses de atraso. Mostre `referenceDate` junto do dado.
-   *
-   * Plano Pro.
-   *
-   * @example
-   * ```ts
-   * const response = await client.v2.funds.holdings();
-   * ```
-   */
-  holdings(
-    query: FundHoldingsParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<FundHoldingsResponse> {
-    return this._client.get('/api/v2/funds/holdings', { query, ...options });
   }
 
   /**
@@ -637,6 +606,17 @@ export namespace FundHoldersResponse {
     name: string | null;
 
     symbol: string | null;
+
+    /**
+     * Tickers buscados na bolsa.
+     */
+    symbols: Array<string>;
+
+    /**
+     * `fund` (cotas de um fundo e, se listado, o ticker dele), `company` (ações e
+     * dívida de uma empresa) ou `security` (um ticker).
+     */
+    type: 'fund' | 'company' | 'security';
   }
 
   export interface Fund {
@@ -656,6 +636,16 @@ export namespace FundHoldersResponse {
      */
     netAssets: number | null;
 
+    /**
+     * Cada ativo que forma a posição, do maior valor ao menor. Mostra, por exemplo,
+     * quanto o fundo tem em cada ação e em cada debênture da empresa.
+     */
+    positions: Array<Fund.Position>;
+
+    /**
+     * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
+     * mais de um ativo da empresa, ou títulos sem código.
+     */
     quantity: number | null;
 
     symbol: string | null;
@@ -666,79 +656,8 @@ export namespace FundHoldersResponse {
     weightPercent: number | null;
   }
 
-  export interface Pagination {
-    hasNextPage: boolean;
-
-    limit: number;
-
-    page: number;
-
-    totalItems: number;
-
-    totalPages: number;
-  }
-
-  export interface Summary {
-    fundsCount: number;
-
-    totalMarketValue: number;
-
-    totalQuantity: number;
-  }
-}
-
-export interface FundHoldingsResponse {
-  funds: Array<FundHoldingsResponse.Fund>;
-
-  /**
-   * Data e hora da requisição em ISO 8601.
-   */
-  requestedAt: string;
-
-  /**
-   * Tempo de processamento, em milissegundos.
-   */
-  took: number;
-}
-
-export namespace FundHoldingsResponse {
-  export interface Fund {
-    assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
-
-    /**
-     * Meses com carteira, do mais recente ao mais antigo. Até 24.
-     */
-    availableDates: Array<string>;
-
-    cnpj: string;
-
-    holdings: Array<Fund.Holding>;
-
-    lookThrough: Fund.LookThrough;
-
-    name: string | null;
-
-    /**
-     * Patrimônio líquido, em reais.
-     */
-    netAssets: number;
-
-    pagination: Fund.Pagination;
-
-    /**
-     * Fim do mês da carteira.
-     */
-    referenceDate: string;
-
-    source: Fund.Source;
-
-    summary: Fund.Summary;
-
-    symbol: string | null;
-  }
-
   export namespace Fund {
-    export interface Holding {
+    export interface Position {
       /**
        * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
        * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
@@ -762,229 +681,49 @@ export namespace FundHoldingsResponse {
         | 'other';
 
       /**
-       * Tipo do ativo como a fonte informa.
+       * Valor em reais.
        */
-      assetType: string | null;
+      marketValue: number;
 
       /**
-       * Código ISO do país. Ativos locais sem país são `BR`.
-       */
-      country: string | null;
-
-      isin: string | null;
-
-      /**
-       * Valor em reais. Para ativos de outro fundo, é o valor da cota vezes o peso do
-       * ativo nele.
-       */
-      marketValue: number | null;
-
-      maturityDate: string | null;
-
-      name: string | null;
-
-      /**
-       * Quantidade. `null` para ativos de outro fundo.
+       * Quantidade. `null` para títulos sem código de uma empresa: podem ser mais de um.
        */
       quantity: number | null;
 
       /**
-       * Posição no ranking por peso, sem o filtro `assetClass`.
-       */
-      rank: number;
-
-      /**
-       * Setor da ação ou BDR, o mesmo de `/api/quote/list`. `null` para outros ativos e
-       * para ativos do exterior.
-       */
-      sector: string | null;
-
-      /**
-       * Ticker na bolsa ou código no exterior.
+       * Ticker ou código do ativo. `null` para cotas de fundo e títulos sem código.
        */
       symbol: string | null;
 
       /**
-       * Fundo pelo qual a posição é detida, quando ela vem de outro fundo. `null` para
-       * posição direta. Se a posição vem de mais de um caminho, mostra o de maior peso.
+       * Peso no patrimônio do fundo, em %.
        */
-      via: Holding.Via | null;
-
-      /**
-       * Peso no patrimônio do fundo, em % (4.52 = 4,52%). Negativo para valores a pagar
-       * e posições vendidas.
-       */
-      weightPercent: number;
+      weightPercent: number | null;
     }
+  }
 
-    export namespace Holding {
-      /**
-       * Fundo pelo qual a posição é detida, quando ela vem de outro fundo. `null` para
-       * posição direta. Se a posição vem de mais de um caminho, mostra o de maior peso.
-       */
-      export interface Via {
-        name: string | null;
+  export interface Pagination {
+    hasNextPage: boolean;
 
-        symbol: string | null;
-      }
-    }
+    limit: number;
 
-    export interface LookThrough {
-      applied: boolean;
+    page: number;
 
-      funds: Array<LookThrough.Fund>;
-    }
+    totalItems: number;
 
-    export namespace LookThrough {
-      export interface Fund {
-        cnpj: string | null;
+    totalPages: number;
+  }
 
-        holdingsCount: number;
+  export interface Summary {
+    fundsCount: number;
 
-        name: string | null;
+    totalMarketValue: number;
 
-        /**
-         * Data da carteira do fundo aberto. Pode ser diferente da data do fundo pedido:
-         * fundos do exterior divulgam a carteira a cada trimestre.
-         */
-        referenceDate: string;
-
-        source: Fund.Source;
-
-        symbol: string | null;
-
-        /**
-         * Peso do fundo aberto no patrimônio, em %.
-         */
-        weightPercent: number;
-      }
-
-      export namespace Fund {
-        export interface Source {
-          name: 'SEC' | 'CVM';
-
-          url: string | null;
-        }
-      }
-    }
-
-    export interface Pagination {
-      hasNextPage: boolean;
-
-      limit: number;
-
-      page: number;
-
-      totalItems: number;
-
-      totalPages: number;
-    }
-
-    export interface Source {
-      documentId: number | null;
-
-      name: 'CVM';
-
-      url: string | null;
-    }
-
-    export interface Summary {
-      assetClasses: Array<Summary.AssetClass>;
-
-      /**
-       * Última data em que uma posição confidencial do mês fica pública.
-       */
-      confidentialUntil: string | null;
-
-      /**
-       * Peso das posições confidenciais, em %. Elas não aparecem em `holdings`.
-       */
-      confidentialWeightPercent: number;
-
-      /**
-       * Peso por país. Sem valores a receber e a pagar.
-       */
-      countries: Array<Summary.Country>;
-
-      /**
-       * Posições depois de juntar repetidas e abrir fundos.
-       */
-      holdingsCount: number;
-
-      /**
-       * Parte do peso em ações e BDRs que tem setor, em %. `null` sem ações.
-       */
-      sectorCoveragePercent: number | null;
-
-      /**
-       * Peso por setor das ações e BDRs com setor.
-       */
-      sectors: Array<Summary.Sector>;
-
-      /**
-       * Peso das 10 maiores posições, em %.
-       */
-      top10WeightPercent: number;
-    }
-
-    export namespace Summary {
-      export interface AssetClass {
-        /**
-         * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
-         * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
-         * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
-         * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
-         * (valores a pagar) ou `other`.
-         */
-        assetClass:
-          | 'equity'
-          | 'bdr'
-          | 'fund'
-          | 'governmentBond'
-          | 'repo'
-          | 'privateCredit'
-          | 'bankSecurity'
-          | 'foreign'
-          | 'derivative'
-          | 'cash'
-          | 'receivable'
-          | 'payable'
-          | 'other';
-
-        /**
-         * Valor em reais.
-         */
-        marketValue: number;
-
-        /**
-         * Peso no patrimônio, em %.
-         */
-        weightPercent: number;
-      }
-
-      export interface Country {
-        /**
-         * Código ISO do país.
-         */
-        country: string;
-
-        countryName: string | null;
-
-        /**
-         * Peso no patrimônio, em %.
-         */
-        weightPercent: number;
-      }
-
-      export interface Sector {
-        sector: string;
-
-        /**
-         * Peso no patrimônio, em %.
-         */
-        weightPercent: number;
-      }
-    }
+    /**
+     * Soma das quantidades. `null` quando a resposta junta mais de um ativo da
+     * empresa, ou títulos sem código.
+     */
+    totalQuantity: number | null;
   }
 }
 
@@ -1614,15 +1353,27 @@ export interface FundDividendsParams {
 
 export interface FundHoldersParams {
   /**
+   * Só posições destas classes de ativo, separadas por vírgula. Ex.: `equity` para
+   * só ações de uma empresa.
+   */
+  assetClass?: string;
+
+  /**
    * Só fundos deste tipo. Ex.: `etf`.
    */
   assetType?: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other';
 
   /**
-   * CNPJ de um fundo, para ver quais fundos têm cotas dele. Use `symbol` ou `cnpj`,
-   * não os dois.
+   * CNPJ de um fundo, para ver quais fundos têm cotas dele, ou de uma empresa, para
+   * ver quais fundos têm ações ou dívida dela. Use `symbol` ou `cnpj`, não os dois.
    */
   cnpj?: string;
+
+  /**
+   * `true` troca o ticker de `symbol` por todos os ativos da empresa: ações, units,
+   * debêntures e outros títulos de dívida. Padrão `false`.
+   */
+  issuer?: 'true' | 'false';
 
   /**
    * Fundos por página. Padrão 20, máximo 100.
@@ -1654,46 +1405,6 @@ export interface FundHoldersParams {
    * Ticker do ativo na bolsa. Ex.: PETR4.
    */
   symbol?: string;
-}
-
-export interface FundHoldingsParams {
-  /**
-   * Classes de ativo separadas por vírgula. Filtra só a lista `holdings`; o resumo
-   * usa a carteira toda. Ex.: equity,bdr.
-   */
-  assetClass?: string;
-
-  /**
-   * CNPJs separados por vírgula, até 20, com ou sem pontuação.
-   */
-  cnpjs?: string;
-
-  /**
-   * Posições por fundo e por página. Padrão 10, máximo 500.
-   */
-  limit?: number;
-
-  /**
-   * `true` (padrão) abre as cotas de outros fundos e mostra os ativos deles. `false`
-   * mostra só as posições diretas.
-   */
-  lookThrough?: 'true' | 'false';
-
-  /**
-   * Página, a partir de 1.
-   */
-  page?: number;
-
-  /**
-   * Data no formato YYYY-MM-DD. Traz o mês mais recente até esta data. Sem ela, traz
-   * o mês mais recente.
-   */
-  referenceDate?: string;
-
-  /**
-   * Tickers separados por vírgula, até 20. Ex.: BOVA11,WRLD11.
-   */
-  symbols?: string;
 }
 
 export interface FundIndicatorsParams {
@@ -2114,6 +1825,7 @@ export interface FundScreenerParams {
 }
 
 Funds.Nav = Nav;
+Funds.Holdings = Holdings;
 Funds.Fiagro = Fiagro;
 Funds.Fidc = Fidc;
 Funds.Fip = Fip;
@@ -2125,7 +1837,6 @@ export declare namespace Funds {
     type FundListResponse as FundListResponse,
     type FundDividendsResponse as FundDividendsResponse,
     type FundHoldersResponse as FundHoldersResponse,
-    type FundHoldingsResponse as FundHoldingsResponse,
     type FundIndicatorsResponse as FundIndicatorsResponse,
     type FundPortfolioResponse as FundPortfolioResponse,
     type FundProfileResponse as FundProfileResponse,
@@ -2133,7 +1844,6 @@ export declare namespace Funds {
     type FundListParams as FundListParams,
     type FundDividendsParams as FundDividendsParams,
     type FundHoldersParams as FundHoldersParams,
-    type FundHoldingsParams as FundHoldingsParams,
     type FundIndicatorsParams as FundIndicatorsParams,
     type FundPortfolioParams as FundPortfolioParams,
     type FundProfileParams as FundProfileParams,
@@ -2144,6 +1854,12 @@ export declare namespace Funds {
     Nav as Nav,
     type NavHistoryResponse as NavHistoryResponse,
     type NavHistoryParams as NavHistoryParams,
+  };
+
+  export {
+    Holdings as Holdings,
+    type HoldingHistoryResponse as HoldingHistoryResponse,
+    type HoldingHistoryParams as HoldingHistoryParams,
   };
 
   export {
