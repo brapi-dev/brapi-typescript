@@ -90,6 +90,7 @@ describe('resource funds', () => {
           assetClass: 'assetClass',
           assetType: 'fii',
           cnpj: 'x',
+          include: 'movers',
           issuer: 'true',
           limit: 2,
           page: 1,
