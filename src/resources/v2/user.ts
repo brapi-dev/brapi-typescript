@@ -73,6 +73,11 @@ export namespace UserUsageResponse {
     }
 
     export interface UsageWindow {
+      /**
+       * Quando uma cota esgotada volta a aceitar requisições. `null` abaixo do limite.
+       */
+      availableAt: string | null;
+
       end: string;
 
       start: string;
