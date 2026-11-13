@@ -304,6 +304,38 @@ export class Stocks extends APIResource {
   }
 
   /**
+   * Rede de quem detém quem entre empresas, fundos, governos e pessoas, para
+   * desenhar um gráfico. Cada ligação (`edges`) vai de quem detém (`from`) para a
+   * empresa detida (`to`).
+   *
+   * Com `symbol`, a rede parte do ticker e anda `depth` passos para cima
+   * (acionistas) e para baixo (participações). Sem `symbol`, a rede traz as ligações
+   * dos formulários das empresas listadas, das maiores para as menores, sem pessoas
+   * físicas.
+   *
+   * `cycles` lista participações cruzadas. `topControllers` ordena os controladores
+   * pelo valor de mercado das empresas listadas que controlam.
+   *
+   * Fonte: Formulário de Referência, documento público que cada companhia aberta
+   * entrega à CVM. A companhia entrega nova versão quando o controle ou um acionista
+   * com 5% ou mais muda. Uma nova versão aparece aqui em até uma semana após a
+   * entrega.
+   *
+   * Plano Pro. PETR4, MGLU3, VALE3 e ITUB4 permitem testes gratuitos, sem token.
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.stocks.ownershipNetwork();
+   * ```
+   */
+  ownershipNetwork(
+    query: StockOwnershipNetworkParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<StockOwnershipNetworkResponse> {
+    return this._client.get('/api/v2/stocks/ownership-network', { query, ...options });
+  }
+
+  /**
    * Dados cadastrais da empresa por trás do ticker: razão social, CNPJ, setor,
    * indústria, segmento de listagem na B3 (por exemplo, Novo Mercado), endereço,
    * site, telefone, número de funcionários e descrição da atividade.
@@ -431,6 +463,38 @@ export class Stocks extends APIResource {
     options?: RequestOptions,
   ): APIPromise<StockScreenerResponse> {
     return this._client.get('/api/v2/stocks/screener', { query, ...options });
+  }
+
+  /**
+   * Quem detém a empresa: controladores, acionistas com 5% ou mais, ações em
+   * tesouraria, demais acionistas e ações em circulação, com a parte de cada um nas
+   * ações ordinárias (voto), preferenciais e no total.
+   *
+   * `chain` mostra quem detém os acionistas, até onde o formulário informa, e
+   * `ultimateControllers` as entidades no topo da cadeia de controle. `stakes` traz
+   * as participações da empresa em outras empresas.
+   *
+   * Pessoas físicas aparecem pelo nome, como no formulário, sem CPF.
+   *
+   * Fonte: Formulário de Referência, documento público que cada companhia aberta
+   * entrega à CVM. A companhia entrega nova versão quando o controle ou um acionista
+   * com 5% ou mais muda. Uma nova versão aparece aqui em até uma semana após a
+   * entrega.
+   *
+   * Plano Pro. PETR4, MGLU3, VALE3 e ITUB4 permitem testes gratuitos, sem token.
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.stocks.shareholders({
+   *   symbols: 'PETR4',
+   * });
+   * ```
+   */
+  shareholders(
+    query: StockShareholdersParams,
+    options?: RequestOptions,
+  ): APIPromise<StockShareholdersResponse> {
+    return this._client.get('/api/v2/stocks/shareholders', { query, ...options });
   }
 
   /**
@@ -1001,6 +1065,197 @@ export namespace StockInsiderTransactionsResponse {
   }
 }
 
+export interface StockOwnershipNetworkResponse {
+  /**
+   * Participações cruzadas: grupos em que cada empresa detém, direta ou
+   * indiretamente, as outras.
+   */
+  cycles: Array<StockOwnershipNetworkResponse.Cycle>;
+
+  depth: number | null;
+
+  edges: Array<StockOwnershipNetworkResponse.Edge>;
+
+  minPercent: number;
+
+  nodes: Array<StockOwnershipNetworkResponse.Node>;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  root: StockOwnershipNetworkResponse.Root | null;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+
+  /**
+   * Até 20 controladores, pelo valor de mercado controlado. Com ticker, só os que
+   * estão na rede.
+   */
+  topControllers: Array<StockOwnershipNetworkResponse.TopController>;
+
+  /**
+   * A rede passou de `limit` e foi cortada.
+   */
+  truncated: boolean;
+}
+
+export namespace StockOwnershipNetworkResponse {
+  export interface Cycle {
+    edges: Array<Cycle.Edge>;
+
+    nodes: Array<string>;
+  }
+
+  export namespace Cycle {
+    export interface Edge {
+      date: string | null;
+
+      /**
+       * Quem detém.
+       */
+      from: string;
+
+      isController: boolean;
+
+      preferredPercent: number | null;
+
+      /**
+       * CNPJ da empresa cujo formulário informa a ligação.
+       */
+      sourceCnpj: string;
+
+      sourceSymbol: string | null;
+
+      /**
+       * Empresa detida.
+       */
+      to: string;
+
+      totalPercent: number | null;
+
+      /**
+       * Parte das ações ordinárias.
+       */
+      votingPercent: number | null;
+    }
+  }
+
+  export interface Edge {
+    date: string | null;
+
+    /**
+     * Quem detém.
+     */
+    from: string;
+
+    isController: boolean;
+
+    preferredPercent: number | null;
+
+    /**
+     * CNPJ da empresa cujo formulário informa a ligação.
+     */
+    sourceCnpj: string;
+
+    sourceSymbol: string | null;
+
+    /**
+     * Empresa detida.
+     */
+    to: string;
+
+    totalPercent: number | null;
+
+    /**
+     * Parte das ações ordinárias.
+     */
+    votingPercent: number | null;
+  }
+
+  export interface Node {
+    /**
+     * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+     * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+     */
+    id: string;
+
+    /**
+     * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+     */
+    cnpj: string | null;
+
+    /**
+     * A empresa entrega o próprio quadro de acionistas.
+     */
+    isFiler: boolean;
+
+    /**
+     * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+     * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+     */
+    kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+    /**
+     * Valor de mercado em R$, para empresas listadas.
+     */
+    marketCap: number | null;
+
+    name: string;
+
+    /**
+     * Ticker principal, quando o participante é listado na B3.
+     */
+    symbol: string | null;
+  }
+
+  export interface Root {
+    id: string;
+
+    requestedSymbol: string;
+
+    symbol: string;
+  }
+
+  export interface TopController {
+    /**
+     * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+     * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+     */
+    id: string;
+
+    /**
+     * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+     */
+    cnpj: string | null;
+
+    companies: Array<string>;
+
+    /**
+     * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+     * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+     */
+    kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+    /**
+     * Soma do valor de mercado, em R$, das empresas listadas que a entidade controla
+     * no topo da cadeia. Controle conjunto conta para cada controlador.
+     */
+    marketValueControlled: number;
+
+    name: string;
+
+    /**
+     * Ticker principal, quando o participante é listado na B3.
+     */
+    symbol: string | null;
+  }
+}
+
 export interface StockProfileResponse {
   /**
    * Data e hora da requisição em ISO 8601.
@@ -1401,6 +1656,476 @@ export namespace StockScreenerResponse {
   }
 }
 
+export interface StockShareholdersResponse {
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  results: Array<StockShareholdersResponse.Result>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+}
+
+export namespace StockShareholdersResponse {
+  export interface Result {
+    changed: boolean;
+
+    data: Result.Data;
+
+    requestedSymbol: string;
+
+    symbol: string;
+  }
+
+  export namespace Result {
+    export interface Data {
+      /**
+       * Quem detém os acionistas, até onde o formulário informa. Os percentuais
+       * referem-se à empresa detida (`owned`).
+       */
+      chain: Array<Data.Chain>;
+
+      cnpj: string;
+
+      companyName: string;
+
+      filing: Data.Filing;
+
+      /**
+       * Ações em circulação: fora das mãos de controladores, administradores e da
+       * tesouraria.
+       */
+      freeFloat: Data.FreeFloat;
+
+      holderCounts: Data.HolderCounts;
+
+      /**
+       * Demais acionistas, cada um com menos de 5%.
+       */
+      others: Data.Others | null;
+
+      /**
+       * Controladores e acionistas com 5% ou mais de uma espécie de ação, do maior para
+       * o menor.
+       */
+      shareholders: Array<Data.Shareholder>;
+
+      /**
+       * Participações desta empresa em outras empresas. Empresas listadas primeiro.
+       */
+      stakes: Array<Data.Stake>;
+
+      /**
+       * Ações em tesouraria.
+       */
+      treasury: Data.Treasury | null;
+
+      /**
+       * Entidades no topo da cadeia de controle. A busca segue controladores com 10% ou
+       * mais e para antes de pessoas físicas. Uma holding com mais de 2 controladores é
+       * o topo. Vazio quando não há controle definido.
+       */
+      ultimateControllers: Array<Data.UltimateController>;
+    }
+
+    export namespace Data {
+      export interface Chain {
+        /**
+         * 1: acionista de um acionista; 2: um nível acima.
+         */
+        level: number;
+
+        owned: Chain.Owned;
+
+        owner: Chain.Owner;
+      }
+
+      export namespace Chain {
+        export interface Owned {
+          /**
+           * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+           * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+           */
+          id: string;
+
+          /**
+           * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+           */
+          cnpj: string | null;
+
+          /**
+           * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+           * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+           */
+          kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+          name: string;
+
+          /**
+           * Ticker principal, quando o participante é listado na B3.
+           */
+          symbol: string | null;
+        }
+
+        export interface Owner {
+          /**
+           * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+           * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+           */
+          id: string;
+
+          /**
+           * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+           */
+          cnpj: string | null;
+
+          /**
+           * Parte das ações ordinárias, em %. É a parte do voto.
+           */
+          commonPercent: number | null;
+
+          /**
+           * Ações ordinárias (ON), com direito a voto.
+           */
+          commonShares: number | null;
+
+          /**
+           * Data da última alteração da posição.
+           */
+          date: string | null;
+
+          /**
+           * O acionista participa do acordo de acionistas.
+           */
+          inShareholderAgreement: boolean;
+
+          /**
+           * A empresa informa o acionista como controlador.
+           */
+          isController: boolean;
+
+          /**
+           * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+           * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+           */
+          kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+          name: string;
+
+          nationality: string | null;
+
+          /**
+           * Parte das ações preferenciais, em %.
+           */
+          preferredPercent: number | null;
+
+          preferredShares: number | null;
+
+          /**
+           * Divisão por classe de ação, quando informada.
+           */
+          shareClasses: Array<Owner.ShareClass>;
+
+          /**
+           * Ticker principal, quando o participante é listado na B3.
+           */
+          symbol: string | null;
+
+          /**
+           * Parte de todas as ações, em %.
+           */
+          totalPercent: number | null;
+
+          totalShares: number | null;
+        }
+
+        export namespace Owner {
+          export interface ShareClass {
+            percent: number | null;
+
+            shareClass: string;
+
+            shares: number | null;
+          }
+        }
+      }
+
+      export interface Filing {
+        archiveYear: number;
+
+        /**
+         * Data de entrega desta versão.
+         */
+        filedAt: string | null;
+
+        referenceDate: string;
+
+        sourceUrl: string | null;
+
+        /**
+         * Versão do Formulário de Referência. A empresa entrega nova versão quando o
+         * controle ou um acionista com 5% ou mais muda.
+         */
+        version: number;
+      }
+
+      /**
+       * Ações em circulação: fora das mãos de controladores, administradores e da
+       * tesouraria.
+       */
+      export interface FreeFloat {
+        /**
+         * Parte das ações ordinárias, em %. É a parte do voto.
+         */
+        commonPercent: number | null;
+
+        /**
+         * Ações ordinárias (ON), com direito a voto.
+         */
+        commonShares: number | null;
+
+        /**
+         * Parte das ações preferenciais, em %.
+         */
+        preferredPercent: number | null;
+
+        preferredShares: number | null;
+
+        /**
+         * Parte de todas as ações, em %.
+         */
+        totalPercent: number | null;
+
+        totalShares: number | null;
+      }
+
+      export interface HolderCounts {
+        companies: number | null;
+
+        individuals: number | null;
+
+        institutions: number | null;
+      }
+
+      /**
+       * Demais acionistas, cada um com menos de 5%.
+       */
+      export interface Others {
+        /**
+         * Parte das ações ordinárias, em %. É a parte do voto.
+         */
+        commonPercent: number | null;
+
+        /**
+         * Ações ordinárias (ON), com direito a voto.
+         */
+        commonShares: number | null;
+
+        /**
+         * Parte das ações preferenciais, em %.
+         */
+        preferredPercent: number | null;
+
+        preferredShares: number | null;
+
+        /**
+         * Parte de todas as ações, em %.
+         */
+        totalPercent: number | null;
+
+        totalShares: number | null;
+      }
+
+      export interface Shareholder {
+        /**
+         * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+         * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+         */
+        id: string;
+
+        /**
+         * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+         */
+        cnpj: string | null;
+
+        /**
+         * Parte das ações ordinárias, em %. É a parte do voto.
+         */
+        commonPercent: number | null;
+
+        /**
+         * Ações ordinárias (ON), com direito a voto.
+         */
+        commonShares: number | null;
+
+        /**
+         * Data da última alteração da posição.
+         */
+        date: string | null;
+
+        /**
+         * O acionista participa do acordo de acionistas.
+         */
+        inShareholderAgreement: boolean;
+
+        /**
+         * A empresa informa o acionista como controlador.
+         */
+        isController: boolean;
+
+        /**
+         * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+         * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+         */
+        kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+        name: string;
+
+        nationality: string | null;
+
+        /**
+         * Parte das ações preferenciais, em %.
+         */
+        preferredPercent: number | null;
+
+        preferredShares: number | null;
+
+        /**
+         * Divisão por classe de ação, quando informada.
+         */
+        shareClasses: Array<Shareholder.ShareClass>;
+
+        /**
+         * Ticker principal, quando o participante é listado na B3.
+         */
+        symbol: string | null;
+
+        /**
+         * Parte de todas as ações, em %.
+         */
+        totalPercent: number | null;
+
+        totalShares: number | null;
+      }
+
+      export namespace Shareholder {
+        export interface ShareClass {
+          percent: number | null;
+
+          shareClass: string;
+
+          shares: number | null;
+        }
+      }
+
+      export interface Stake {
+        company: Stake.Company;
+
+        date: string | null;
+
+        isController: boolean;
+
+        /**
+         * `shareholderTable`: quadro de acionistas da empresa detida. `subsidiaryList`:
+         * lista de controladas e coligadas da própria empresa.
+         */
+        source: 'shareholderTable' | 'subsidiaryList';
+
+        totalPercent: number | null;
+
+        votingPercent: number | null;
+      }
+
+      export namespace Stake {
+        export interface Company {
+          /**
+           * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+           * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+           */
+          id: string;
+
+          /**
+           * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+           */
+          cnpj: string | null;
+
+          /**
+           * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+           * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+           */
+          kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+          name: string;
+
+          /**
+           * Ticker principal, quando o participante é listado na B3.
+           */
+          symbol: string | null;
+        }
+      }
+
+      /**
+       * Ações em tesouraria.
+       */
+      export interface Treasury {
+        /**
+         * Parte das ações ordinárias, em %. É a parte do voto.
+         */
+        commonPercent: number | null;
+
+        /**
+         * Ações ordinárias (ON), com direito a voto.
+         */
+        commonShares: number | null;
+
+        /**
+         * Parte das ações preferenciais, em %.
+         */
+        preferredPercent: number | null;
+
+        preferredShares: number | null;
+
+        /**
+         * Parte de todas as ações, em %.
+         */
+        totalPercent: number | null;
+
+        totalShares: number | null;
+      }
+
+      export interface UltimateController {
+        /**
+         * Identificador estável do participante. Empresas e fundos: `cnpj:` e a raiz do
+         * CNPJ (8 dígitos). Pessoas: `person:` e o nome. Sem documento: `name:` e o nome.
+         */
+        id: string;
+
+        /**
+         * CNPJ com 14 dígitos. Sempre null para pessoas físicas.
+         */
+        cnpj: string | null;
+
+        /**
+         * Tipo do participante: empresa, pessoa física, fundo (inclui fundos de pensão),
+         * governo (União, estados, municípios, BNDES e BNDESPAR) ou empresa estrangeira.
+         */
+        kind: 'company' | 'person' | 'fund' | 'government' | 'foreign';
+
+        name: string;
+
+        /**
+         * Ticker principal, quando o participante é listado na B3.
+         */
+        symbol: string | null;
+      }
+    }
+  }
+}
+
 export interface StockStatisticsResponse {
   /**
    * Data e hora da requisição em ISO 8601.
@@ -1715,6 +2440,34 @@ export interface StockInsiderTransactionsParams {
    * Data inicial da movimentação. Padrão: 365 dias antes de endDate.
    */
   startDate?: string;
+}
+
+export interface StockOwnershipNetworkParams {
+  /**
+   * Passos a partir do ticker, para cima e para baixo.
+   */
+  depth?: number;
+
+  /**
+   * Inclui pessoas físicas. Padrão: true com ticker, false na rede do mercado.
+   */
+  includePersons?: 'true' | 'false';
+
+  /**
+   * Máximo de participantes (com ticker) ou de ligações (mercado).
+   */
+  limit?: number;
+
+  /**
+   * Participação mínima, em % do total ou do voto. Com ticker, controladores entram
+   * sempre.
+   */
+  minPercent?: number | null;
+
+  /**
+   * Ticker do centro da rede. Sem ticker, a resposta traz a rede do mercado.
+   */
+  symbol?: string;
 }
 
 export interface StockProfileParams {
@@ -2164,6 +2917,13 @@ export interface StockScreenerParams {
   volumeMin?: number;
 }
 
+export interface StockShareholdersParams {
+  /**
+   * Tickers separados por vírgula. Máximo de 20.
+   */
+  symbols: string;
+}
+
 export interface StockStatisticsParams {
   /**
    * Tickers separados por vírgula. Ex.: PETR4,VALE3. `requestedSymbol` identifica o
@@ -2226,9 +2986,11 @@ export declare namespace Stocks {
     type StockHistoricalResponse as StockHistoricalResponse,
     type StockIncomeStatementResponse as StockIncomeStatementResponse,
     type StockInsiderTransactionsResponse as StockInsiderTransactionsResponse,
+    type StockOwnershipNetworkResponse as StockOwnershipNetworkResponse,
     type StockProfileResponse as StockProfileResponse,
     type StockQuoteResponse as StockQuoteResponse,
     type StockScreenerResponse as StockScreenerResponse,
+    type StockShareholdersResponse as StockShareholdersResponse,
     type StockStatisticsResponse as StockStatisticsResponse,
     type StockValueAddedResponse as StockValueAddedResponse,
     type StockBalanceSheetParams as StockBalanceSheetParams,
@@ -2239,9 +3001,11 @@ export declare namespace Stocks {
     type StockHistoricalParams as StockHistoricalParams,
     type StockIncomeStatementParams as StockIncomeStatementParams,
     type StockInsiderTransactionsParams as StockInsiderTransactionsParams,
+    type StockOwnershipNetworkParams as StockOwnershipNetworkParams,
     type StockProfileParams as StockProfileParams,
     type StockQuoteParams as StockQuoteParams,
     type StockScreenerParams as StockScreenerParams,
+    type StockShareholdersParams as StockShareholdersParams,
     type StockStatisticsParams as StockStatisticsParams,
     type StockValueAddedParams as StockValueAddedParams,
   };

@@ -192,6 +192,33 @@ describe('resource stocks', () => {
     });
   });
 
+  test('ownershipNetwork', async () => {
+    const responsePromise = client.v2.stocks.ownershipNetwork();
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('ownershipNetwork: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.v2.stocks.ownershipNetwork(
+        {
+          depth: 1,
+          includePersons: 'true',
+          limit: 1,
+          minPercent: 0,
+          symbol: 'ITUB4',
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Brapi.NotFoundError);
+  });
+
   test('profile: only required params', async () => {
     const responsePromise = client.v2.stocks.profile({ symbols: 'PETR4,VALE3' });
     const rawResponse = await responsePromise.asResponse();
@@ -317,6 +344,21 @@ describe('resource stocks', () => {
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Brapi.NotFoundError);
+  });
+
+  test('shareholders: only required params', async () => {
+    const responsePromise = client.v2.stocks.shareholders({ symbols: 'PETR4' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('shareholders: required and optional params', async () => {
+    const response = await client.v2.stocks.shareholders({ symbols: 'PETR4' });
   });
 
   test('statistics: only required params', async () => {
