@@ -220,6 +220,7 @@ Types:
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPaginationMeta</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundListResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundDividendsResponse</a></code>
+- <code><a href="./src/resources/v2/funds/funds.ts">FundExposureResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundHoldersResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundIndicatorsResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPortfolioResponse</a></code>
@@ -230,6 +231,7 @@ Methods:
 
 - <code title="get /api/v2/funds/list">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">list</a>({ ...params }) -> FundListResponse</code>
 - <code title="get /api/v2/funds/dividends">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">dividends</a>({ ...params }) -> FundDividendsResponse</code>
+- <code title="get /api/v2/funds/exposure">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">exposure</a>({ ...params }) -> FundExposureResponse</code>
 - <code title="get /api/v2/funds/holders">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">holders</a>({ ...params }) -> FundHoldersResponse</code>
 - <code title="get /api/v2/funds/indicators">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">indicators</a>({ ...params }) -> FundIndicatorsResponse</code>
 - <code title="get /api/v2/funds/portfolio">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">portfolio</a>({ ...params }) -> FundPortfolioResponse</code>
