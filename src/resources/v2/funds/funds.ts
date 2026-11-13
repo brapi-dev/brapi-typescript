@@ -2,6 +2,14 @@
 
 import { APIResource } from '../../../core/resource';
 import * as FundsAPI from './funds';
+import * as CrowdingAPI from './crowding';
+import {
+  Crowding,
+  CrowdingHistoryParams,
+  CrowdingHistoryResponse,
+  CrowdingRetrieveParams,
+  CrowdingRetrieveResponse,
+} from './crowding';
 import * as FiagroAPI from './fiagro';
 import {
   Fiagro,
@@ -33,6 +41,7 @@ import { RequestOptions } from '../../../internal/request-options';
 export class Funds extends APIResource {
   nav: NavAPI.Nav = new NavAPI.Nav(this._client);
   holdings: HoldingsAPI.Holdings = new HoldingsAPI.Holdings(this._client);
+  crowding: CrowdingAPI.Crowding = new CrowdingAPI.Crowding(this._client);
   fiagro: FiagroAPI.Fiagro = new FiagroAPI.Fiagro(this._client);
   fidc: FidcAPI.Fidc = new FidcAPI.Fidc(this._client);
   fip: FipAPI.Fip = new FipAPI.Fip(this._client);
@@ -111,6 +120,51 @@ export class Funds extends APIResource {
   }
 
   /**
+   * A exposição final de uma carteira de ativos: cada item abre até os ativos
+   * finais, e o resultado junta tudo por empresa, país, setor e classe de ativo.
+   *
+   * Use para saber quanto uma carteira tem, no total, em uma empresa (NVIDIA pelo
+   * WRLD11, pelo IVVB11 e pelo NVDC34), em um país ou em um setor.
+   *
+   * Informe `positions` com até 200 itens: tickers de ações, units, BDRs, ETFs, BDRs
+   * de ETF, ou CNPJs de fundos, cada um com o valor em reais (`PETR4:3000`) ou o
+   * peso (`PETR4:30%`).
+   *
+   * Como cada item abre:
+   *
+   * - Fundo ou ETF brasileiro: pela carteira mensal do fundo, abrindo os fundos que
+   *   ele tem, como em `/api/v2/funds/holdings`.
+   * - BDR de ETF: pela carteira do ETF no exterior, dos relatórios públicos dos
+   *   fundos. BDRs de ouro, prata e criptoativos viram o próprio ativo.
+   * - Ação, unit ou BDR de empresa: a própria empresa. Uma ação direta soma com a
+   *   mesma empresa dentro dos fundos.
+   *
+   * `companies` junta as classes de ações de uma empresa e os BDRs dela, quando a
+   * ligação é conhecida. `paths` mostra quanto vem de cada item, até 10 itens;
+   * `pathsCount` conta todos. `totals` e `assetClasses` fecham 100%.
+   *
+   * `coverage.unresolved` lista as 50 maiores partes que não abrem (fundos sem
+   * carteira, posições confidenciais, fundos pequenos demais para abrir), com o
+   * motivo e o peso; `coverage.otherUnresolved` soma o resto. Os fundos de todos os
+   * itens dividem um limite de posições: os de maior peso na carteira abrem
+   * primeiro. As carteiras têm datas diferentes: `coverage.oldestReferenceDate` traz
+   * a mais antiga.
+   *
+   * Plano Pro.
+   *
+   * @example
+   * ```ts
+   * const response = await client.v2.funds.exposure({
+   *   positions:
+   *     'WRLD11:10000,IVVB11:5000,NVDC34:2000,PETR4:3000,BIAU39:1000',
+   * });
+   * ```
+   */
+  exposure(query: FundExposureParams, options?: RequestOptions): APIPromise<FundExposureResponse> {
+    return this._client.get('/api/v2/funds/exposure', { query, ...options });
+  }
+
+  /**
    * Fundos que têm um ativo em carteira, com o valor e o peso da posição em cada
    * fundo. Os dados vêm da carteira mensal que os fundos entregam à CVM.
    *
@@ -127,12 +181,58 @@ export class Funds extends APIResource {
    * Cada fundo aparece uma vez, com os valores somados. `positions` mostra cada
    * ativo da posição. Use `assetClass=equity` para ver só as ações.
    *
-   * Só posições diretas: um fundo que tem o ativo por meio de outro fundo não
-   * aparece. Ações próprias e emprestadas somam uma posição. Derivativos, valores a
-   * pagar e posições confidenciais não aparecem.
+   * Por padrão (`scope=direct`), só posições diretas: um fundo que tem o ativo por
+   * meio de outro fundo não aparece. Ações próprias e emprestadas somam uma posição.
+   * Derivativos, valores a pagar e posições confidenciais não aparecem.
+   *
+   * Fundos que têm o ativo por meio de outros fundos: use `scope=indirect` (só
+   * esses) ou `scope=all` (os dois). O caminho passa por fundos de fundos, ETFs,
+   * BDRs de ETF e os fundos do exterior por trás deles. Assim, um fundo que tem
+   * WRLD11 aparece entre os que têm NVIDIA (NVDC34). Um BDR de empresa também busca
+   * a ação no exterior: as ações da NVIDIA que os fundos têm fora do país e dentro
+   * dos fundos do exterior.
+   *
+   * Com `scope=indirect` ou `all`:
+   *
+   * - `marketValue` e `weightPercent` trazem a exposição total do fundo ao ativo,
+   *   direta mais indireta. `directValue` e `directWeightPercent` trazem só a
+   *   posição direta, e `indirectValue` a parte por meio de outros fundos.
+   * - `paths` traz os 3 caminhos de maior valor, cada um com os fundos no caminho
+   *   (`via`), o peso e o valor. A posição direta é o caminho com `via` vazio.
+   * - A mesma posição aparece em cada fundo acima dela, então a soma dos fundos
+   *   conta a posição mais de uma vez. `summary.totalValue` conta cada posição uma
+   *   vez. `summary` traz também quantos fundos têm o ativo só direto, só indireto
+   *   ou dos dois jeitos.
+   * - `change`, `sortBy=bought`, `sortBy=sold` e `include=movers` continuam sobre a
+   *   posição direta. `include=direct` traz também `topDirect`: as maiores posições
+   *   diretas, na mesma resposta. O valor indireto muda quando um fundo no meio do
+   *   caminho negocia, e isso não é compra nem venda do fundo.
+   *   `previousIndirectValue` traz o valor indireto do mês anterior.
+   * - Um fundo só abre outro a partir de 0,01% do patrimônio e até 5 níveis.
+   *   Posições confidenciais nunca abrem. Os fundos do exterior publicam a carteira
+   *   a cada trimestre: `summary.oldestReferenceDate` traz a data mais antiga usada.
    *
    * Sem `referenceDate`, a resposta traz o mês mais recente que a maioria dos fundos
    * já entregou: os fundos entregam a carteira ao longo de semanas.
+   *
+   * Quem comprou e quem vendeu: `change` compara cada fundo com o mês anterior com
+   * carteiras (`previousReferenceDate`). `change.changeValue` estima o valor
+   * comprado ou vendido pela diferença de quantidade vezes o preço do mês, então a
+   * alta ou a queda do preço não conta. A quantidade do mês anterior é ajustada por
+   * desdobramentos, grupamentos e bonificações. Use `sortBy=bought` para os maiores
+   * compradores e `sortBy=sold` para os maiores vendedores, inclusive os que zeraram
+   * a posição. Com `include=movers`, a mesma resposta traz também `topBuyers` e
+   * `topSellers`. `summary` traz quantos fundos compraram e venderam e o saldo do
+   * mês. Uma linha com quantidade e valor zerados conta como posição zerada.
+   *
+   * Um fundo que ainda não entregou a carteira do mês não conta como venda. Um fundo
+   * sem carteira no mês anterior, ou com posições confidenciais da mesma classe do
+   * ativo em um dos dois meses, fica com `change.status` `unknown` e não entra nos
+   * totais. Quando um evento muda a quantidade de ações sem fator conhecido (como
+   * incorporação ou redução de capital), `change` e os totais vêm `null`.
+   *
+   * `return12mPercent` traz a variação do valor da cota de cada fundo nos 12 meses
+   * até `referenceDate`, sem os rendimentos distribuídos.
    *
    * Plano Pro.
    *
@@ -577,12 +677,347 @@ export namespace FundDividendsResponse {
   }
 }
 
+export interface FundExposureResponse {
+  assetClasses: Array<FundExposureResponse.AssetClass>;
+
+  companies: Array<FundExposureResponse.Company>;
+
+  countries: Array<FundExposureResponse.Country>;
+
+  countryCoveragePercent: number | null;
+
+  coverage: FundExposureResponse.Coverage;
+
+  inputs: Array<FundExposureResponse.Input>;
+
+  pagination: FundExposureResponse.Pagination;
+
+  referenceDate: string | null;
+
+  /**
+   * Data e hora da requisição em ISO 8601.
+   */
+  requestedAt: string;
+
+  /**
+   * Parte do peso das empresas que tem setor, em %.
+   */
+  sectorCoveragePercent: number | null;
+
+  sectors: Array<FundExposureResponse.Sector>;
+
+  /**
+   * Tempo de processamento, em milissegundos.
+   */
+  took: number;
+
+  totals: FundExposureResponse.Totals;
+
+  /**
+   * Soma dos valores informados. `null` com pesos.
+   */
+  totalValue: number | null;
+}
+
+export namespace FundExposureResponse {
+  export interface AssetClass {
+    /**
+     * `equity` (ações e BDRs), `fixedIncome` (renda fixa), `cash` (caixa e valores a
+     * pagar e receber), `commodity`, `crypto`, `fund` (fundos que não abrem) ou
+     * `other`.
+     */
+    assetClass: 'equity' | 'fixedIncome' | 'cash' | 'commodity' | 'crypto' | 'fund' | 'other';
+
+    value: number | null;
+
+    /**
+     * Peso na cesta, em %.
+     */
+    weightPercent: number;
+  }
+
+  export interface Company {
+    /**
+     * Chave da empresa: junta classes de ações e BDRs da mesma empresa.
+     */
+    id: string;
+
+    /**
+     * Tickers da empresa na B3 (ações, units, BDRs).
+     */
+    b3Symbols: Array<string>;
+
+    country: string | null;
+
+    isin: string | null;
+
+    name: string | null;
+
+    /**
+     * Até 10 itens da cesta que levam à empresa, do maior para o menor.
+     */
+    paths: Array<Company.Path>;
+
+    /**
+     * Quantos itens da cesta levam à empresa.
+     */
+    pathsCount: number;
+
+    rank: number;
+
+    sector: string | null;
+
+    /**
+     * Ticker na bolsa de origem, quando conhecido.
+     */
+    symbol: string | null;
+
+    value: number | null;
+
+    /**
+     * Peso na cesta, em %.
+     */
+    weightPercent: number;
+  }
+
+  export namespace Company {
+    export interface Path {
+      /**
+       * Item da cesta.
+       */
+      input: string;
+
+      /**
+       * Fundos entre o item e a empresa, no caminho de maior peso. Vazio quando o item é
+       * a própria ação.
+       */
+      via: Array<Path.Via>;
+
+      /**
+       * Peso que vem por este item, em % da cesta.
+       */
+      weightPercent: number;
+    }
+
+    export namespace Path {
+      export interface Via {
+        id: string | null;
+
+        name: string | null;
+
+        symbol: string | null;
+      }
+    }
+  }
+
+  export interface Country {
+    /**
+     * Código ISO do país.
+     */
+    country: string;
+
+    countryName: string | null;
+
+    /**
+     * Peso no patrimônio, em %.
+     */
+    weightPercent: number;
+  }
+
+  export interface Coverage {
+    oldestReferenceDate: string | null;
+
+    /**
+     * Soma das partes que não abrem além das 50 listadas.
+     */
+    otherUnresolved: Coverage.OtherUnresolved;
+
+    /**
+     * Parte da cesta que chega a um ativo final, em %.
+     */
+    resolvedPercent: number;
+
+    /**
+     * As 50 maiores partes que não abrem, da maior para a menor.
+     */
+    unresolved: Array<Coverage.Unresolved>;
+  }
+
+  export namespace Coverage {
+    /**
+     * Soma das partes que não abrem além das 50 listadas.
+     */
+    export interface OtherUnresolved {
+      count: number;
+
+      /**
+       * Peso das partes fora de `unresolved`, em % da cesta.
+       */
+      weightPercent: number;
+    }
+
+    export interface Unresolved {
+      id: string | null;
+
+      /**
+       * `localFund` (fundo brasileiro), `foreignFund` (fundo do exterior), `etfBdr` (BDR
+       * de ETF) ou `singleAsset` (um ativo só, como ouro ou bitcoin).
+       */
+      kind: 'localFund' | 'foreignFund' | 'etfBdr' | 'singleAsset' | null;
+
+      name: string | null;
+
+      /**
+       * Por que o fundo não abre: `confidential` (posição confidencial), `noReport` (sem
+       * carteira), `staleReport` (carteira longe do mês), `belowThreshold` (peso
+       * pequeno), `depthLimit` (muitos níveis), `cycle` (o fundo já está acima),
+       * `noComposition` (sem carteira pública), `inconsistentReport` (as posições não
+       * batem com o patrimônio) ou `notFound` (item da cesta que não é ticker, fundo ou
+       * BDR de ETF conhecido).
+       */
+      reason:
+        | 'confidential'
+        | 'noReport'
+        | 'staleReport'
+        | 'belowThreshold'
+        | 'depthLimit'
+        | 'cycle'
+        | 'noComposition'
+        | 'inconsistentReport'
+        | 'notFound';
+
+      symbol: string | null;
+
+      /**
+       * Até 10 itens da cesta por onde chega esta parte.
+       */
+      via: Array<string>;
+
+      /**
+       * Quantos itens da cesta chegam a esta parte.
+       */
+      viaCount: number;
+
+      /**
+       * Peso no fundo pedido, em %.
+       */
+      weightPercent: number;
+    }
+  }
+
+  export interface Input {
+    id: string | null;
+
+    cnpj: string | null;
+
+    /**
+     * Como o item foi lido: fundo brasileiro, BDR de ETF, ativo único (ouro, bitcoin),
+     * ação ou unit, BDR de empresa, fundo listado sem carteira mensal, ou
+     * desconhecido.
+     */
+    kind: 'localFund' | 'etfBdr' | 'singleAsset' | 'stock' | 'bdr' | 'fund' | 'unknown';
+
+    name: string | null;
+
+    /**
+     * Por que o fundo não abre: `confidential` (posição confidencial), `noReport` (sem
+     * carteira), `staleReport` (carteira longe do mês), `belowThreshold` (peso
+     * pequeno), `depthLimit` (muitos níveis), `cycle` (o fundo já está acima),
+     * `noComposition` (sem carteira pública), `inconsistentReport` (as posições não
+     * batem com o patrimônio) ou `notFound` (item da cesta que não é ticker, fundo ou
+     * BDR de ETF conhecido).
+     */
+    reason:
+      | 'confidential'
+      | 'noReport'
+      | 'staleReport'
+      | 'belowThreshold'
+      | 'depthLimit'
+      | 'cycle'
+      | 'noComposition'
+      | 'inconsistentReport'
+      | 'notFound'
+      | null;
+
+    /**
+     * Data da carteira do item.
+     */
+    referenceDate: string | null;
+
+    /**
+     * Parte do item que chega a um ativo final, em %.
+     */
+    resolvedPercent: number;
+
+    symbol: string | null;
+
+    value: number | null;
+
+    /**
+     * Peso do item na cesta, em %.
+     */
+    weightPercent: number;
+  }
+
+  export interface Pagination {
+    hasNextPage: boolean;
+
+    limit: number;
+
+    page: number;
+
+    totalItems: number;
+
+    totalPages: number;
+  }
+
+  export interface Sector {
+    sector: string;
+
+    /**
+     * Peso no patrimônio, em %.
+     */
+    weightPercent: number;
+  }
+
+  export interface Totals {
+    companiesCount: number;
+
+    /**
+     * Peso de todas as empresas, em %.
+     */
+    companiesWeightPercent: number;
+
+    /**
+     * Peso das empresas desta página.
+     */
+    listedWeightPercent: number;
+
+    /**
+     * Peso do que não é ação: renda fixa, caixa, ouro, criptoativos, fundos sem
+     * carteira.
+     */
+    notCompaniesWeightPercent: number;
+
+    /**
+     * Peso das empresas fora desta página.
+     */
+    otherCompaniesWeightPercent: number;
+  }
+}
+
 export interface FundHoldersResponse {
   asset: FundHoldersResponse.Asset;
 
   funds: Array<FundHoldersResponse.Fund>;
 
   pagination: FundHoldersResponse.Pagination;
+
+  /**
+   * Mês anterior com carteiras, base de `change` e dos totais de compra e venda.
+   * `null` quando `change` é `null`.
+   */
+  previousReferenceDate: string | null;
 
   referenceDate: string | null;
 
@@ -597,6 +1032,29 @@ export interface FundHoldersResponse {
    * Tempo de processamento, em milissegundos.
    */
   took: number;
+
+  /**
+   * Com `scope=indirect` ou `all`: o escopo pedido.
+   */
+  scope?: 'direct' | 'indirect' | 'all';
+
+  /**
+   * Com `include=movers`: os fundos que mais compraram no mês, como em
+   * `sortBy=bought`, até `limit`. Vazio quando `change` é `null`.
+   */
+  topBuyers?: Array<FundHoldersResponse.TopBuyer>;
+
+  /**
+   * Com `include=direct` e `scope=indirect` ou `all`: os fundos com as maiores
+   * posições diretas, por `directValue`, até `limit`.
+   */
+  topDirect?: Array<FundHoldersResponse.TopDirect>;
+
+  /**
+   * Com `include=movers`: os fundos que mais venderam no mês, como em `sortBy=sold`,
+   * até `limit`. Vazio quando `change` é `null`.
+   */
+  topSellers?: Array<FundHoldersResponse.TopSeller>;
 }
 
 export namespace FundHoldersResponse {
@@ -622,6 +1080,14 @@ export namespace FundHoldersResponse {
   export interface Fund {
     assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
 
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: Fund.Change | null;
+
     cnpj: string;
 
     /**
@@ -644,9 +1110,18 @@ export namespace FundHoldersResponse {
 
     /**
      * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
-     * mais de um ativo da empresa, ou títulos sem código.
+     * mais de um ativo (classes da empresa, ou o BDR e a ação no exterior com
+     * `scope=indirect|all`), ou títulos sem código.
      */
     quantity: number | null;
+
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
 
     symbol: string | null;
 
@@ -654,16 +1129,98 @@ export namespace FundHoldersResponse {
      * Peso do ativo no patrimônio do fundo, em %.
      */
     weightPercent: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor da posição na própria carteira do fundo, em
+     * reais.
+     */
+    directValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: peso da posição direta no patrimônio do fundo, em
+     * %.
+     */
+    directWeightPercent?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor que o fundo tem no ativo por meio de outros
+     * fundos, em reais: patrimônio do fundo × peso do caminho × peso do ativo no fundo
+     * que o tem.
+     */
+    indirectValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: os 3 caminhos de maior valor.
+     */
+    paths?: Array<Fund.Path>;
+
+    /**
+     * Com `scope=indirect` ou `all`: quantos caminhos levam ao ativo, com a posição
+     * direta.
+     */
+    pathsCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: `indirectValue` no mês anterior
+     * (`previousReferenceDate`). Não indica compra nem venda: o valor muda quando um
+     * fundo no meio do caminho negocia. `null` sem dados do mês anterior.
+     */
+    previousIndirectValue?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: exposição do fundo ao ativo em reais, direta mais
+     * indireta. Igual a `marketValue`.
+     */
+    value?: number;
   }
 
   export namespace Fund {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
     export interface Position {
       /**
        * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
        * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
        * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
        * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
-       * (valores a pagar) ou `other`.
+       * (valores a pagar), `commodity` (ouro, prata), `crypto` (criptoativos) ou
+       * `other`.
        */
       assetClass:
         | 'equity'
@@ -678,6 +1235,8 @@ export namespace FundHoldersResponse {
         | 'cash'
         | 'receivable'
         | 'payable'
+        | 'commodity'
+        | 'crypto'
         | 'other';
 
       /**
@@ -700,6 +1259,37 @@ export namespace FundHoldersResponse {
        */
       weightPercent: number | null;
     }
+
+    export interface Path {
+      /**
+       * Valor em reais.
+       */
+      value: number;
+
+      /**
+       * Fundos no caminho, do primeiro ao que tem o ativo. Vazio para a posição direta.
+       */
+      via: Array<Path.Via>;
+
+      /**
+       * Peso deste caminho no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export namespace Path {
+      export interface Via {
+        /**
+         * CNPJ do fundo, `sec:<série>` de um fundo do exterior ou `bdr:<ticker>` de um BDR
+         * de ETF.
+         */
+        id: string;
+
+        name: string | null;
+
+        symbol: string | null;
+      }
+    }
   }
 
   export interface Pagination {
@@ -715,15 +1305,725 @@ export namespace FundHoldersResponse {
   }
 
   export interface Summary {
+    /**
+     * Fundos que compraram no mês (`change.changeValue` positivo). `null` quando
+     * `change` é `null`.
+     */
+    buyersCount: number | null;
+
+    /**
+     * Saldo estimado do mês, em reais: compras menos vendas de todos os fundos. Fundos
+     * com `unknown` não entram.
+     */
+    changeValue: number | null;
+
     fundsCount: number;
 
+    /**
+     * Fundos que venderam no mês, inclusive os que zeraram a posição. `null` quando
+     * `change` é `null`.
+     */
+    sellersCount: number | null;
+
+    /**
+     * Valor das posições diretas. Com `scope=indirect` ou `all`, inclui as linhas da
+     * mesma ação no exterior nas carteiras dos fundos locais (NVDA para NVDC34).
+     */
     totalMarketValue: number;
 
     /**
-     * Soma das quantidades. `null` quando a resposta junta mais de um ativo da
-     * empresa, ou títulos sem código.
+     * Soma das quantidades. `null` quando a resposta junta mais de um ativo (classes
+     * da empresa, ou o BDR e a ação no exterior com `scope=indirect|all`), ou títulos
+     * sem código.
      */
     totalQuantity: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: fundos que têm o ativo das duas formas.
+     */
+    bothCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: fundos que têm o ativo só na própria carteira.
+     */
+    directOnlyCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: parte de `totalValue` que os fundos têm por meio
+     * de fundos do exterior e BDRs de ETF.
+     */
+    foreignFundsValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: `false` quando o mês não tem os caminhos entre
+     * fundos. Então só as posições diretas entram.
+     */
+    indirectAvailable?: boolean;
+
+    /**
+     * Com `scope=indirect` ou `all`: fundos que têm o ativo só por meio de outros
+     * fundos.
+     */
+    indirectOnlyCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: data da carteira mais antiga usada. Os fundos do
+     * exterior publicam a carteira a cada trimestre, com atraso.
+     */
+    oldestReferenceDate?: string | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor total no ativo, com cada posição contada
+     * uma vez: as posições diretas (`totalMarketValue`) mais a parte dos fundos do
+     * exterior que os fundos têm (`foreignFundsValue`). A soma de `value` dos fundos é
+     * maior: a mesma posição aparece em cada fundo acima dela.
+     */
+    totalValue?: number;
+  }
+
+  export interface TopBuyer {
+    assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
+
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: TopBuyer.Change | null;
+
+    cnpj: string;
+
+    /**
+     * Valor da posição em reais, com ações emprestadas.
+     */
+    marketValue: number;
+
+    name: string | null;
+
+    /**
+     * Patrimônio líquido do fundo, em reais.
+     */
+    netAssets: number | null;
+
+    /**
+     * Cada ativo que forma a posição, do maior valor ao menor. Mostra, por exemplo,
+     * quanto o fundo tem em cada ação e em cada debênture da empresa.
+     */
+    positions: Array<TopBuyer.Position>;
+
+    /**
+     * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
+     * mais de um ativo (classes da empresa, ou o BDR e a ação no exterior com
+     * `scope=indirect|all`), ou títulos sem código.
+     */
+    quantity: number | null;
+
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
+
+    symbol: string | null;
+
+    /**
+     * Peso do ativo no patrimônio do fundo, em %.
+     */
+    weightPercent: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor da posição na própria carteira do fundo, em
+     * reais.
+     */
+    directValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: peso da posição direta no patrimônio do fundo, em
+     * %.
+     */
+    directWeightPercent?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor que o fundo tem no ativo por meio de outros
+     * fundos, em reais: patrimônio do fundo × peso do caminho × peso do ativo no fundo
+     * que o tem.
+     */
+    indirectValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: os 3 caminhos de maior valor.
+     */
+    paths?: Array<TopBuyer.Path>;
+
+    /**
+     * Com `scope=indirect` ou `all`: quantos caminhos levam ao ativo, com a posição
+     * direta.
+     */
+    pathsCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: `indirectValue` no mês anterior
+     * (`previousReferenceDate`). Não indica compra nem venda: o valor muda quando um
+     * fundo no meio do caminho negocia. `null` sem dados do mês anterior.
+     */
+    previousIndirectValue?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: exposição do fundo ao ativo em reais, direta mais
+     * indireta. Igual a `marketValue`.
+     */
+    value?: number;
+  }
+
+  export namespace TopBuyer {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
+    export interface Position {
+      /**
+       * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
+       * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
+       * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
+       * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
+       * (valores a pagar), `commodity` (ouro, prata), `crypto` (criptoativos) ou
+       * `other`.
+       */
+      assetClass:
+        | 'equity'
+        | 'bdr'
+        | 'fund'
+        | 'governmentBond'
+        | 'repo'
+        | 'privateCredit'
+        | 'bankSecurity'
+        | 'foreign'
+        | 'derivative'
+        | 'cash'
+        | 'receivable'
+        | 'payable'
+        | 'commodity'
+        | 'crypto'
+        | 'other';
+
+      /**
+       * Valor em reais.
+       */
+      marketValue: number;
+
+      /**
+       * Quantidade. `null` para títulos sem código de uma empresa: podem ser mais de um.
+       */
+      quantity: number | null;
+
+      /**
+       * Ticker ou código do ativo. `null` para cotas de fundo e títulos sem código.
+       */
+      symbol: string | null;
+
+      /**
+       * Peso no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export interface Path {
+      /**
+       * Valor em reais.
+       */
+      value: number;
+
+      /**
+       * Fundos no caminho, do primeiro ao que tem o ativo. Vazio para a posição direta.
+       */
+      via: Array<Path.Via>;
+
+      /**
+       * Peso deste caminho no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export namespace Path {
+      export interface Via {
+        /**
+         * CNPJ do fundo, `sec:<série>` de um fundo do exterior ou `bdr:<ticker>` de um BDR
+         * de ETF.
+         */
+        id: string;
+
+        name: string | null;
+
+        symbol: string | null;
+      }
+    }
+  }
+
+  export interface TopDirect {
+    assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
+
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: TopDirect.Change | null;
+
+    cnpj: string;
+
+    /**
+     * Valor da posição em reais, com ações emprestadas.
+     */
+    marketValue: number;
+
+    name: string | null;
+
+    /**
+     * Patrimônio líquido do fundo, em reais.
+     */
+    netAssets: number | null;
+
+    /**
+     * Cada ativo que forma a posição, do maior valor ao menor. Mostra, por exemplo,
+     * quanto o fundo tem em cada ação e em cada debênture da empresa.
+     */
+    positions: Array<TopDirect.Position>;
+
+    /**
+     * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
+     * mais de um ativo (classes da empresa, ou o BDR e a ação no exterior com
+     * `scope=indirect|all`), ou títulos sem código.
+     */
+    quantity: number | null;
+
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
+
+    symbol: string | null;
+
+    /**
+     * Peso do ativo no patrimônio do fundo, em %.
+     */
+    weightPercent: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor da posição na própria carteira do fundo, em
+     * reais.
+     */
+    directValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: peso da posição direta no patrimônio do fundo, em
+     * %.
+     */
+    directWeightPercent?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor que o fundo tem no ativo por meio de outros
+     * fundos, em reais: patrimônio do fundo × peso do caminho × peso do ativo no fundo
+     * que o tem.
+     */
+    indirectValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: os 3 caminhos de maior valor.
+     */
+    paths?: Array<TopDirect.Path>;
+
+    /**
+     * Com `scope=indirect` ou `all`: quantos caminhos levam ao ativo, com a posição
+     * direta.
+     */
+    pathsCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: `indirectValue` no mês anterior
+     * (`previousReferenceDate`). Não indica compra nem venda: o valor muda quando um
+     * fundo no meio do caminho negocia. `null` sem dados do mês anterior.
+     */
+    previousIndirectValue?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: exposição do fundo ao ativo em reais, direta mais
+     * indireta. Igual a `marketValue`.
+     */
+    value?: number;
+  }
+
+  export namespace TopDirect {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
+    export interface Position {
+      /**
+       * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
+       * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
+       * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
+       * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
+       * (valores a pagar), `commodity` (ouro, prata), `crypto` (criptoativos) ou
+       * `other`.
+       */
+      assetClass:
+        | 'equity'
+        | 'bdr'
+        | 'fund'
+        | 'governmentBond'
+        | 'repo'
+        | 'privateCredit'
+        | 'bankSecurity'
+        | 'foreign'
+        | 'derivative'
+        | 'cash'
+        | 'receivable'
+        | 'payable'
+        | 'commodity'
+        | 'crypto'
+        | 'other';
+
+      /**
+       * Valor em reais.
+       */
+      marketValue: number;
+
+      /**
+       * Quantidade. `null` para títulos sem código de uma empresa: podem ser mais de um.
+       */
+      quantity: number | null;
+
+      /**
+       * Ticker ou código do ativo. `null` para cotas de fundo e títulos sem código.
+       */
+      symbol: string | null;
+
+      /**
+       * Peso no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export interface Path {
+      /**
+       * Valor em reais.
+       */
+      value: number;
+
+      /**
+       * Fundos no caminho, do primeiro ao que tem o ativo. Vazio para a posição direta.
+       */
+      via: Array<Path.Via>;
+
+      /**
+       * Peso deste caminho no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export namespace Path {
+      export interface Via {
+        /**
+         * CNPJ do fundo, `sec:<série>` de um fundo do exterior ou `bdr:<ticker>` de um BDR
+         * de ETF.
+         */
+        id: string;
+
+        name: string | null;
+
+        symbol: string | null;
+      }
+    }
+  }
+
+  export interface TopSeller {
+    assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
+
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: TopSeller.Change | null;
+
+    cnpj: string;
+
+    /**
+     * Valor da posição em reais, com ações emprestadas.
+     */
+    marketValue: number;
+
+    name: string | null;
+
+    /**
+     * Patrimônio líquido do fundo, em reais.
+     */
+    netAssets: number | null;
+
+    /**
+     * Cada ativo que forma a posição, do maior valor ao menor. Mostra, por exemplo,
+     * quanto o fundo tem em cada ação e em cada debênture da empresa.
+     */
+    positions: Array<TopSeller.Position>;
+
+    /**
+     * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
+     * mais de um ativo (classes da empresa, ou o BDR e a ação no exterior com
+     * `scope=indirect|all`), ou títulos sem código.
+     */
+    quantity: number | null;
+
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
+
+    symbol: string | null;
+
+    /**
+     * Peso do ativo no patrimônio do fundo, em %.
+     */
+    weightPercent: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor da posição na própria carteira do fundo, em
+     * reais.
+     */
+    directValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: peso da posição direta no patrimônio do fundo, em
+     * %.
+     */
+    directWeightPercent?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: valor que o fundo tem no ativo por meio de outros
+     * fundos, em reais: patrimônio do fundo × peso do caminho × peso do ativo no fundo
+     * que o tem.
+     */
+    indirectValue?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: os 3 caminhos de maior valor.
+     */
+    paths?: Array<TopSeller.Path>;
+
+    /**
+     * Com `scope=indirect` ou `all`: quantos caminhos levam ao ativo, com a posição
+     * direta.
+     */
+    pathsCount?: number;
+
+    /**
+     * Com `scope=indirect` ou `all`: `indirectValue` no mês anterior
+     * (`previousReferenceDate`). Não indica compra nem venda: o valor muda quando um
+     * fundo no meio do caminho negocia. `null` sem dados do mês anterior.
+     */
+    previousIndirectValue?: number | null;
+
+    /**
+     * Com `scope=indirect` ou `all`: exposição do fundo ao ativo em reais, direta mais
+     * indireta. Igual a `marketValue`.
+     */
+    value?: number;
+  }
+
+  export namespace TopSeller {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
+    export interface Position {
+      /**
+       * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
+       * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
+       * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
+       * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
+       * (valores a pagar), `commodity` (ouro, prata), `crypto` (criptoativos) ou
+       * `other`.
+       */
+      assetClass:
+        | 'equity'
+        | 'bdr'
+        | 'fund'
+        | 'governmentBond'
+        | 'repo'
+        | 'privateCredit'
+        | 'bankSecurity'
+        | 'foreign'
+        | 'derivative'
+        | 'cash'
+        | 'receivable'
+        | 'payable'
+        | 'commodity'
+        | 'crypto'
+        | 'other';
+
+      /**
+       * Valor em reais.
+       */
+      marketValue: number;
+
+      /**
+       * Quantidade. `null` para títulos sem código de uma empresa: podem ser mais de um.
+       */
+      quantity: number | null;
+
+      /**
+       * Ticker ou código do ativo. `null` para cotas de fundo e títulos sem código.
+       */
+      symbol: string | null;
+
+      /**
+       * Peso no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export interface Path {
+      /**
+       * Valor em reais.
+       */
+      value: number;
+
+      /**
+       * Fundos no caminho, do primeiro ao que tem o ativo. Vazio para a posição direta.
+       */
+      via: Array<Path.Via>;
+
+      /**
+       * Peso deste caminho no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+
+    export namespace Path {
+      export interface Via {
+        /**
+         * CNPJ do fundo, `sec:<série>` de um fundo do exterior ou `bdr:<ticker>` de um BDR
+         * de ETF.
+         */
+        id: string;
+
+        name: string | null;
+
+        symbol: string | null;
+      }
+    }
   }
 }
 
@@ -1351,6 +2651,32 @@ export interface FundDividendsParams {
   symbols?: string;
 }
 
+export interface FundExposureParams {
+  /**
+   * Itens separados por vírgula, até 200: ticker ou CNPJ, com o valor em reais
+   * (`WRLD11:10000`) ou o peso (`WRLD11:30%`). Sem valor, o item recebe a média dos
+   * outros; sem nenhum valor, todos têm o mesmo peso. Use ponto como separador
+   * decimal.
+   */
+  positions: string;
+
+  /**
+   * Empresas por página. Padrão 50, máximo 500.
+   */
+  limit?: number;
+
+  /**
+   * Página, a partir de 1.
+   */
+  page?: number;
+
+  /**
+   * Data no formato YYYY-MM-DD. Traz o mês mais recente até esta data. Sem ela, traz
+   * o mês mais recente.
+   */
+  referenceDate?: string;
+}
+
 export interface FundHoldersParams {
   /**
    * Só posições destas classes de ativo, separadas por vírgula. Ex.: `equity` para
@@ -1368,6 +2694,14 @@ export interface FundHoldersParams {
    * ver quais fundos têm ações ou dívida dela. Use `symbol` ou `cnpj`, não os dois.
    */
   cnpj?: string;
+
+  /**
+   * Listas extras na mesma resposta, separadas por vírgula, até `limit` de cada.
+   * `movers` traz `topBuyers` e `topSellers`: os maiores compradores e vendedores do
+   * mês. `direct`, com `scope=indirect` ou `all`, traz `topDirect`: as maiores
+   * posições diretas.
+   */
+  include?: string;
 
   /**
    * `true` troca o ticker de `symbol` por todos os ativos da empresa: ações, units,
@@ -1392,12 +2726,25 @@ export interface FundHoldersParams {
   referenceDate?: string;
 
   /**
-   * `marketValue` (padrão) ou `weightPercent`.
+   * `direct` (padrão): fundos que têm o ativo na própria carteira. `indirect`:
+   * fundos que têm o ativo por meio de outros fundos (fundos de fundos, ETFs, BDRs
+   * de ETF e os fundos do exterior por trás deles). `all`: os dois. Com `indirect` e
+   * `all`, `marketValue` e `weightPercent` trazem a exposição total do fundo, e cada
+   * fundo traz `directValue`, `indirectValue` e `paths`.
    */
-  sortBy?: 'marketValue' | 'weightPercent';
+  scope?: 'direct' | 'indirect' | 'all';
 
   /**
-   * Ordem crescente (`asc`) ou decrescente (`desc`, padrão).
+   * `marketValue` (padrão) ou `weightPercent` listam os fundos que têm o ativo.
+   * `bought` lista só os fundos que compraram no mês, pelo valor comprado
+   * (`change.changeValue`). `sold` lista só os que venderam, inclusive os que
+   * zeraram a posição, pelo valor vendido.
+   */
+  sortBy?: 'marketValue' | 'weightPercent' | 'bought' | 'sold';
+
+  /**
+   * Ordem crescente (`asc`) ou decrescente (`desc`, padrão). Com `bought` e `sold`,
+   * `desc` traz primeiro as maiores compras ou vendas.
    */
   sortOrder?: 'asc' | 'desc';
 
@@ -1826,6 +3173,7 @@ export interface FundScreenerParams {
 
 Funds.Nav = Nav;
 Funds.Holdings = Holdings;
+Funds.Crowding = Crowding;
 Funds.Fiagro = Fiagro;
 Funds.Fidc = Fidc;
 Funds.Fip = Fip;
@@ -1836,6 +3184,7 @@ export declare namespace Funds {
     type FundPaginationMeta as FundPaginationMeta,
     type FundListResponse as FundListResponse,
     type FundDividendsResponse as FundDividendsResponse,
+    type FundExposureResponse as FundExposureResponse,
     type FundHoldersResponse as FundHoldersResponse,
     type FundIndicatorsResponse as FundIndicatorsResponse,
     type FundPortfolioResponse as FundPortfolioResponse,
@@ -1843,6 +3192,7 @@ export declare namespace Funds {
     type FundScreenerResponse as FundScreenerResponse,
     type FundListParams as FundListParams,
     type FundDividendsParams as FundDividendsParams,
+    type FundExposureParams as FundExposureParams,
     type FundHoldersParams as FundHoldersParams,
     type FundIndicatorsParams as FundIndicatorsParams,
     type FundPortfolioParams as FundPortfolioParams,
@@ -1860,6 +3210,14 @@ export declare namespace Funds {
     Holdings as Holdings,
     type HoldingHistoryResponse as HoldingHistoryResponse,
     type HoldingHistoryParams as HoldingHistoryParams,
+  };
+
+  export {
+    Crowding as Crowding,
+    type CrowdingRetrieveResponse as CrowdingRetrieveResponse,
+    type CrowdingHistoryResponse as CrowdingHistoryResponse,
+    type CrowdingRetrieveParams as CrowdingRetrieveParams,
+    type CrowdingHistoryParams as CrowdingHistoryParams,
   };
 
   export {
