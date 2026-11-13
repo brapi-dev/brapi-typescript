@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.12.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.11.0...v1.12.0) (2026-11-13)
+
+
+### Features
+
+* **funds:** fund and ETF holdings with look-through, holders and index composition ([59992db](https://github.com/brapi-dev/brapi-typescript/commit/59992dbb0e9ac87b3e4d311626f8e59bf46599f3))
+* **funds:** holdings history, company holders lookup, SEC backfill, quote page section ([2c6c2d0](https://github.com/brapi-dev/brapi-typescript/commit/2c6c2d0da9a714289339b83368d848e4b0a4483d))
+* **funds:** portfolio composition from fund manager pages ([c639b0a](https://github.com/brapi-dev/brapi-typescript/commit/c639b0a5014cffdfdff83aba2eb720c03fcc57a2))
+
+
+### Bug Fixes
+
+* **web:** show the 30-day usage window without a renewal date ([6de7bbe](https://github.com/brapi-dev/brapi-typescript/commit/6de7bbe925dadf449b2c8e59a6503cc8acd78694))
+
 ## [1.11.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.10.0...v1.11.0) (2026-11-07)
 
 
