@@ -98,9 +98,11 @@ Types:
 - <code><a href="./src/resources/v2/stocks.ts">StockHistoricalResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockIncomeStatementResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockInsiderTransactionsResponse</a></code>
+- <code><a href="./src/resources/v2/stocks.ts">StockOwnershipNetworkResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockProfileResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockQuoteResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockScreenerResponse</a></code>
+- <code><a href="./src/resources/v2/stocks.ts">StockShareholdersResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockStatisticsResponse</a></code>
 - <code><a href="./src/resources/v2/stocks.ts">StockValueAddedResponse</a></code>
 
@@ -114,9 +116,11 @@ Methods:
 - <code title="get /api/v2/stocks/historical">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">historical</a>({ ...params }) -> StockHistoricalResponse</code>
 - <code title="get /api/v2/stocks/income-statement">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">incomeStatement</a>({ ...params }) -> StockIncomeStatementResponse</code>
 - <code title="get /api/v2/stocks/insider-transactions">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">insiderTransactions</a>({ ...params }) -> StockInsiderTransactionsResponse</code>
+- <code title="get /api/v2/stocks/ownership-network">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">ownershipNetwork</a>({ ...params }) -> StockOwnershipNetworkResponse</code>
 - <code title="get /api/v2/stocks/profile">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">profile</a>({ ...params }) -> StockProfileResponse</code>
 - <code title="get /api/v2/stocks/quote">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">quote</a>({ ...params }) -> StockQuoteResponse</code>
 - <code title="get /api/v2/stocks/screener">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">screener</a>({ ...params }) -> StockScreenerResponse</code>
+- <code title="get /api/v2/stocks/shareholders">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">shareholders</a>({ ...params }) -> StockShareholdersResponse</code>
 - <code title="get /api/v2/stocks/statistics">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">statistics</a>({ ...params }) -> StockStatisticsResponse</code>
 - <code title="get /api/v2/stocks/value-added">client.v2.stocks.<a href="./src/resources/v2/stocks.ts">valueAdded</a>({ ...params }) -> StockValueAddedResponse</code>
 
@@ -220,6 +224,7 @@ Types:
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPaginationMeta</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundListResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundDividendsResponse</a></code>
+- <code><a href="./src/resources/v2/funds/funds.ts">FundExposureResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundHoldersResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundIndicatorsResponse</a></code>
 - <code><a href="./src/resources/v2/funds/funds.ts">FundPortfolioResponse</a></code>
@@ -230,6 +235,7 @@ Methods:
 
 - <code title="get /api/v2/funds/list">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">list</a>({ ...params }) -> FundListResponse</code>
 - <code title="get /api/v2/funds/dividends">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">dividends</a>({ ...params }) -> FundDividendsResponse</code>
+- <code title="get /api/v2/funds/exposure">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">exposure</a>({ ...params }) -> FundExposureResponse</code>
 - <code title="get /api/v2/funds/holders">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">holders</a>({ ...params }) -> FundHoldersResponse</code>
 - <code title="get /api/v2/funds/indicators">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">indicators</a>({ ...params }) -> FundIndicatorsResponse</code>
 - <code title="get /api/v2/funds/portfolio">client.v2.funds.<a href="./src/resources/v2/funds/funds.ts">portfolio</a>({ ...params }) -> FundPortfolioResponse</code>
@@ -255,6 +261,18 @@ Types:
 Methods:
 
 - <code title="get /api/v2/funds/holdings/history">client.v2.funds.holdings.<a href="./src/resources/v2/funds/holdings.ts">history</a>({ ...params }) -> HoldingHistoryResponse</code>
+
+### Crowding
+
+Types:
+
+- <code><a href="./src/resources/v2/funds/crowding.ts">CrowdingRetrieveResponse</a></code>
+- <code><a href="./src/resources/v2/funds/crowding.ts">CrowdingHistoryResponse</a></code>
+
+Methods:
+
+- <code title="get /api/v2/funds/crowding">client.v2.funds.crowding.<a href="./src/resources/v2/funds/crowding.ts">retrieve</a>({ ...params }) -> CrowdingRetrieveResponse</code>
+- <code title="get /api/v2/funds/crowding/history">client.v2.funds.crowding.<a href="./src/resources/v2/funds/crowding.ts">history</a>({ ...params }) -> CrowdingHistoryResponse</code>
 
 ### Fiagro
 
