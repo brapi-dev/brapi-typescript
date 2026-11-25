@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.13.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.12.0...v1.13.0) (2026-11-25)
+
+
+### Features
+
+* **funds:** investors section on the ticker page — holders, buyers, sellers, insider trades ([970fec6](https://github.com/brapi-dev/brapi-typescript/commit/970fec6a971181bf006a2d5fab049b4b9d8f4c4d))
+* **quotes:** find funds without a ticker by name in the carteira fields ([dc6af7a](https://github.com/brapi-dev/brapi-typescript/commit/dc6af7a25e4f1e18cbd70f7096ee2e835cd7d9aa))
+* **web:** own pages for the two market maps ([c06fab7](https://github.com/brapi-dev/brapi-typescript/commit/c06fab787f3f09617466df3c6bdfe71003ddb5a3))
+
 ## [1.12.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.11.0...v1.12.0) (2026-11-13)
 
 
