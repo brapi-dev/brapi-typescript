@@ -134,6 +134,25 @@ export class Funds extends APIResource {
    * Sem `referenceDate`, a resposta traz o mês mais recente que a maioria dos fundos
    * já entregou: os fundos entregam a carteira ao longo de semanas.
    *
+   * Quem comprou e quem vendeu: `change` compara cada fundo com o mês anterior com
+   * carteiras (`previousReferenceDate`). `change.changeValue` estima o valor
+   * comprado ou vendido pela diferença de quantidade vezes o preço do mês, então a
+   * alta ou a queda do preço não conta. A quantidade do mês anterior é ajustada por
+   * desdobramentos, grupamentos e bonificações. Use `sortBy=bought` para os maiores
+   * compradores e `sortBy=sold` para os maiores vendedores, inclusive os que zeraram
+   * a posição. Com `include=movers`, a mesma resposta traz também `topBuyers` e
+   * `topSellers`. `summary` traz quantos fundos compraram e venderam e o saldo do
+   * mês. Uma linha com quantidade e valor zerados conta como posição zerada.
+   *
+   * Um fundo que ainda não entregou a carteira do mês não conta como venda. Um fundo
+   * sem carteira no mês anterior, ou com posições confidenciais da mesma classe do
+   * ativo em um dos dois meses, fica com `change.status` `unknown` e não entra nos
+   * totais. Quando um evento muda a quantidade de ações sem fator conhecido (como
+   * incorporação ou redução de capital), `change` e os totais vêm `null`.
+   *
+   * `return12mPercent` traz a variação do valor da cota de cada fundo nos 12 meses
+   * até `referenceDate`, sem os rendimentos distribuídos.
+   *
    * Plano Pro.
    *
    * @example
@@ -584,6 +603,12 @@ export interface FundHoldersResponse {
 
   pagination: FundHoldersResponse.Pagination;
 
+  /**
+   * Mês anterior com carteiras, base de `change` e dos totais de compra e venda.
+   * `null` quando `change` é `null`.
+   */
+  previousReferenceDate: string | null;
+
   referenceDate: string | null;
 
   /**
@@ -597,6 +622,18 @@ export interface FundHoldersResponse {
    * Tempo de processamento, em milissegundos.
    */
   took: number;
+
+  /**
+   * Com `include=movers`: os fundos que mais compraram no mês, como em
+   * `sortBy=bought`, até `limit`. Vazio quando `change` é `null`.
+   */
+  topBuyers?: Array<FundHoldersResponse.TopBuyer>;
+
+  /**
+   * Com `include=movers`: os fundos que mais venderam no mês, como em `sortBy=sold`,
+   * até `limit`. Vazio quando `change` é `null`.
+   */
+  topSellers?: Array<FundHoldersResponse.TopSeller>;
 }
 
 export namespace FundHoldersResponse {
@@ -621,6 +658,14 @@ export namespace FundHoldersResponse {
 
   export interface Fund {
     assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
+
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: Fund.Change | null;
 
     cnpj: string;
 
@@ -648,6 +693,14 @@ export namespace FundHoldersResponse {
      */
     quantity: number | null;
 
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
+
     symbol: string | null;
 
     /**
@@ -657,6 +710,44 @@ export namespace FundHoldersResponse {
   }
 
   export namespace Fund {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
     export interface Position {
       /**
        * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
@@ -715,7 +806,25 @@ export namespace FundHoldersResponse {
   }
 
   export interface Summary {
+    /**
+     * Fundos que compraram no mês (`change.changeValue` positivo). `null` quando
+     * `change` é `null`.
+     */
+    buyersCount: number | null;
+
+    /**
+     * Saldo estimado do mês, em reais: compras menos vendas de todos os fundos. Fundos
+     * com `unknown` não entram.
+     */
+    changeValue: number | null;
+
     fundsCount: number;
+
+    /**
+     * Fundos que venderam no mês, inclusive os que zeraram a posição. `null` quando
+     * `change` é `null`.
+     */
+    sellersCount: number | null;
 
     totalMarketValue: number;
 
@@ -724,6 +833,280 @@ export namespace FundHoldersResponse {
      * empresa, ou títulos sem código.
      */
     totalQuantity: number | null;
+  }
+
+  export interface TopBuyer {
+    assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
+
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: TopBuyer.Change | null;
+
+    cnpj: string;
+
+    /**
+     * Valor da posição em reais, com ações emprestadas.
+     */
+    marketValue: number;
+
+    name: string | null;
+
+    /**
+     * Patrimônio líquido do fundo, em reais.
+     */
+    netAssets: number | null;
+
+    /**
+     * Cada ativo que forma a posição, do maior valor ao menor. Mostra, por exemplo,
+     * quanto o fundo tem em cada ação e em cada debênture da empresa.
+     */
+    positions: Array<TopBuyer.Position>;
+
+    /**
+     * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
+     * mais de um ativo da empresa, ou títulos sem código.
+     */
+    quantity: number | null;
+
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
+
+    symbol: string | null;
+
+    /**
+     * Peso do ativo no patrimônio do fundo, em %.
+     */
+    weightPercent: number | null;
+  }
+
+  export namespace TopBuyer {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
+    export interface Position {
+      /**
+       * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
+       * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
+       * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
+       * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
+       * (valores a pagar) ou `other`.
+       */
+      assetClass:
+        | 'equity'
+        | 'bdr'
+        | 'fund'
+        | 'governmentBond'
+        | 'repo'
+        | 'privateCredit'
+        | 'bankSecurity'
+        | 'foreign'
+        | 'derivative'
+        | 'cash'
+        | 'receivable'
+        | 'payable'
+        | 'other';
+
+      /**
+       * Valor em reais.
+       */
+      marketValue: number;
+
+      /**
+       * Quantidade. `null` para títulos sem código de uma empresa: podem ser mais de um.
+       */
+      quantity: number | null;
+
+      /**
+       * Ticker ou código do ativo. `null` para cotas de fundo e títulos sem código.
+       */
+      symbol: string | null;
+
+      /**
+       * Peso no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
+  }
+
+  export interface TopSeller {
+    assetType: 'fii' | 'fiagro' | 'fiinfra' | 'fif' | 'fidc' | 'fip' | 'etf' | 'other' | null;
+
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    change: TopSeller.Change | null;
+
+    cnpj: string;
+
+    /**
+     * Valor da posição em reais, com ações emprestadas.
+     */
+    marketValue: number;
+
+    name: string | null;
+
+    /**
+     * Patrimônio líquido do fundo, em reais.
+     */
+    netAssets: number | null;
+
+    /**
+     * Cada ativo que forma a posição, do maior valor ao menor. Mostra, por exemplo,
+     * quanto o fundo tem em cada ação e em cada debênture da empresa.
+     */
+    positions: Array<TopSeller.Position>;
+
+    /**
+     * Quantidade. Vendas a descoberto ficam negativas. `null` quando a posição junta
+     * mais de um ativo da empresa, ou títulos sem código.
+     */
+    quantity: number | null;
+
+    /**
+     * Variação do valor da cota do fundo nos 12 meses até `referenceDate`, em % (12.5
+     * = 12,5%), ajustada por desdobramentos da cota. Não soma os rendimentos
+     * distribuídos, então fica abaixo do retorno total de um fundo que distribui.
+     * `null` sem o valor da cota nas duas datas.
+     */
+    return12mPercent: number | null;
+
+    symbol: string | null;
+
+    /**
+     * Peso do ativo no patrimônio do fundo, em %.
+     */
+    weightPercent: number | null;
+  }
+
+  export namespace TopSeller {
+    /**
+     * Mudança contra o mês anterior com carteiras (`previousReferenceDate`). `null`
+     * sem mês anterior, ou quando um evento muda a quantidade de ações sem fator
+     * conhecido (incorporação, redução de capital, ou mudança de quantidade sem evento
+     * registrado).
+     */
+    export interface Change {
+      /**
+       * Valor estimado comprado (positivo) ou vendido (negativo) no mês, em reais: a
+       * diferença de quantidade vezes o preço do mês (valor dividido pela quantidade).
+       * Assim a alta ou a queda do preço não conta como compra ou venda. Uma posição
+       * nova soma o valor dela; uma posição zerada, o valor do mês anterior. Um título
+       * sem quantidade que o fundo tem nos dois meses soma 0. `null` para `unknown`.
+       */
+      changeValue: number | null;
+
+      /**
+       * Valor da posição no mês anterior, em reais. 0 para `new`. `null` para `unknown`
+       * sem carteira do mês anterior.
+       */
+      previousMarketValue: number | null;
+
+      /**
+       * Quantidade no mês anterior, já ajustada por desdobramentos, grupamentos e
+       * bonificações. `null` como em `quantity`.
+       */
+      previousQuantity: number | null;
+
+      /**
+       * `new` (o fundo entregou a carteira do mês anterior sem o ativo), `increased`,
+       * `decreased`, `unchanged`, `exited` (tinha o ativo no mês anterior e entregou a
+       * carteira deste mês sem ele) ou `unknown` (sem carteira do mês anterior, ou com
+       * posições confidenciais da mesma classe do ativo em um dos dois meses). Uma linha
+       * com quantidade e valor zerados conta como sem posição.
+       */
+      status: 'new' | 'increased' | 'decreased' | 'unchanged' | 'exited' | 'unknown';
+    }
+
+    export interface Position {
+      /**
+       * Classe do ativo: `equity` (ações), `bdr`, `fund` (cotas de fundos),
+       * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
+       * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
+       * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
+       * (valores a pagar) ou `other`.
+       */
+      assetClass:
+        | 'equity'
+        | 'bdr'
+        | 'fund'
+        | 'governmentBond'
+        | 'repo'
+        | 'privateCredit'
+        | 'bankSecurity'
+        | 'foreign'
+        | 'derivative'
+        | 'cash'
+        | 'receivable'
+        | 'payable'
+        | 'other';
+
+      /**
+       * Valor em reais.
+       */
+      marketValue: number;
+
+      /**
+       * Quantidade. `null` para títulos sem código de uma empresa: podem ser mais de um.
+       */
+      quantity: number | null;
+
+      /**
+       * Ticker ou código do ativo. `null` para cotas de fundo e títulos sem código.
+       */
+      symbol: string | null;
+
+      /**
+       * Peso no patrimônio do fundo, em %.
+       */
+      weightPercent: number | null;
+    }
   }
 }
 
@@ -1370,6 +1753,12 @@ export interface FundHoldersParams {
   cnpj?: string;
 
   /**
+   * `movers` traz também `topBuyers` e `topSellers`: os maiores compradores e
+   * vendedores do mês, até `limit` de cada, na mesma resposta.
+   */
+  include?: 'movers';
+
+  /**
    * `true` troca o ticker de `symbol` por todos os ativos da empresa: ações, units,
    * debêntures e outros títulos de dívida. Padrão `false`.
    */
@@ -1392,12 +1781,16 @@ export interface FundHoldersParams {
   referenceDate?: string;
 
   /**
-   * `marketValue` (padrão) ou `weightPercent`.
+   * `marketValue` (padrão) ou `weightPercent` listam os fundos que têm o ativo.
+   * `bought` lista só os fundos que compraram no mês, pelo valor comprado
+   * (`change.changeValue`). `sold` lista só os que venderam, inclusive os que
+   * zeraram a posição, pelo valor vendido.
    */
-  sortBy?: 'marketValue' | 'weightPercent';
+  sortBy?: 'marketValue' | 'weightPercent' | 'bought' | 'sold';
 
   /**
-   * Ordem crescente (`asc`) ou decrescente (`desc`, padrão).
+   * Ordem crescente (`asc`) ou decrescente (`desc`, padrão). Com `bought` e `sold`,
+   * `desc` traz primeiro as maiores compras ou vendas.
    */
   sortOrder?: 'asc' | 'desc';
 
