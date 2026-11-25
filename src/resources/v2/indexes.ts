@@ -145,7 +145,8 @@ export namespace IndexCompositionResponse {
        * `governmentBond` (títulos públicos), `repo` (compromissadas), `privateCredit`
        * (crédito privado), `bankSecurity` (títulos de bancos), `foreign` (exterior),
        * `derivative`, `cash` (caixa), `receivable` (valores a receber), `payable`
-       * (valores a pagar) ou `other`.
+       * (valores a pagar), `commodity` (ouro, prata), `crypto` (criptoativos) ou
+       * `other`.
        */
       assetClass:
         | 'equity'
@@ -160,6 +161,8 @@ export namespace IndexCompositionResponse {
         | 'cash'
         | 'receivable'
         | 'payable'
+        | 'commodity'
+        | 'crypto'
         | 'other';
 
       country: string | null;

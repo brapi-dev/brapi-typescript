@@ -71,6 +71,28 @@ describe('resource funds', () => {
     ).rejects.toThrow(Brapi.NotFoundError);
   });
 
+  test('exposure: only required params', async () => {
+    const responsePromise = client.v2.funds.exposure({
+      positions: 'WRLD11:10000,IVVB11:5000,NVDC34:2000,PETR4:3000,BIAU39:1000',
+    });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('exposure: required and optional params', async () => {
+    const response = await client.v2.funds.exposure({
+      positions: 'WRLD11:10000,IVVB11:5000,NVDC34:2000,PETR4:3000,BIAU39:1000',
+      limit: 1,
+      page: 1,
+      referenceDate: '2026-09-30',
+    });
+  });
+
   test('holders', async () => {
     const responsePromise = client.v2.funds.holders();
     const rawResponse = await responsePromise.asResponse();
@@ -90,10 +112,12 @@ describe('resource funds', () => {
           assetClass: 'assetClass',
           assetType: 'fii',
           cnpj: 'x',
+          include: 'movers,direct',
           issuer: 'true',
           limit: 2,
           page: 1,
           referenceDate: 'referenceDate',
+          scope: 'direct',
           sortBy: 'marketValue',
           sortOrder: 'asc',
           symbol: 'PETR4',
