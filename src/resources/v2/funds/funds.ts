@@ -1736,8 +1736,9 @@ export interface FundScreenerParams {
   returnYtdMin?: number;
 
   /**
-   * Parte do ticker ou do nome do fundo. Com `assetType=unlisted`, parte do nome ou
-   * da razão social; números, com ou sem pontuação, buscam o início do CNPJ.
+   * Parte do ticker ou do nome do fundo. Com `assetType=unlisted`, palavras do nome
+   * ou da razão social, em qualquer ordem e sem exigir termos como FIC, FIA ou
+   * "Fundo de Investimento"; números, com ou sem pontuação, buscam o início do CNPJ.
    */
   search?: string;
 
