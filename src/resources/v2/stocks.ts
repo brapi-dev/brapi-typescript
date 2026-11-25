@@ -1697,7 +1697,8 @@ export interface StockInsiderTransactionsParams {
   limit?: number;
 
   /**
-   * Tipo de movimentação, com o texto exato do relatório.
+   * Tipos de movimentação separados por vírgula, com o texto exato do relatório.
+   * Ex.: `Compra à vista,Venda à vista` para só as compras e vendas à vista.
    */
   movementType?: string;
 
