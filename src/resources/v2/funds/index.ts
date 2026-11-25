@@ -1,6 +1,15 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 export {
+  Crowding,
+  type CrowdingRetrieveResponse,
+  type CrowdingHistoryResponse,
+  type CrowdingTimelineResponse,
+  type CrowdingRetrieveParams,
+  type CrowdingHistoryParams,
+  type CrowdingTimelineParams,
+} from './crowding';
+export {
   Fiagro,
   type FiagroPortfolioResponse,
   type FiagroReportsResponse,
@@ -21,6 +30,7 @@ export {
   type FundPaginationMeta,
   type FundListResponse,
   type FundDividendsResponse,
+  type FundExposureResponse,
   type FundHoldersResponse,
   type FundIndicatorsResponse,
   type FundPortfolioResponse,
@@ -28,6 +38,7 @@ export {
   type FundScreenerResponse,
   type FundListParams,
   type FundDividendsParams,
+  type FundExposureParams,
   type FundHoldersParams,
   type FundIndicatorsParams,
   type FundPortfolioParams,
