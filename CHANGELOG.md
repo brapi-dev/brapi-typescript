@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/brapi-dev/brapi-typescript/compare/v1.13.0...v1.13.1) (2026-11-26)
+
+
+### Documentation
+
+* **funds:** point /funds/crowding to the monthly history route ([229a6fa](https://github.com/brapi-dev/brapi-typescript/commit/229a6fa2a033c850263a1943340bb08fc1d683ed))
+
 ## [1.13.0](https://github.com/brapi-dev/brapi-typescript/compare/v1.12.0...v1.13.0) (2026-11-25)
 
 
