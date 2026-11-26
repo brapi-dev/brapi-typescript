@@ -34,7 +34,9 @@ export class Crowding extends APIResource {
    * posição zerada como venda. Um fundo que ainda não entregou a carteira do mês não
    * conta como venda. Um fundo sem carteira no mês anterior, ou com ações em
    * posições confidenciais em um dos dois meses, fica fora do saldo. Quando um
-   * evento muda a quantidade de ações sem fator conhecido, `flowValue` vem `null`.
+   * evento muda a quantidade de ações sem fator conhecido, ou quando a quantidade
+   * muda na maioria dos fundos sem evento registrado, `flowValue`, `buyersCount` e
+   * `sellersCount` vêm `null`.
    *
    * `sectors` traz o dinheiro e o saldo de cada setor: `boughtValue` soma as
    * empresas com saldo de compra, `soldValue` as com saldo de venda.
@@ -46,6 +48,9 @@ export class Crowding extends APIResource {
    *
    * Só entram meses que a maioria dos fundos já entregou. A CVM publica a carteira
    * cerca de 10 dias depois do fim do mês.
+   *
+   * A série por mês (concentração, total e saldo de cada mês) fica em
+   * `/api/v2/funds/crowding/history`.
    *
    * A página [Onde os fundos estão](https://brapi.dev/mercado/onde-os-fundos-estao)
    * mostra estes dados em um mapa.
